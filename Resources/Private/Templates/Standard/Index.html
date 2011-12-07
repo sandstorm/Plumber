@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Timeline</title>
+		<f:base />
+	</head>
+	<body>
+		<h1>Choose runs!</h1>
+		<f:form method="GET" action="show">
+			<table>
+				<f:for each="{profiles}" as="profile" key="file">
+					<tr>
+						<td>
+							<f:form.radio name="file1" value="{file}" />
+							<f:form.radio name="file2" value="{file}" />
+						</td>
+						<td><f:link.action action="show" arguments="{file1: file}">{profile.startTime -> f:format.date(format: 'Y-m-d H:i:s')}</f:link.action> -- {profile.options.controllerName}</td>
+					</tr>
+				</f:for>
+			</table>
+			<f:form.submit value="Compare" />
+		</f:form>
+	</body>
+</html>
