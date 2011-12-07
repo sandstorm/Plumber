@@ -116,16 +116,12 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 
 		ob_start();
 
-		require_once XHPROF_ROOT.'/views/header.php';
 		$report->render();
-		require_once XHPROF_ROOT.'/views/footer.php';
-
 
 		$contents = ob_get_contents();
 		ob_end_clean();
 
-		$contents = str_replace('"/css/', '"' . $this->resourcePublisher->getStaticResourcesWebBaseUri() . '/Packages/SandstormMedia.PhpProfiler/css/', $contents);
-		return $contents;
+		$this->view->assign('contents', $contents);
 	}
 
 }
