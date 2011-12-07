@@ -15,7 +15,7 @@
 							<f:form.radio name="file1" value="{file}" />
 							<f:form.radio name="file2" value="{file}" />
 						</td>
-						<td><f:link.action action="show" arguments="{file1: file}">{profile.startTime -> f:format.date(format: 'Y-m-d H:i:s')}</f:link.action> -- {profile.options.controllerName}</td>
+						<td><f:link.action action="show" arguments="{file1: file}">{profile.startTime -> f:format.date(format: 'Y-m-d H:i:s')}</f:link.action> -- {profile.options.controllerName} <f:link.action action="xhprof" arguments="{run: file}">xhprof</f:link.action></td>
 					</tr>
 				</f:for>
 			</table>

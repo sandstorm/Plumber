@@ -80,5 +80,53 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 		return $profiles;
 	}
 
+	/**
+	 * @param string $run
+	 */
+	public function xhprofAction($run) {
+		$profile = $this->getProfile($run);
+
+		require_once XHPROF_ROOT.'/classes/xhprof_ui.php';
+		require_once XHPROF_ROOT.'/classes/xhprof_ui/config.php';
+		require_once XHPROF_ROOT.'/classes/xhprof_ui/compute.php';
+		require_once XHPROF_ROOT.'/classes/xhprof_ui/utils.php';
+		require_once XHPROF_ROOT.'/classes/xhprof_ui/run.php';
+		require_once XHPROF_ROOT.'/classes/xhprof_ui/report/driver.php';
+		require_once XHPROF_ROOT.'/classes/xhprof_ui/report/single.php';
+
+
+		error_reporting(0);
+		$xhprof_config = new \XHProf_UI\Config();
+
+		$xhprof_ui = new \XHProf_UI(
+			array(
+				'run'       => array(\XHProf_UI\Utils::STRING_PARAM, ''),
+				'compare'   => array(\XHProf_UI\Utils::STRING_PARAM, ''),
+				'wts'       => array(\XHProf_UI\Utils::STRING_PARAM, ''),
+				'fn'        => array(\XHProf_UI\Utils::STRING_PARAM, ''),
+				'sort'      => array(\XHProf_UI\Utils::STRING_PARAM, 'wt'),
+				'run1'      => array(\XHProf_UI\Utils::STRING_PARAM, ''),
+				'run2'      => array(\XHProf_UI\Utils::STRING_PARAM, ''),
+				'namespace' => array(\XHProf_UI\Utils::STRING_PARAM, 'xhprof'),
+				'all'       => array(\XHProf_UI\Utils::UINT_PARAM, 0),
+			),
+			$xhprof_config, FLOW3_PATH_DATA . 'Logs/Profiles'
+		);
+		$report = $xhprof_ui->generate_report();
+
+		ob_start();
+
+		require_once XHPROF_ROOT.'/views/header.php';
+		$report->render();
+		require_once XHPROF_ROOT.'/views/footer.php';
+
+
+		$contents = ob_get_contents();
+		ob_end_clean();
+
+		$contents = str_replace('"/css/', '"' . $this->resourcePublisher->getStaticResourcesWebBaseUri() . '/Packages/SandstormMedia.PhpProfiler/css/', $contents);
+		return $contents;
+	}
+
 }
 ?>
