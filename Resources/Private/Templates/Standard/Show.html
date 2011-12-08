@@ -1,8 +1,14 @@
 <f:layout name="Main" />
 
 <f:section name="header">
-	<script src="http://static.simile.mit.edu/timeline/api-2.3.0/timeline-api.js?bundle=true" type="text/javascript"></script>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+	<script>
+		Timeline_ajax_url="{f:uri.resource(path:'timeline_2.3.0/timeline_ajax/simile-ajax-api.js')}";
+		Timeline_urlPrefix="{f:uri.resource(path:'timeline_2.3.0/timeline_js/')}";
+		Timeline_parameters='bundle=true';
+	</script>
+	<script src="{f:uri.resource(path:'timeline_2.3.0/timeline_js/timeline-api.js')}" type="text/javascript"></script>
+
+	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.js"></script>
 	<script type="text/javascript">
 		var numberOfProfiles = {numberOfProfiles};
 		<![CDATA[
