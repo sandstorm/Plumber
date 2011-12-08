@@ -78,11 +78,13 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 		$profile = $this->getProfile($file1);
 		$this->view->assign('numberOfProfiles', $file2===NULL ? 1 : 2);
 		$this->view->assign('profile', $profile);
+		$this->view->assign('file1', $file1);
 		$this->view->assign('js', $this->buildJavaScriptForProfile($profile));
 
 		if ($file2 !== NULL) {
 			$profile2 = $this->getProfile($file2);
 			$this->view->assign('profile2', $profile2);
+			$this->view->assign('file2', $file2);
 			$this->view->assign('js2', $this->buildJavaScriptForProfile($profile2));
 		}
 	}
@@ -177,6 +179,7 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 		ob_end_clean();
 
 
+		$this->view->assign('run', $run);
 		$this->view->assign('contents', $contents);
 	}
 
