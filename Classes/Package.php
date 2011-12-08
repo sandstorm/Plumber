@@ -10,18 +10,11 @@ use TYPO3\FLOW3\Annotations as FLOW3;
  * @FLOW3\Scope("singleton")
  */
 class Package extends BasePackage {
-	public function boot(\TYPO3\FLOW3\Core\Bootstrap $bootstrap) {
 
-		if (!file_exists(FLOW3_PATH_DATA . 'Logs/Profiles')) {
-			mkdir(FLOW3_PATH_DATA . 'Logs/Profiles');
-		}
-
-		$profiler = \SandstormMedia\PhpProfiler\Profiler::getInstance();
-		$profiler->setOption('profilePath', FLOW3_PATH_DATA . 'Logs/Profiles');
-
-		$run = $profiler->start();
-
-		$dispatcher = $bootstrap->getSignalSlotDispatcher();
+	protected function connectToSignals(\TYPO3\FLOW3\SignalSlot\Dispatcher $dispatcher, \SandstormMedia\PhpProfiler\Profiler $profiler, \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $run) {
+		$dispatcher->connect('TYPO3\FLOW3\Core\Booting\Sequence', 'beforeInvokeStep', function($step) use($run) {
+			$run->timestamp($step->getIdentifier());
+		});
 
 		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'finishedRuntimeRun', function() use($profiler) {
 			$run = $profiler->stop();
@@ -29,9 +22,8 @@ class Package extends BasePackage {
 				$profiler->save($run);
 			}
 		});
-
 		$dispatcher->connect('TYPO3\FLOW3\MVC\Dispatcher', 'beforeControllerInvocation', function($request, $controller) use($run) {
-			$run->setOption('controllerName', get_class($controller));
+			$run->setOption('Controller Name', get_class($controller));
 			$data = array(
 				'Controller' => get_class($controller)
 			);
@@ -44,6 +36,26 @@ class Package extends BasePackage {
 		$dispatcher->connect('TYPO3\FLOW3\MVC\Dispatcher', 'afterControllerInvocation', function() use($run) {
 			$run->stopTimer('MVC: Controller Invocation');
 		});
+
+		$dispatcher->connect('TYPO3\FLOW3\MVC\Web\RequestBuilder', 'beforeBuild', function() use($run) {
+			$run->startTimer('MVC: Build Request');
+		});
+		$dispatcher->connect('TYPO3\FLOW3\MVC\Web\RequestBuilder', 'afterBuild', function() use($run) {
+			$run->stopTimer('MVC: Build Request');
+		});
+
+	}
+
+	protected function connectToSignalsWithOldBootstrap(\TYPO3\FLOW3\SignalSlot\Dispatcher $dispatcher, \SandstormMedia\PhpProfiler\Profiler $profiler, \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $run) {
+
+		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'finishedRuntimeRun', function() use($profiler) {
+			$run = $profiler->stop();
+			if ($run) {
+				$profiler->save($run);
+			}
+		});
+
+
 
 		$dispatcher->connect('TYPO3\Fluid\View\AbstractTemplateView', 'beforeRender', function() use($run) {
 			$run->startTimer('Fluid: Rendering');
@@ -65,16 +77,22 @@ class Package extends BasePackage {
 		$dispatcher->connect('TYPO3\Fluid\View\AbstractTemplateView', 'afterRenderPartial', function() use($run) {
 			$run->stopTimer('Fluid: Rendering Partial');
 		});
-		/*
-		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'dispatchedCommandLineSlaveRequest', 'TYPO3\FLOW3\Persistence\PersistenceManagerInterface', 'persistAll');
-		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'bootstrapShuttingDown', 'TYPO3\FLOW3\Configuration\ConfigurationManager', 'shutdown');
-		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'bootstrapShuttingDown', 'TYPO3\FLOW3\Object\ObjectManagerInterface', 'shutdown');
-		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'bootstrapShuttingDown', 'TYPO3\FLOW3\Reflection\ReflectionService', 'saveToCache');
+	}
 
-		$dispatcher->connect('TYPO3\FLOW3\Command\CoreCommandController', 'finishedCompilationRun', 'TYPO3\FLOW3\Security\Policy\PolicyService', 'savePolicyCache');
+	public function boot(\TYPO3\FLOW3\Core\Bootstrap $bootstrap) {
 
-		$dispatcher->connect('TYPO3\FLOW3\Security\Authentication\AuthenticationProviderManager', 'authenticatedToken', 'TYPO3\FLOW3\Session\SessionInterface', 'renewId');
-		$dispatcher->connect('TYPO3\FLOW3\Security\Authentication\AuthenticationProviderManager', 'loggedOut', 'TYPO3\FLOW3\Session\SessionInterface', 'destroy');*/
+		if (!file_exists(FLOW3_PATH_DATA . 'Logs/Profiles')) {
+			mkdir(FLOW3_PATH_DATA . 'Logs/Profiles');
+		}
+
+		$profiler = \SandstormMedia\PhpProfiler\Profiler::getInstance();
+		$profiler->setOption('profilePath', FLOW3_PATH_DATA . 'Logs/Profiles');
+
+		$run = $profiler->start();
+		$dispatcher = $bootstrap->getSignalSlotDispatcher();
+		$run->setOption('Context', $bootstrap->getContext());
+		$this->connectToSignals($dispatcher, $profiler, $run);
+		//$this->connectToSignalsWithOldBootstrap($dispatcher, $profiler, $run);
 	}
 }
 ?>

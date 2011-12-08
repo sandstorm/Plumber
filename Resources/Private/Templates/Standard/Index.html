@@ -1,15 +1,26 @@
+{namespace p=SandstormMedia\PhpProfilerConnector\ViewHelpers}
 <f:layout name="Main" />
 
 <f:section name="navigation">
 	<li class="active"><f:link.action action="index">Overview</f:link.action></li>
 	<li><a>Timeline View</a></li>
 	<li><a>XHProf View</a></li>
+	<f:base />
 </f:section>
 
 <f:section name="content">
 	<h1>Choose runs!</h1>
 	<f:form method="GET" action="show">
 		<table class="condensed-table">
+			<thead>
+				<tr>
+					<th></th>
+					<th>Time</th>
+					<f:for each="{options}" as="option">
+						<th>{option}</th>
+					</f:for>
+				</tr>
+			</thead>
 			<tbody>
 			<f:for each="{profiles}" as="profile" key="file">
 				<tr>
@@ -17,11 +28,15 @@
 						<f:form.radio name="file1" value="{file}" />
 						<f:form.radio name="file2" value="{file}" />
 					</td>
-					<td><f:link.action action="show" arguments="{file1: file}">{profile.startTime -> f:format.date(format: 'Y-m-d H:i:s')}</f:link.action> -- {profile.options.controllerName} <f:link.action action="xhprof" arguments="{run: file}">xhprof</f:link.action></td>
+					<td><f:link.action action="show" arguments="{file1: file}">{profile.startTime -> f:format.date(format: 'Y-m-d H:i:s')}</f:link.action> <f:link.action action="xhprof" arguments="{run: file}">xhprof</f:link.action></td>
+						<f:for each="{options}" as="option">
+							<td>{profile.options -> p:objectAccess(path: option)}</td>
+						</f:for>
 				</tr>
 			</f:for>
 			</tbody>
 		</table>
 		<f:form.submit class="btn primary" value="Compare" />
 	</f:form>
+	<f:link.action class="btn danger" action="removeAll">Remove all profiles</f:link.action>
 </f:section>

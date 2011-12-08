@@ -26,7 +26,25 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 	 */
 	public function indexAction() {
 		$profiles = $this->getProfiles();
+
+		$options = array();
+		foreach ($profiles as $profile) {
+			foreach ($profile->getOptions() as $optionName => $optionValue) {
+				$options[$optionName] = $optionName;
+			}
+		}
+
 		$this->view->assign('profiles', $profiles);
+		$this->view->assign('options', $options);
+	}
+
+	public function removeAllAction() {
+		$profiles = $this->getProfiles();
+
+		foreach ($profiles as $profile) {
+			$profile->remove();
+		}
+		$this->redirect('index');
 	}
 
 	/**
@@ -64,6 +82,18 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 				color: "#%s"
 			}));', (int)($event['start']*1000), (int)($event['stop']*1000), $event['name'], json_encode($event['data']), substr(sha1($event['name']), 0, 6));
 		}
+
+		foreach ($profile->getTimestamps() as $event) {
+			$javaScript[] = sprintf('eventSource.add(new Timeline.DefaultEventSource.Event({
+				start: new Date(%s),
+				durationEvent: false,
+				text: "%s",
+				caption: "%s",
+				description: %s,
+				color: "#%s"
+			}));', (int)($event['time']*1000), $event['name'], $event['name'], json_encode($event['data']), substr(sha1($event['name']), 0, 6));
+		}
+
 		return implode("\n", $javaScript);
 	}
 
@@ -74,6 +104,7 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 		foreach ($directoryIterator as $element) {
 			if (preg_match('/\.profile$/', $element->getFilename())) {
 				$profiles[$element->getFilename()] = unserialize(file_get_contents($element->getPathname()));
+				$profiles[$element->getFilename()]->setFullPath($element->getPathname());
 			}
 
 		}
@@ -110,7 +141,7 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 				'namespace' => array(\XHProf_UI\Utils::STRING_PARAM, 'xhprof'),
 				'all'       => array(\XHProf_UI\Utils::UINT_PARAM, 0),
 			),
-			$xhprof_config, FLOW3_PATH_DATA . 'Logs/Profiles'
+			$xhprof_config, FLOW3_PATH_DATA . '/Logs/Profiles'
 		);
 		$report = $xhprof_ui->generate_report();
 
@@ -120,6 +151,7 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 
 		$contents = ob_get_contents();
 		ob_end_clean();
+
 
 		$this->view->assign('contents', $contents);
 	}
