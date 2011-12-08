@@ -48,6 +48,28 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 	}
 
 	/**
+	 * @param string $file
+	 * @param string $value
+	 */
+	public function updateTagsAction($file, $value) {
+		$profile = $this->getProfile($file);
+		$tags = \TYPO3\FLOW3\Utility\Arrays::trimExplode(',', $value);
+		$profile->setTags($tags);
+		$profile->save();
+		$this->view->assign('tags', $tags);
+	}
+
+	/**
+	 *
+	 * @param string $run
+	 */
+	public function removeAction($run) {
+		$profile = $this->getProfile($run);
+		$profile->remove();
+		$this->redirect('index');
+	}
+
+	/**
 	 *
 	 * @param string $file1
 	 * @param string $file2
@@ -67,7 +89,9 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 
 	protected function getProfile($file) {
 		$file = FLOW3_PATH_DATA . 'Logs/Profiles/' . $file;
-		return unserialize(file_get_contents($file));
+		$profile = unserialize(file_get_contents($file));
+		$profile->setFullPath($file);
+		return $profile;
 	}
 
 	protected function buildJavaScriptForProfile($profile) {

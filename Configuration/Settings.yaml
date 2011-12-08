@@ -1,0 +1,7 @@
+SandstormMedia:
+  PhpProfilerConnector:
+    calculations:
+      objectCreations:
+        label: 'No. of Object Creations'
+        type: regexSum
+        regex: '#==>.*__construct#'

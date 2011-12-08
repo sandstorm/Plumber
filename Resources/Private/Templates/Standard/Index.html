@@ -6,37 +6,89 @@
 	<li><a>Timeline View</a></li>
 	<li><a>XHProf View</a></li>
 	<f:base />
+	<link rel="stylesheet" type="text/css" href="../../../Public/DataTables/media/css/demo_table.css" />
+	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.js"></script>
+	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="../../../Public/jquery.jeditable.mini.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			var table = $('#results').dataTable();
+
+			$('td:nth-child(3)', table.fnGetNodes()).editable( '{f:uri.action(action:"updateTags")}', {
+				data: function(value, settings) {
+					// Convert span tags to comma separated tag list
+					var $el = jQuery('<div />');
+					$el.html(value).find('span').replaceWith(function() {
+						return $(this).html() + ', ';
+					});
+					return $el.html();
+				},
+				submitdata: function ( value, settings ) {
+					return {
+						'file': this.parentNode.getAttribute('id')
+					};
+				}
+			} );
+		});
+	</script>
+	<style type="text/css">
+		tr.odd {
+			background-color: #ccc;
+		}
+		tr.odd td.sorting_1 {
+			background-color: #ccc;
+		}
+
+		tr.even td.sorting_1 {
+			background-color: #FFF;
+		}
+	</style>
 </f:section>
 
 <f:section name="content">
 	<h1>Choose runs!</h1>
 	<f:form method="GET" action="show">
-		<table class="condensed-table">
+		<table id="results" class="condensed-table">
 			<thead>
 				<tr>
 					<th></th>
+					<th>Actions</th>
+					<th>Tag</th>
 					<th>Time</th>
 					<f:for each="{options}" as="option">
 						<th>{option}</th>
 					</f:for>
+					<f:for each="{settings.calculations}" as="calculation">
+						<th>{calculation.label}</th>
+					</f:for>
+					<th></th>
 				</tr>
 			</thead>
 			<tbody>
 			<f:for each="{profiles}" as="profile" key="file">
-				<tr>
+				<tr id="{file}">
 					<td>
 						<f:form.radio name="file1" value="{file}" />
 						<f:form.radio name="file2" value="{file}" />
 					</td>
-					<td><f:link.action action="show" arguments="{file1: file}">{profile.startTime -> f:format.date(format: 'Y-m-d H:i:s')}</f:link.action> <f:link.action action="xhprof" arguments="{run: file}">xhprof</f:link.action></td>
-						<f:for each="{options}" as="option">
-							<td>{profile.options -> p:objectAccess(path: option)}</td>
-						</f:for>
+					<td>
+						<f:link.action class="btn" action="show" arguments="{file1: file}">Timeline &raquo;</f:link.action>
+						<f:link.action class="btn" action="xhprof" arguments="{run: file}">XHProf &raquo;</f:link.action>
+					</td>
+					<td><p:renderTags tags="{profile.tags}" /></td>
+					<td>{profile.startTime -> f:format.date(format: 'Y-m-d H:i:s')}</td>
+					<f:for each="{options}" as="option">
+						<td>{profile.options -> p:objectAccess(path: option)}</td>
+					</f:for>
+					<f:for each="{settings.calculations}" as="calculation">
+						<td><p:calculate profile="{profile}" calculationOptions="{calculation}"  /></td>
+					</f:for>
+					<td><f:link.action class="btn danger" action="remove" arguments="{run: file}">Remove</f:link.action></td>
 				</tr>
 			</f:for>
 			</tbody>
 		</table>
-		<f:form.submit class="btn primary" value="Compare" />
+		<p style="clear:both"><f:form.submit class="btn primary" value="Compare" /></p>
 	</f:form>
 	<f:link.action class="btn danger" action="removeAll">Remove all profiles</f:link.action>
 </f:section>
