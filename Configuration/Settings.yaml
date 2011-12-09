@@ -4,4 +4,8 @@ SandstormMedia:
       objectCreations:
         label: 'No. of Object Creations'
         type: regexSum
-        regex: '#==>.*__construct#'
+        regex: '#==>(.*)::__construct#'
+      totalRuntime:
+        label: 'Runtime (ms)'
+        type: timerSum
+        timerName: 'Profiling Run'

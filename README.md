@@ -27,10 +27,11 @@ There, you can:
 
 * list all profiling runs in an overview
 * show the *graphical timeline* for a single profiling run
+* *filter* the graphical timeline
 * show the *xhprof* analyzer for a single profiling run
 * *compare* two profiling runs with the timeline
 * *tag* your profiling runs
-* *show aggregated statistics in the overview*
+* *show aggregated statistics in the overview*, NEW: also with details
 
 Showing aggregated statistics
 -----------------------------
@@ -50,17 +51,52 @@ SandstormMedia:
 
 Inside `SandstormMedia:PhpProfilerConnector:calculations` follow some additional table columns which are shown in the overview page.
 
-The `label` is the table column header. The `type` is the type of aggregation to perform. In the above
+The `label` is the table column header. The `type` is the type of aggregation to perform. In the above example, we count constructor calls.
 
 Type: regexSum
 --------------
+
+Example:
+```
+SandstormMedia:
+  PhpProfilerConnector:
+    calculations:
+      objectCreations:
+        label: 'No. of Object Creations'
+        type: regexSum
+        regex: '#==>(.*)::__construct#'
+```
+
 
 This one can be used to count function invocation counters. Examples:
 
 ```
 #==>.*__construct#              Matches all constructor invocations
-#==>.*TextNode::__construct#   Matches all constructor invocations of classes which end with TextNode
+#==>.*TextNode::__construct#    Matches all constructor invocations of classes which end with TextNode
 ```
+
+**Top 10**: When the RegEx contains a submatch, a popover is displayed with the top 10 invocations grouped by the regex. Examples:
+
+```
+#==>(.*)::__construct#              Matches all constructor invocations, displaying a Top 10 list of constructor invocations
+#==>TYPO3\Fluid\(.*)::__construct#  Matches constructor invocations in Fluid, displaying a Top 10 list of constructor invocations inside the fluid package
+```
+
+Type: totalRuntime
+------------------
+
+Example:
+```
+SandstormMedia:
+  PhpProfilerConnector:
+    calculations:
+      totalRuntime:
+        label: 'Runtime (ms)'
+        type: timerSum
+        timerName: 'Profiling Run'
+```
+
+This one sums up the total runtime of a timer specified by `timerName`.
 
 Type: [custom]
 --------------

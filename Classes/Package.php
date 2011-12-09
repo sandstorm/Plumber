@@ -13,7 +13,10 @@ class Package extends BasePackage {
 
 	protected function connectToSignals(\TYPO3\FLOW3\SignalSlot\Dispatcher $dispatcher, \SandstormMedia\PhpProfiler\Profiler $profiler, \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $run) {
 		$dispatcher->connect('TYPO3\FLOW3\Core\Booting\Sequence', 'beforeInvokeStep', function($step) use($run) {
-			$run->timestamp($step->getIdentifier());
+			$run->startTimer('Boostrap Sequence: ' . $step->getIdentifier());
+		});
+		$dispatcher->connect('TYPO3\FLOW3\Core\Booting\Sequence', 'afterInvokeStep', function($step) use($run) {
+			$run->stopTimer('Boostrap Sequence: ' . $step->getIdentifier());
 		});
 
 		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'finishedRuntimeRun', function() use($profiler) {

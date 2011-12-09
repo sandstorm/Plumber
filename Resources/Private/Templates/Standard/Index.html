@@ -10,11 +10,16 @@
 	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.js"></script>
 	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.dataTables.min.js"></script>
 	<script type="text/javascript" src="../../../Public/jquery.jeditable.mini.js"></script>
+	<script type="text/javascript" src="../../../Public/bootstrap-twipsy.js"></script>
+	<script type="text/javascript" src="../../../Public/bootstrap-popover.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
+			var updateTagsActionUri = '{f:uri.action(action:"updateTags")}';
+
+			<![CDATA[
 			var table = $('#results').dataTable();
 
-			$('td:nth-child(3)', table.fnGetNodes()).editable( '{f:uri.action(action:"updateTags")}', {
+			$('td:nth-child(3)', table.fnGetNodes()).editable(updateTagsActionUri, {
 				data: function(value, settings) {
 					// Convert span tags to comma separated tag list
 					var $el = jQuery('<div />');
@@ -28,9 +33,11 @@
 						'file': this.parentNode.getAttribute('id')
 					};
 				}
-			} );
+			});
+
+			$('a[rel="popover"]').popover({html: true});
 		});
-	</script>
+	]]></script>
 	<style type="text/css">
 		tr.odd {
 			background-color: #ccc;
@@ -90,5 +97,6 @@
 		</table>
 		<p style="clear:both"><f:form.submit class="btn primary" value="Compare" /></p>
 	</f:form>
-	<f:link.action class="btn danger" action="removeAll">Remove all profiles</f:link.action>
+	<f:link.action class="btn danger" action="removeAll">Remove <b>all</b> profiles</f:link.action>
+	<f:link.action class="btn danger" action="removeAllUntagged">Remove all <b>un-tagged</b> profiles</f:link.action>
 </f:section>

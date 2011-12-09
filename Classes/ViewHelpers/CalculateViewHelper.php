@@ -26,12 +26,56 @@ class CalculateViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelpe
 	protected function calculateRegexSum(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
 		if (!isset($calculationOptions['regex'])) throw new \Exception('TODO: Regex not set');
 		$result = 0;
+
+		$detailedResult = array();
 		foreach ($profile->getXhprofTrace() as $id => $data) {
-			if (preg_match($calculationOptions['regex'], $id)) {
+			$matches = NULL;
+			if (preg_match($calculationOptions['regex'], $id, $matches)) {
 				$result += $data['ct'];
+
+				if (isset($matches[1])) {
+					$className = $matches[1];
+					if (!isset($detailedResult[$className])) {
+						$detailedResult[$className] = 0;
+					}
+					$detailedResult[$className] += $data['ct'];
+				}
 			}
 		}
-		return $result;
+		arsort($detailedResult);
+		$detailedResultHtml = '<table class="condensed-table" style="font-size:60%">';
+		$i = 0;
+		foreach ($detailedResult as $className => $count) {
+			if ($i > 10) break;
+			$i++;
+
+			$detailedResultHtml .= sprintf('<tr><td>%s</td><td>%s</td></tr>', $className, $count);
+		}
+		$detailedResultHtml .= '</table>';
+
+		$aTag = new \TYPO3\Fluid\Core\ViewHelper\TagBuilder('a');
+		$aTag->addAttribute('rel', 'popover');
+		$aTag->addAttribute('title', 'Top 10');
+		$aTag->addAttribute('data-content', $detailedResultHtml);
+		$aTag->setContent($result);
+		return $aTag->render();
+	}
+
+	/**
+	 * @param \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile
+	 * @param array $calculationOptions
+	 */
+	protected function calculateTimerSum(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+		if (!isset($calculationOptions['timerName'])) throw new \Exception('TODO: timerName not set');
+
+		$sum = 0;
+
+		foreach ($profile->getTimersAsDuration() as $duration) {
+			if ($duration['name'] === $calculationOptions['timerName']) {
+				$sum += $duration['stop']*1000 - $duration['start']*1000;
+			}
+		}
+		return round($sum);
 	}
 }
 ?>

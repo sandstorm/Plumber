@@ -47,6 +47,17 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 		$this->redirect('index');
 	}
 
+	public function removeAllUntaggedAction() {
+		$profiles = $this->getProfiles();
+
+		foreach ($profiles as $profile) {
+			if (count($profile->getTags()) === 0) {
+				$profile->remove();
+			}
+		}
+		$this->redirect('index');
+	}
+
 	/**
 	 * @param string $file
 	 * @param string $value
@@ -79,14 +90,16 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 		$this->view->assign('numberOfProfiles', $file2===NULL ? 1 : 2);
 		$this->view->assign('profile', $profile);
 		$this->view->assign('file1', $file1);
-		$this->view->assign('js', $this->buildJavaScriptForProfile($profile));
+
+		$js = $this->buildJavaScriptForProfile($profile, 0);
 
 		if ($file2 !== NULL) {
 			$profile2 = $this->getProfile($file2);
 			$this->view->assign('profile2', $profile2);
 			$this->view->assign('file2', $file2);
-			$this->view->assign('js2', $this->buildJavaScriptForProfile($profile2));
+			$js .= $this->buildJavaScriptForProfile($profile2, 1);
 		}
+		$this->view->assign('js', $js);
 	}
 
 	protected function getProfile($file) {
@@ -96,31 +109,68 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 		return $profile;
 	}
 
-	protected function buildJavaScriptForProfile($profile) {
+	protected function buildJavaScriptForProfile($profile, $eventSourceIndex) {
 		$javaScript = array();
 		foreach ($profile->getTimersAsDuration() as $event) {
-			$javaScript[] = sprintf('eventSource.add(new Timeline.DefaultEventSource.Event({
+			$javaScript[] = sprintf('timelineRunner.addEvent(%s, new Timeline.DefaultEventSource.Event({
 				start: new Date(%s),
 				end:  new Date(%s),
 				durationEvent: true,
 				caption: "%s",
 				description: %s,
 				color: "#%s"
-			}));', (int)($event['start']*1000), (int)($event['stop']*1000), $event['name'], json_encode($event['data']), substr(sha1($event['name']), 0, 6));
+			}));', $eventSourceIndex, (int)($event['start']*1000), (int)($event['stop']*1000), $event['name'], json_encode($event['data']), $this->getColorForEventName($event['name']));
 		}
 
 		foreach ($profile->getTimestamps() as $event) {
-			$javaScript[] = sprintf('eventSource.add(new Timeline.DefaultEventSource.Event({
+			$javaScript[] = sprintf('timelineRunner.addEvent(%s, new Timeline.DefaultEventSource.Event({
 				start: new Date(%s),
 				durationEvent: false,
 				text: "%s",
 				caption: "%s",
 				description: %s,
 				color: "#%s"
-			}));', (int)($event['time']*1000), $event['name'], $event['name'], json_encode($event['data']), substr(sha1($event['name']), 0, 6));
+			}));', $eventSourceIndex, (int)($event['time']*1000), $event['name'], $event['name'], json_encode($event['data']), $this->getColorForEventName($event['name']));
 		}
 
 		return implode("\n", $javaScript);
+	}
+
+	/**
+	 * If given an event name without a group (i.e. like "Routing"), this
+	 * method will deterministically calculate a color value from the string.
+	 *
+	 * If given an event name with a group (i.e. like "MVC: Routing" or "MVC: Controller"),
+	 * we want to make sure that the group is *roughly* having the same color. That's why
+	 * we take the group title ("MVC"), calculate a base color from it, and then
+	 * darken or lighten this color using the remaining string.
+	 *
+	 * @param type $name
+	 * @return type
+	 */
+	protected function getColorForEventName($name) {
+		$parts = explode(':', $name);
+		if (count($parts) > 1) {
+			$firstElementHash = sha1(array_shift($parts));
+			$restHash = substr(sha1(implode(':', $parts)), 0, 6);
+			$steps = (hexdec($restHash) % 256) - 128;
+
+			$rHex = $firstElementHash[0] . $firstElementHash[1];
+			$gHex = $firstElementHash[2] . $firstElementHash[3];
+			$bHex = $firstElementHash[4] . $firstElementHash[5];
+
+			$r = hexdec($rHex);
+			$g = hexdec($gHex);
+			$b = hexdec($bHex);
+
+			$r = max(0,min(255,$r + $steps));
+			$g = max(0,min(255,$g + $steps));
+			$b = max(0,min(255,$b + $steps));
+
+			return str_pad(dechex($r), 2, '0') . str_pad(dechex($g), 2, '0') . str_pad(dechex($b), 2, '0');
+		} else {
+			return substr(sha1($name), 0, 6);
+		}
 	}
 
 	public function getProfiles() {
