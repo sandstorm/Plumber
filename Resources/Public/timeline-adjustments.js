@@ -212,7 +212,12 @@ TimelineRunner.prototype = {
 		});
 
 		this._$filterContainer.find('input:checkbox').change(function() {
+			for (i=0; i<that._numberOfProfilingRuns; i++) {
+				// WORKAROUND for *shrinking* the timeline width if necessary. On paint(), it will recalculate the number of needed event tracks anyways.
+				that._timeline.getBand(i)._eventTracksNeeded = 0;
+			}
 			that._timeline.paint();
+			that._timeline.layout();
 		});
 
 		// Set up filtering
