@@ -133,6 +133,14 @@ class StandardController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 			}));', $eventSourceIndex, (int)($event['time']*1000), $event['name'], $event['name'], json_encode($event['data']), $this->getColorForEventName($event['name']));
 		}
 
+
+		$memory = $profile->getMemory();
+		foreach ($memory as &$mem) {
+			$mem['time'] = (int)($mem['time']*1000);
+		}
+		$javaScript[] = sprintf('timelineRunner.setMemory(%s, %s);', $eventSourceIndex, json_encode($memory));
+
+
 		return implode("\n", $javaScript);
 	}
 

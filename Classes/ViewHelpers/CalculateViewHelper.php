@@ -77,5 +77,15 @@ class CalculateViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelpe
 		}
 		return round($sum);
 	}
+
+	/**
+	 * @param \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile
+	 * @param array $calculationOptions
+	 */
+	protected function calculateMaxMemory(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+		$memory = $profile->getMemory();
+		$lastSamplingPoint = array_pop($memory);
+		return round($lastSamplingPoint['mem'] / 1024);
+	}
 }
 ?>

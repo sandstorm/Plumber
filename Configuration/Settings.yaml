@@ -9,3 +9,6 @@ SandstormMedia:
         label: 'Runtime (ms)'
         type: timerSum
         timerName: 'Profiling Run'
+      totalMemory:
+        label: 'Memory (kb)'
+        type: maxMemory

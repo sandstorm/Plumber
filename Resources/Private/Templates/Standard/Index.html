@@ -17,7 +17,9 @@
 			var updateTagsActionUri = '{f:uri.action(action:"updateTags")}';
 
 			<![CDATA[
-			var table = $('#results').dataTable();
+			var table = $('#results').dataTable({
+				iDisplayLength: 100
+			});
 
 			$('td:nth-child(3)', table.fnGetNodes()).editable(updateTagsActionUri, {
 				data: function(value, settings) {

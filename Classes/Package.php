@@ -25,6 +25,15 @@ class Package extends BasePackage {
 				$profiler->save($run);
 			}
 		});
+
+		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'finishedCompiletimeRun', function() use($profiler) {
+			$run = $profiler->stop();
+			if ($run) {
+				$run->setOption('Context', 'COMPILE');
+				$profiler->save($run);
+			}
+		});
+
 		$dispatcher->connect('TYPO3\FLOW3\MVC\Dispatcher', 'beforeControllerInvocation', function($request, $controller) use($run) {
 			$run->setOption('Controller Name', get_class($controller));
 			$data = array(

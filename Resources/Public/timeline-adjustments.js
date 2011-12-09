@@ -3,7 +3,93 @@
 TimelineRunner = function() {
 	this._eventSources = [];
 	this._timeline = null;
+	this._memoryData = {};
 }
+
+TimelineRunner.MemoryUsageDecorator = function(timelineRunner, memoryDataIndex) {
+	this._timelineRunner = timelineRunner;
+	this._memoryDataIndex = memoryDataIndex;
+	this._leftOffset = null;
+	this._width = null;
+	this._height = null;
+	this._paper = null;
+
+};
+TimelineRunner.MemoryUsageDecorator.prototype = {
+	initialize: function(band, timeline) {
+		this._band = band;
+		this._timeline = timeline;
+		this._$layerDiv = null;
+	},
+	paint: function() {
+		var memoryData = this._timelineRunner._memoryData[this._memoryDataIndex];
+		if (!memoryData) return;
+
+		this._setupDrawingSurface();
+		this._drawMemoryGraph();
+	},
+	_setupDrawingSurface: function() {
+		var memoryData = this._timelineRunner._memoryData[this._memoryDataIndex];
+		
+		if (this._$layerDiv != null) {
+			this._band.removeLayerDiv(this._$layerDiv.get(0));
+	    }
+
+	    this._$layerDiv = $(this._band.createLayerDiv(10));
+		this._leftOffset = this._band.dateToPixelOffset(new Date(0));
+		this._width = this._band.dateToPixelOffset(new Date(memoryData[memoryData.length - 1].time)) - this._leftOffset + 80;
+		this._height = this._$layerDiv.height();
+
+		this._paper = new Raphael(this._$layerDiv.get(0), this._width, this._height);
+		this._$layerDiv.find('svg').css({
+			position: 'absolute',
+			left: this._leftOffset + 'px',
+			top: 0
+		});
+	},
+	_drawMemoryGraph: function() {
+		var samplingPoint, pointY,
+			memoryData = this._timelineRunner._memoryData[this._memoryDataIndex];
+
+		// Find maximum memory
+		var maximumMemory = 0;
+		for (var i=0, l=memoryData.length; i<l; i++) {
+			if (memoryData[i].mem > maximumMemory) {
+				maximumMemory = memoryData[i].mem;
+			}
+		}
+
+		// Build up line
+		var points = [];
+		for (var i=0, l=memoryData.length; i<l; i++) {
+			samplingPoint = memoryData[i];
+			pointY = this._height - (samplingPoint.mem / maximumMemory) * this._height;
+			points.push((this._band.dateToPixelOffset(new Date(samplingPoint.time)) - this._leftOffset) + ',' + pointY);
+		}
+		var path = this._paper.path('M 0,' + this._height + ' L ' + points.join(' '));
+		path.attr('stroke', '#7779FF');
+		path.attr('stroke-width', 2);
+
+		this._drawLegend(1/4, maximumMemory);
+		this._drawLegend(1/2, maximumMemory);
+		this._drawLegend(3/4, maximumMemory);
+		this._drawLegend(1, maximumMemory);
+	},
+	_drawLegend: function(percentage, maximumMemory) {
+		var yOffset = (this._height - percentage*this._height);
+		var path = this._paper.path('M 0,' + yOffset + ' L ' + this._width + ',' + yOffset);
+		path.attr('stroke', '#7779FF');
+		path.attr('stroke-width', 1);
+		path.attr('stroke-dasharray', '- ');
+
+		var t = this._paper.text(this._width, yOffset + 5, Math.round(maximumMemory*percentage / 1024) + ' kB');
+		t.attr('fill', '#7779FF');
+		t.attr('text-anchor', 'end');
+	},
+	softPaint: function() {
+	}
+}
+
 TimelineRunner.prototype = {
 
 	/**
@@ -16,6 +102,7 @@ TimelineRunner.prototype = {
 	_timeline: null,
 
 	_$filterContainer: null,
+	_memoryData: null,
 
 	/**
 	 * Name of currently highlighted filter
@@ -36,9 +123,13 @@ TimelineRunner.prototype = {
 	addEvent: function(eventSourceIndex, event) {
 		this._eventSources[eventSourceIndex].add(event);
 	},
+	// Triggered after all events have been added
 	update: function() {
 		this._initializeFilter();
 		this._timeline.layout();
+	},
+	setMemory: function(eventSourceIndex, memoryData) {
+		this._memoryData[eventSourceIndex] = memoryData;
 	},
 
 	/***********************************
@@ -112,15 +203,24 @@ TimelineRunner.prototype = {
 
 		for (var i=0; i<this._numberOfProfilingRuns; i++) {
 			bandInfos[i] = this._createBand(i, theme);
+			bandInfos[i].decorators = this._createDecorators(i);
 		}
 
 		for (var i=0; i<this._numberOfProfilingRuns; i++) {
 			bandInfos[this._numberOfProfilingRuns + i] = this._createOverviewBand(i, theme);
 			bandInfos[this._numberOfProfilingRuns + i].syncWith = i;
 			bandInfos[this._numberOfProfilingRuns + i].highlight = true;
+			bandInfos[this._numberOfProfilingRuns + i].decorators = this._createDecorators(i);
 		}
 
 		return bandInfos;
+	},
+	_createDecorators: function(i) {
+		var decorators = [];
+
+		decorators[0] = new TimelineRunner.MemoryUsageDecorator(this, i);
+
+		return decorators;
 	},
 	_createBand: function(eventSourceIndex, theme) {
 		return Timeline.createBandInfo({
