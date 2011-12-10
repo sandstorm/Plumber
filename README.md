@@ -1,5 +1,7 @@
-FLOW3 Profiling Tools
-=====================
+Plumber -- FLOW3 Profiling and Debugging Tools
+==============================================
+-- Measuring the flow of your application --
+
 (c) Sebastian Kurfürst, Sandstorm Media UG (haftungsbeschränkt)
 
 Installation
@@ -14,8 +16,6 @@ cd ../../
 ./flow3 package:activate SandstormMedia.Plumber
 ```
 
-Furthermore, you need https://review.typo3.org/#change,7158 and https://review.typo3.org/#q,topic:32333,n,z applied.
-
 The system will automatically use XHProf if it is installed.
 
 Usage
@@ -25,13 +25,13 @@ Just use your website as normal. To browse profiling reports, go to `http://your
 
 There, you can:
 
-* list all profiling runs in an overview
-* show the *graphical timeline* for a single profiling run
-* *filter* the graphical timeline
-* show the *xhprof* analyzer for a single profiling run
-* *compare* two profiling runs with the timeline
-* *tag* your profiling runs
-* *show aggregated statistics in the overview*, NEW: also with details
+* **list** all profiling runs in an overview
+* show a **graphical timeline** for a single profiling run
+* **filter** the graphical timeline
+* show the **xhprof** analyzer for a single profiling run
+* **compare** two profiling runs with the timeline
+* **tag** your profiling runs
+* show **aggregated statistics** in the overview
 
 Showing aggregated statistics
 -----------------------------
@@ -97,6 +97,21 @@ SandstormMedia:
 ```
 
 This one sums up the total runtime of a timer specified by `timerName`.
+
+Type: maxMemory
+---------------
+
+Example:
+```
+SandstormMedia:
+  Plumber:
+    calculations:
+      mem:
+        label: 'Maximum Memory (kB)'
+        type: maxMemory
+```
+
+Output the maximum memory consumption. Does not have any configuration options.
 
 Type: [custom]
 --------------
