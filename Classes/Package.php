@@ -1,11 +1,11 @@
 <?php
-namespace SandstormMedia\PhpProfilerConnector;
+namespace SandstormMedia\Plumber;
 
 use \TYPO3\FLOW3\Package\Package as BasePackage;
 use TYPO3\FLOW3\Annotations as FLOW3;
 
 /**
- * Package base class of the SandstormMedia.PhpProfilerConnector package.
+ * Package base class of the SandstormMedia.Plumber package.
  *
  * @FLOW3\Scope("singleton")
  */

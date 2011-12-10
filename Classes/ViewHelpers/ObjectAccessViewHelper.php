@@ -1,5 +1,5 @@
 <?php
-namespace SandstormMedia\PhpProfilerConnector\ViewHelpers;
+namespace SandstormMedia\Plumber\ViewHelpers;
 
 use TYPO3\FLOW3\Annotations as FLOW3;
 

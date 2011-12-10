@@ -1,5 +1,5 @@
 SandstormMedia:
-  PhpProfilerConnector:
+  Plumber:
     calculations:
       objectCreations:
         label: 'No. of Object Creations'
