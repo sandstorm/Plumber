@@ -98,7 +98,7 @@ class Package extends BasePackage {
 		}
 
 		$profiler = \SandstormMedia\PhpProfiler\Profiler::getInstance();
-		$profiler->setOption('profilePath', FLOW3_PATH_DATA . 'Logs/Profiles');
+		$profiler->setConfiguration('profilePath', FLOW3_PATH_DATA . 'Logs/Profiles');
 
 		$run = $profiler->start();
 		$dispatcher = $bootstrap->getSignalSlotDispatcher();
