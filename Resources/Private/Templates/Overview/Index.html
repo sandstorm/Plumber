@@ -3,8 +3,9 @@
 
 <f:section name="navigation">
 	<li class="active"><f:link.action action="index">Overview</f:link.action></li>
-	<li><a>Timeline View</a></li>
-	<li><a>XHProf View</a></li>
+</f:section>
+
+<f:section name="header">
 	<f:base />
 	<link rel="stylesheet" type="text/css" href="../../../Public/DataTables/media/css/demo_table.css" />
 	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.js"></script>
@@ -62,7 +63,7 @@
 
 <f:section name="content">
 	<h1>Choose runs!</h1>
-	<f:form method="GET" action="show">
+	<f:form method="GET" controller="Details" action="timeline">
 		<table id="results" class="condensed-table">
 			<thead>
 				<tr>
@@ -87,8 +88,8 @@
 						<f:form.radio name="file2" value="{file}" />
 					</td>
 					<td>
-						<f:link.action class="btn small" action="show" arguments="{file1: file}">Timeline &raquo;</f:link.action>
-						<f:link.action class="btn small" action="xhprof" arguments="{run: file}">XHProf &raquo;</f:link.action>
+						<f:link.action class="btn small" controller="Details" action="timeline" arguments="{file1: file}">Timeline &raquo;</f:link.action>
+						<f:link.action class="btn small" controller="Details" action="xhprof" arguments="{run: file}">XHProf &raquo;</f:link.action>
 					</td>
 					<td><p:renderTags tags="{profile.tags}" /></td>
 					<td>{profile.startTime -> f:format.date(format: 'Y-m-d H:i:s')}</td>

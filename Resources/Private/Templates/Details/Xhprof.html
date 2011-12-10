@@ -1,0 +1,12 @@
+<f:layout name="Main" />
+
+<f:section name="navigation">
+	<li><f:link.action controller="Overview" action="index">Overview</f:link.action></li>
+	<li><f:link.action action="timeline" arguments="{file1: run}">Timeline View</f:link.action></li>
+	<li class="active"><a>XHProf View</a></li>
+</f:section>
+
+
+<f:section name="content">
+	{contents -> f:format.raw()}
+</f:section>
