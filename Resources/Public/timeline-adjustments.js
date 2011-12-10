@@ -25,15 +25,17 @@ TimelineRunner.MemoryUsageDecorator.prototype = {
 		var memoryData = this._timelineRunner._memoryData[this._memoryDataIndex];
 		if (!memoryData) return;
 
-		this._setupDrawingSurface();
-		this._drawMemoryGraph();
+		if (this._timelineRunner._$filterContainer.find('input:checkbox[name="showMemory"]').is(':checked')) {
+			this._setupDrawingSurface();
+			this._drawMemoryGraph();
+		} else {
+			this._removeDrawingSurface();
+		}
 	},
 	_setupDrawingSurface: function() {
 		var memoryData = this._timelineRunner._memoryData[this._memoryDataIndex];
-		
-		if (this._$layerDiv != null) {
-			this._band.removeLayerDiv(this._$layerDiv.get(0));
-	    }
+
+		this._removeDrawingSurface();
 
 	    this._$layerDiv = $(this._band.createLayerDiv(10));
 		this._leftOffset = this._band.dateToPixelOffset(new Date(0));
@@ -46,6 +48,12 @@ TimelineRunner.MemoryUsageDecorator.prototype = {
 			left: this._leftOffset + 'px',
 			top: 0
 		});
+	},
+	_removeDrawingSurface: function() {
+		if (this._$layerDiv != null) {
+			this._band.removeLayerDiv(this._$layerDiv.get(0));
+			this._$layerDiv = null;
+	    }
 	},
 	_drawMemoryGraph: function() {
 		var samplingPoint, pointY,
@@ -290,7 +298,9 @@ TimelineRunner.prototype = {
 		});
 
 		this._$filterContainer.append($('<hr />'));
-		this._$filterContainer.append($('<ul class="inputs-list"><li><label><input type="checkbox" name="compactDrawing" checked="checked" /><span>Compact Drawing</span></label></li></ul>'));
+		this._$filterContainer.append($('<ul class="inputs-list displaySettings"></ul>'));
+		this._$filterContainer.find('.displaySettings').append($('<li><label><input type="checkbox" name="compactDrawing" checked="checked" /><span>Compact Drawing</span></label></li>'));
+		this._$filterContainer.find('.displaySettings').append($('<li><label><input type="checkbox" name="showMemory" checked="checked" /><span>Show Memory Consumption</span></label></li>'));
 
 		this._$filterContainer.find('ul.filters li').mouseover(function() {
 			var val = $(this).find('input:checkbox').attr('value');
