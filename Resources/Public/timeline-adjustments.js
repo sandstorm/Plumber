@@ -4,11 +4,13 @@ TimelineRunner = function() {
 	this._eventSources = [];
 	this._timeline = null;
 	this._memoryData = {};
+	this._detailed = false;
 }
 
-TimelineRunner.MemoryUsageDecorator = function(timelineRunner, memoryDataIndex) {
-	this._timelineRunner = timelineRunner;
-	this._memoryDataIndex = memoryDataIndex;
+TimelineRunner.MemoryUsageDecorator = function(params) {
+	this._timelineRunner = params.timelineRunner;
+	this._memoryDataIndex = params.dataset;
+	this._detailed = params.detailed;
 	this._leftOffset = null;
 	this._width = null;
 	this._height = null;
@@ -56,7 +58,7 @@ TimelineRunner.MemoryUsageDecorator.prototype = {
 	    }
 	},
 	_drawMemoryGraph: function() {
-		var samplingPoint, pointY,
+		var samplingPoint, pointX, pointY, dataPoint,
 			memoryData = this._timelineRunner._memoryData[this._memoryDataIndex];
 
 		// Find maximum memory
@@ -72,7 +74,13 @@ TimelineRunner.MemoryUsageDecorator.prototype = {
 		for (var i=0, l=memoryData.length; i<l; i++) {
 			samplingPoint = memoryData[i];
 			pointY = this._height - (samplingPoint.mem / maximumMemory) * this._height;
-			points.push((this._band.dateToPixelOffset(new Date(samplingPoint.time)) - this._leftOffset) + ',' + pointY);
+			pointX = this._band.dateToPixelOffset(new Date(samplingPoint.time)) - this._leftOffset;
+			points.push(pointX + ',' + pointY);
+			if (this._detailed) {
+				dataPoint = this._paper.circle(pointX, pointY, 2);
+				dataPoint.attr('fill', '#7779FF');
+				dataPoint.attr('stroke', 'none');
+			}
 		}
 		var path = this._paper.path('M 0,' + this._height + ' L ' + points.join(' '));
 		path.attr('stroke', '#7779FF');
@@ -211,22 +219,26 @@ TimelineRunner.prototype = {
 
 		for (var i=0; i<this._numberOfProfilingRuns; i++) {
 			bandInfos[i] = this._createBand(i, theme);
-			bandInfos[i].decorators = this._createDecorators(i);
+			bandInfos[i].decorators = this._createDecorators({
+				dataset: i,
+				detailed: true
+			});
 		}
 
 		for (var i=0; i<this._numberOfProfilingRuns; i++) {
 			bandInfos[this._numberOfProfilingRuns + i] = this._createOverviewBand(i, theme);
 			bandInfos[this._numberOfProfilingRuns + i].syncWith = i;
 			bandInfos[this._numberOfProfilingRuns + i].highlight = true;
-			bandInfos[this._numberOfProfilingRuns + i].decorators = this._createDecorators(i);
+			bandInfos[this._numberOfProfilingRuns + i].decorators = this._createDecorators({dataset: i, detailed: false});
 		}
 
 		return bandInfos;
 	},
-	_createDecorators: function(i) {
+	_createDecorators: function(params) {
 		var decorators = [];
+		params.timelineRunner = this;
 
-		decorators[0] = new TimelineRunner.MemoryUsageDecorator(this, i);
+		decorators[0] = new TimelineRunner.MemoryUsageDecorator(params);
 
 		return decorators;
 	},
