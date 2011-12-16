@@ -1,0 +1,34 @@
+#                                                                        #
+# Routes configuration                                                   #
+#                                                                        #
+# This file contains the configuration for the MVC router.               #
+# Just add your own modifications as necessary.                          #
+#                                                                        #
+# Please refer to the FLOW3 manual for possible configuration options.   #
+#                                                                        #
+
+##
+# Subroutes from the Welcome package.
+#
+# If the package "Welcome" is installed, its fallback route will point to an
+# informative welcome screen.
+
+##
+# FLOW3 subroutes
+#
+
+-
+  name: 'Start'
+  uriPattern: 'profiler'
+  defaults:
+    '@package':    'SandstormMedia.Plumber'
+    '@controller': 'Standard'
+    '@action':     'index'
+    '@format':     'html'
+-
+  name: 'all other profiles'
+  uriPattern: 'profiler/{@controller}/{@action}'
+  defaults:
+    '@package':    'SandstormMedia.Plumber'
+    '@format':     'html'
+  appendExceedingArguments: true
