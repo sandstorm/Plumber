@@ -13,7 +13,7 @@ use TYPO3\FLOW3\Annotations as FLOW3;
  *
  * @FLOW3\Scope("singleton")
  */
-abstract class AbstractController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
+abstract class AbstractController extends \TYPO3\FLOW3\Mvc\Controller\ActionController {
 
 	public function initializeAction() {
 		\SandstormMedia\PhpProfiler\Profiler::getInstance()->stop();
