@@ -44,21 +44,21 @@ class DetailsController extends AbstractController {
 				start: new Date(%s),
 				end:  new Date(%s),
 				durationEvent: true,
-				caption: "%s",
+				caption: %s,
 				description: %s,
 				color: "#%s"
-			}));', $eventSourceIndex, (int)($event['start']*1000), (int)($event['stop']*1000), $event['name'], json_encode($event['data']), $this->getColorForEventName($event['name']));
+			}));', $eventSourceIndex, (int)($event['start']*1000), (int)($event['stop']*1000), json_encode($event['name']), json_encode($event['data']), $this->getColorForEventName($event['name']));
 		}
 
 		foreach ($profile->getTimestamps() as $event) {
 			$javaScript[] = sprintf('timelineRunner.addEvent(%s, new Timeline.DefaultEventSource.Event({
 				start: new Date(%s),
 				durationEvent: false,
-				text: "%s",
-				caption: "%s",
+				text: %s,
+				caption: %s,
 				description: %s,
 				color: "#%s"
-			}));', $eventSourceIndex, (int)($event['time']*1000), $event['name'], $event['name'], json_encode($event['data']), $this->getColorForEventName($event['name']));
+			}));', $eventSourceIndex, (int)($event['time']*1000), json_encode($event['name']), json_encode($event['name']), json_encode($event['data']), $this->getColorForEventName($event['name']));
 		}
 
 
