@@ -1,14 +1,26 @@
 SandstormMedia:
   Plumber:
     calculations:
+      methodCallsOnObject:
+        label: 'No. of Method Calls'
+        type: regexSum
+        regex: '#==>(.*)::.*#'
+        crossfilter:
+          numberOfBars: 20
       objectCreations:
         label: 'No. of Object Creations'
         type: regexSum
         regex: '#==>(.*)::__construct#'
+        crossfilter:
+          numberOfBars: 20
       totalRuntime:
         label: 'Runtime (ms)'
         type: timerSum
         timerName: 'Profiling Run'
+        crossfilter:
+          numberOfBars: 20
       totalMemory:
         label: 'Memory (kb)'
         type: maxMemory
+        crossfilter:
+          numberOfBars: 20

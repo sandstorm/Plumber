@@ -1,0 +1,108 @@
+{namespace p=SandstormMedia\Plumber\ViewHelpers}
+<f:layout name="Main" />
+
+<f:section name="navigation">
+	<li><f:link.action action="index">Overview</f:link.action></li>
+	<li class="active"><f:link.action action="crossfilter">Crossfilter Overview</f:link.action></li>
+</f:section>
+
+<f:section name="header">
+	<f:base />
+	<link rel="stylesheet" type="text/css" href="../../../Public/DataTables/media/css/demo_table.css" />
+	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.js"></script>
+	<!--<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.dataTables.min.js"></script>-->
+	<!--<script type="text/javascript" src="../../../Public/jquery.jeditable.mini.js"></script>-->
+	<script type="text/javascript" src="../../../Public/bootstrap-twipsy.js"></script>
+	<script type="text/javascript" src="../../../Public/bootstrap-popover.js"></script>
+	<script type="text/javascript" src="../../../Public/crossfilter/d3.v2.js"></script>
+	<script type="text/javascript" src="../../../Public/crossfilter/crossfilter.v1.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			<![CDATA[
+
+			$('a[rel="popover"]').popover({html: true});
+		});
+	]]></script>
+	<style type="text/css">
+	#charts {
+		padding: 10px 0;
+	}
+
+	.chart {
+		display: inline-block;
+		height: 151px;
+		margin-bottom: 20px;
+	}
+
+	.reset {
+		padding-left: 1em;
+		font-size: smaller;
+		color: #ccc;
+	}
+
+	.background.bar {
+		fill: #ccc;
+	}
+
+	.foreground.bar {
+		fill: steelblue;
+		stroke: #000;
+	}
+
+	.axis path, .axis line {
+		fill: none;
+		stroke: #000;
+		shape-rendering: crispEdges;
+	}
+
+	.axis text {
+		font: 10px sans-serif;
+	}
+
+	.brush rect.extent {
+		fill: steelblue;
+		fill-opacity: .125;
+	}
+
+	.brush .resize path {
+		fill: #eee;
+		stroke: #666;
+	}
+	</style>
+</f:section>
+
+<f:section name="content">
+
+	<div id="charts">
+		<f:for each="{settings.calculations}" as="calculationOptions" key="calculationName">
+			<div id="chart-{calculationName}" class="chart">
+				<div class="title">{calculationOptions.label}</div>
+			</div>
+		</f:for>
+		<div id="chart-date" class="chart">
+			<div class="title">Date</div>
+		</div>
+	</div>
+
+	<aside id="totals"><span id="active">-</span> of <span id="total">-</span> runs selected.</aside>
+
+	<div id="lists">
+		<table>
+			<thead><tr>
+				<f:for each="{calculations}" as="calculationOptions">
+					<th>{calculationOptions.label}</th>
+				</f:for>
+			</tr></thead>
+			<tbody class="list" id="run-list">
+			</tbody>
+		</table>
+	</div>
+
+
+
+	<script type="text/javascript">
+		var profileData = {profileData -> f:format.raw()};
+		var calculations = {calculationsJson -> f:format.raw()};
+	</script>
+	<script type="text/javascript" src="../../../Public/crossfilter.js"></script>
+</f:section>
