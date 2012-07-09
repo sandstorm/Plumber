@@ -51,6 +51,7 @@ class OverviewController extends AbstractController {
 			$calculations['startTime'] = array(
 				'label' => 'Start Time',
 				'type' => 'startTime',
+				'nameOfRowToDisplayInsteadInTable' => 'startTimeAsHumanReadableString',
 				'crossfilter' => array(
 					'numberOfBars' => 20
 				)
@@ -67,11 +68,16 @@ class OverviewController extends AbstractController {
 
 
 		foreach ($profiles as $profileId => $profile) {
-			foreach ($profile->getOptions() as $optionName => $optionValue) {
-				$options[$optionName] = $optionName;
-			}
-			$currentProfileData = $profile->getOptions();
+			$currentProfileData = array();
 			$currentProfileData['id'] = $profileId;
+			$currentProfileData['startTimeAsHumanReadableString'] = $profile->getStartTime()->format('Y-m-d H:i:s');
+			foreach ($profile->getOptions() as $optionName => $optionValue) {
+				if (!isset($options[$optionName])) {
+					$options[$optionName] = array();
+				}
+				$options[$optionName][$optionValue] = $optionValue;
+				$currentProfileData[$optionName] = $optionValue;
+			}
 
 			$cachedCalculationResults = $profile->getCachedCalculationResults($currentCalculationHash);
 
@@ -116,6 +122,8 @@ class OverviewController extends AbstractController {
 		$this->view->assign('profileData', json_encode($profileData));
 		$this->view->assign('calculationsJson', json_encode($calculations));
 		$this->view->assign('calculations', $calculations);
+		$this->view->assign('options', $options);
+		$this->view->assign('optionsJson', json_encode($options));
 	}
 
 	public function removeAllAction() {

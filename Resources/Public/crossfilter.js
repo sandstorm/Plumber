@@ -15,6 +15,29 @@ var charts = [];
 
 var startTimeDimension = profileCrossfilter.dimension(function(d) {return d.startTime});
 
+/*for (var optionName in window.options) {
+	var optionDomain = [];
+	for (var i in window.options[optionName]) {
+		optionDomain.push(i);
+	}
+	var crossfilterOptions = {}
+
+	var sizeOfOneBar = 240 / optionDomain.length;
+
+	var dimension = profileCrossfilter.dimension(function(d) { return d[optionName] });
+	var dimensionGroup = dimension.group();
+	charts.push(
+		barChart(sizeOfOneBar - 3)
+			.dimension(dimension)
+			.group(dimensionGroup)
+			.x(d3.scale.ordinal()
+				.domain(optionDomain)
+					// the second parameter is the total WIDTH
+					// "10" in this case is the size of each bar.
+				.range([0, optionDomain.length*sizeOfOneBar]))
+	);
+}*/
+
 for (var calculationName in window.calculations) {
 	var calculationOptions = window.calculations[calculationName];
 	var crossfilterOptions = calculationOptions.crossfilter;
@@ -97,7 +120,14 @@ function recordList(div) {
 				+  '<a href="' + window.uris.xhprofDetails + '?run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
 		});
 
+		for (var optionName in window.options) {
+			recordSelectionEnter.append("td")
+				.text(function(d) {if (typeof d[optionName] == 'string') return d[optionName]});
+		}
 		for (var calculationName in window.calculations) {
+			if (window.calculations[calculationName].nameOfRowToDisplayInsteadInTable) {
+				calculationName = window.calculations[calculationName].nameOfRowToDisplayInsteadInTable;
+			}
 			recordSelectionEnter.append("td")
 				.text(function(d) {return d[calculationName]});
 		}
@@ -124,7 +154,7 @@ function barChart(barWidth) {
 		var width = x.range()[1],
 			height = y.range()[0];
 
-		y.domain([0, group.top(1)[0].value]);
+		y.domain([0, (group.top(1).length > 0 ? group.top(1)[0].value : 0)]);
 
 		div.each(function() {
 			var div = d3.select(this),
@@ -198,6 +228,9 @@ function barChart(barWidth) {
 			while (++i < n) {
 				d = groups[i];
 				path.push("M", x(d.key), ",", height, "V", y(d.value), "h", barWidth, "V", height);
+			}
+			if (path.length == 0) {
+				path.push("M0,0");
 			}
 			return path.join("");
 		}

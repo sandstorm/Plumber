@@ -72,8 +72,12 @@
 </f:section>
 
 <f:section name="content">
-
 	<div id="charts">
+		<!--<f:for each="{options}" as="x" key="optionName">
+			<div id="chart-{optionName}" class="chart">
+				<div class="title">{optionName}</div>
+			</div>
+		</f:for>-->
 		<f:for each="{settings.calculations}" as="calculationOptions" key="calculationName">
 			<div id="chart-{calculationName}" class="chart">
 				<div class="title">{calculationOptions.label}</div>
@@ -92,6 +96,9 @@
 				<thead><tr>
 					<th></th>
 					<th></th>
+					<f:for each="{options}" as="x" key="optionName">
+						<th>{optionName}</th>
+					</f:for>
 					<f:for each="{calculations}" as="calculationOptions">
 						<th>{calculationOptions.label}</th>
 					</f:for>
@@ -115,6 +122,7 @@
 		};
 		var profileData = {profileData -> f:format.raw()};
 		var calculations = {calculationsJson -> f:format.raw()};
+		var options = {optionsJson -> f:format.raw()};
 	</script>
 	<script type="text/javascript" src="../../../Public/crossfilter.js"></script>
 </f:section>
