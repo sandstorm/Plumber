@@ -86,21 +86,33 @@
 
 	<aside id="totals"><span id="active">-</span> of <span id="total">-</span> runs selected.</aside>
 
-	<div id="lists">
-		<table>
-			<thead><tr>
-				<f:for each="{calculations}" as="calculationOptions">
-					<th>{calculationOptions.label}</th>
-				</f:for>
-			</tr></thead>
-			<tbody class="list" id="run-list">
-			</tbody>
-		</table>
-	</div>
-
+	<f:form method="GET" controller="Details" action="timeline">
+		<div id="lists">
+			<table>
+				<thead><tr>
+					<th></th>
+					<th></th>
+					<f:for each="{calculations}" as="calculationOptions">
+						<th>{calculationOptions.label}</th>
+					</f:for>
+				</tr></thead>
+				<tbody class="list" id="run-list">
+				</tbody>
+			</table>
+		</div>
+		<p style="clear:both"><f:form.submit class="btn primary" value="Compare" /></p>
+	</f:form>
+	<f:link.action class="btn danger" action="removeAll">Remove <b>all</b> profiles</f:link.action>
+	<f:link.action class="btn danger" action="removeAllUntagged">Remove all <b>un-tagged</b> profiles</f:link.action>
 
 
 	<script type="text/javascript">
+		<![CDATA[
+			var uris = {
+		]]>
+			timelineDetails: "{f:uri.action(controller: 'Details', action: 'timeline')}",
+			xhprofDetails: "{f:uri.action(controller: 'Details', action: 'xhprof')}"
+		};
 		var profileData = {profileData -> f:format.raw()};
 		var calculations = {calculationsJson -> f:format.raw()};
 	</script>

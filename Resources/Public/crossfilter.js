@@ -87,6 +87,16 @@ function recordList(div) {
 
 		recordSelection.exit().remove();
 
+		recordSelectionEnter.append("td").html(function(d) {
+			return '<input type="radio" name="file1" value="' + d['id'] + '" />'
+				+  '<input type="radio" name="file2" value="' + d['id'] + '" />';
+		});
+
+		recordSelectionEnter.append("td").html(function(d) {
+			return '<a href="' + window.uris.timelineDetails + '?file1=' + d['id'] + '" class="btn small">Timeline &raquo;</a>'
+				+  '<a href="' + window.uris.xhprofDetails + '?run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
+		});
+
 		for (var calculationName in window.calculations) {
 			recordSelectionEnter.append("td")
 				.text(function(d) {return d[calculationName]});

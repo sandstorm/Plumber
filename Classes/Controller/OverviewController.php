@@ -66,11 +66,12 @@ class OverviewController extends AbstractController {
 
 
 
-		foreach ($profiles as $profile) {
+		foreach ($profiles as $profileId => $profile) {
 			foreach ($profile->getOptions() as $optionName => $optionValue) {
 				$options[$optionName] = $optionName;
 			}
 			$currentProfileData = $profile->getOptions();
+			$currentProfileData['id'] = $profileId;
 
 			$cachedCalculationResults = $profile->getCachedCalculationResults($currentCalculationHash);
 
