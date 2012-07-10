@@ -91,34 +91,14 @@ window.reset = function(i) {
 	renderAll();
 };
 
-findCalculationNameByIndex = function(i) {
-	var m = 0;
-	for (var calculationName in window.calculations) {
-		if (m == i) {
-			return calculationName;
-		}
-		m++;
-	}
-};
-/*window.zoomIn = function(i) {
-	// TODO does not work yet
-	calculationName = findCalculationNameByIndex(i);
-	window.calculations[calculationName].crossfilter.globalMin = window.calculations[calculationName].crossfilter.min;
-	window.calculations[calculationName].crossfilter.globalMax = window.calculations[calculationName].crossfilter.max;
-
-	var currentBrushExtent = charts[i].currentBrushExtent();
-	window.calculations[calculationName].crossfilter.min = currentBrushExtent[0];
-	window.calculations[calculationName].crossfilter.max = currentBrushExtent[1];
-
-	initDrawing();
+window.zoomIn = function(i) {
+	charts[i].zoomIn();
+	renderAll();
 };
 window.zoomOut = function(i) {
-	// TODO does not work yet
-	window.calculations[calculationName].crossfilter.min = window.calculations[calculationName].crossfilter.globalMin;
-	window.calculations[calculationName].crossfilter.max = window.calculations[calculationName].crossfilter.globalMax;
-	initDrawing();
-};*/
-
+	charts[i].zoomOut();
+	renderAll();
+};
 function recordList(div) {
 	var records = startTimeDimension.top(100);
 
@@ -230,16 +210,18 @@ function barChart() {
 				g.selectAll(".foreground.bar")
 					.attr("clip-path", "url(#clip-" + id + ")");
 
-				g.append("g")
-					.attr("class", "axis")
-					.attr("transform", "translate(0," + height + ")")
-					.call(axis);
 
 				// Initialize the brush component with pretty resize handles.
 				var gBrush = g.append("g").attr("class", "brush").call(brush);
 				gBrush.selectAll("rect").attr("height", height);
 				gBrush.selectAll(".resize").append("path").attr("d", resizePath);
 			}
+				// Re-draw axis on every hit
+			g.select('g.axis').remove();
+			g.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + height + ")")
+				.call(axis);
 
 			// Only redraw the brush if set externally.
 			if (brushDirty) {
@@ -358,10 +340,6 @@ function barChart() {
 		return chart;
 	};
 
-	chart.currentBrushExtent = function() {
-		return brush.extent();
-	};
-
 	chart.round = function(_) {
 		if (!arguments.length) return round;
 		round = _;
@@ -371,7 +349,7 @@ function barChart() {
 	/**
 	 * a more high-level API to build charts
 	 */
-	var dimensionFn, graphWidth, numberOfBars, domain;
+	var dimensionFn, graphWidth, numberOfBars, domain, crossfilter;
 	chart.dimension = function(_) {
 		if (typeof _ == 'string') {
 			var dimensionName = _;
@@ -392,7 +370,8 @@ function barChart() {
 		domain = _;
 		return chart;
 	}
-	chart.init = function(crossfilter) {
+	chart.init = function(_) {
+		crossfilter = _;
 			// range of one bar = (domain[max]-domain[min]) / numberOfBars
 		var rangeOfOneBar = (domain[1]-domain[0]) / numberOfBars;
 		barWidth = (graphWidth / numberOfBars) - 2;
@@ -412,6 +391,25 @@ function barChart() {
 
 		return chart;
 	};
+
+	var originalDomain = null;
+	chart.zoomIn = function() {
+		originalDomain = domain;
+		domain = brush.extent();
+		chart.init(crossfilter);
+		brush.clear();
+		brushDirty = true;
+		return chart;
+	};
+	chart.zoomOut = function() {
+		var oldDomain = domain;
+		domain = originalDomain;
+		chart.init(crossfilter);
+		brush.clear();
+		brush.extent(oldDomain);
+		brushDirty = true;
+		return chart;
+	}
 
 	return d3.rebind(chart, brush, "on");
 }
