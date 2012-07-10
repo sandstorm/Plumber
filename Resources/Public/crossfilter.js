@@ -37,13 +37,14 @@ function initDrawing() {
 		var calculationOptions = window.calculations[calculationName];
 		var crossfilterOptions = calculationOptions.crossfilter;
 
+		dimension = profileCrossfilter.dimension(function(d) { return d[calculationName]});
 		charts.push(
 			barChart()
-				.dimension(calculationName)
+				.dimension(dimension)
 				.graphWidth(240)
 				.numberOfBars(crossfilterOptions.numberOfBars)
 				.domain([crossfilterOptions.min, crossfilterOptions.max])
-				.init(profileCrossfilter)
+				.init()
 		);
 	}
 
@@ -168,7 +169,7 @@ function barChart() {
 
 		div.each(function() {
 			var div = d3.select(this),
-				g = div.select("g");
+				g = div.select("g"), path;
 
 			// Create the skeletal chart.
 			if (g.empty()) {
@@ -201,21 +202,29 @@ function barChart() {
 					.attr("width", width)
 					.attr("height", height);
 
-				g.selectAll(".bar")
-					.data(["background", "foreground"])
-				.enter().append("path")
-					.attr("class", function(d) { return d + " bar"; })
-					.datum(group.all());
 
-				g.selectAll(".foreground.bar")
-					.attr("clip-path", "url(#clip-" + id + ")");
+				path = g.selectAll(".bar")
+				// "background"
+					.data(["foreground"])
+					.enter().append("path");
+
+				path
+					.attr("class", function(d) { return d + " bar"; });
+
+				//g.selectAll(".foreground.bar")
+				//	.attr("clip-path", "url(#clip-" + id + ")");
 
 
 				// Initialize the brush component with pretty resize handles.
 				var gBrush = g.append("g").attr("class", "brush").call(brush);
 				gBrush.selectAll("rect").attr("height", height);
 				gBrush.selectAll(".resize").append("path").attr("d", resizePath);
+			} else {
+				path = g.selectAll('.bar');
 			}
+
+			path.datum(group.all());
+
 				// Re-draw axis on every hit
 			g.select('g.axis').remove();
 			g.append("g")
@@ -240,7 +249,7 @@ function barChart() {
 				}
 			}
 
-			g.selectAll(".bar").attr("d", barPath);
+			path.attr("d", barPath);
 		});
 
 		function barPath(groups) {
@@ -349,13 +358,9 @@ function barChart() {
 	/**
 	 * a more high-level API to build charts
 	 */
-	var dimensionFn, graphWidth, numberOfBars, domain, crossfilter;
+	var graphWidth, numberOfBars, domain;
 	chart.dimension = function(_) {
-		if (typeof _ == 'string') {
-			var dimensionName = _;
-			_ = function(d) {return d[dimensionName]};
-		}
-		dimensionFn = _;
+		dimension = _
 		return chart;
 	}
 	chart.graphWidth = function(_) {
@@ -370,14 +375,27 @@ function barChart() {
 		domain = _;
 		return chart;
 	}
-	chart.init = function(_) {
-		crossfilter = _;
+	chart.init = function() {
 			// range of one bar = (domain[max]-domain[min]) / numberOfBars
 		var rangeOfOneBar = (domain[1]-domain[0]) / numberOfBars;
 		barWidth = (graphWidth / numberOfBars) - 2;
 
-		dimension = crossfilter.dimension(function(d) { return Math.floor(dimensionFn(d) / rangeOfOneBar) * rangeOfOneBar });
-		var dimensionGroup = dimension.group();
+
+		var dimensionGroup = dimension.group(function(v) {
+			if (v < domain[0]) return undefined;
+			if (v > domain[1]) return undefined;
+			return Math.floor(v / rangeOfOneBar) * rangeOfOneBar;
+		});
+		dimensionGroup.reduce(function reduceAdd(p, v) {
+			if (v === undefined) return p;
+			return p + 1;
+		}, function reduceRemove(p, v) {
+			if (v === undefined) return p;
+			return p - 1;
+		}, function reduceInitial() {
+			return 0;
+		});
+		console.log("INIT DG", dimensionGroup.all());
 
 		chart.group(dimensionGroup)
 			 .x(d3.scale.linear()
@@ -394,20 +412,26 @@ function barChart() {
 
 	var originalDomain = null;
 	chart.zoomIn = function() {
-		originalDomain = domain;
+		if (originalDomain == null) originalDomain = domain;
 		domain = brush.extent();
-		chart.init(crossfilter);
+		chart.init();
 		brush.clear();
 		brushDirty = true;
 		return chart;
 	};
 	chart.zoomOut = function() {
-		var oldDomain = domain;
+		if (!originalDomain) return;
+		var insideDomain = domain;
 		domain = originalDomain;
-		chart.init(crossfilter);
+		console.log("DD", domain);
 		brush.clear();
-		brush.extent(oldDomain);
+		dimension.filterAll();
+
+		chart.init();
+
+		chart.filter(insideDomain);
 		brushDirty = true;
+		originalDomain = null;
 		return chart;
 	}
 
