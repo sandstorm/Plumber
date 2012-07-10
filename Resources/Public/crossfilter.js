@@ -77,6 +77,8 @@ function renderAll() {
 	chart.each(render);
 	list.each(render);
 	d3.select("#active").text(formatNumber(all.value()));
+
+	d3.selectAll('svg .axis g text').attr('transform', 'translate(7,0) rotate(45)').attr('text-anchor', 'left');
 }
 
 window.filter = function(filters) {
@@ -166,7 +168,7 @@ function recordList(div) {
 function barChart() {
 	if (!barChart.id) barChart.id = 0;
 
-	var margin = {top: 10, right: 10, bottom: 20, left: 10},
+	var margin = {top: 10, right: 30, bottom: 60, left: 30},
 		x,
 		y = d3.scale.linear().range([100, 0]),
 		id = barChart.id++,
@@ -327,6 +329,7 @@ function barChart() {
 		if (!arguments.length) return x;
 		x = _;
 		axis.scale(x);
+
 		brush.x(x);
 		return chart;
 	};
@@ -399,10 +402,14 @@ function barChart() {
 
 		chart.group(dimensionGroup)
 			 .x(d3.scale.linear()
-		        .domain([domain[0] - rangeOfOneBar, domain[1] + rangeOfOneBar])
+				.domain([domain[0], domain[1]])
+				.nice()
 					// the "range" in this case is the pixel size of the graph
 				.rangeRound([0, graphWidth])
-		     );
+		     ).round(function(value) {
+				return Math.floor(value / rangeOfOneBar) * rangeOfOneBar;
+			 });
+
 		return chart;
 	};
 
