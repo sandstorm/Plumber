@@ -11,7 +11,7 @@ var nestByDate = d3.nest()
 var profileCrossfilter = crossfilter(window.profileData),
 	all = profileCrossfilter.groupAll();
 
-var charts = [];
+var charts = [], chart, list;
 
 var startTimeDimension = profileCrossfilter.dimension(function(d) {return d.startTime});
 
@@ -37,44 +37,48 @@ var startTimeDimension = profileCrossfilter.dimension(function(d) {return d.star
 				.range([0, optionDomain.length*sizeOfOneBar]))
 	);
 }*/
+function initDrawing() {
+	charts = [];
+	for (var calculationName in window.calculations) {
+		var calculationOptions = window.calculations[calculationName];
+		var crossfilterOptions = calculationOptions.crossfilter;
 
-for (var calculationName in window.calculations) {
-	var calculationOptions = window.calculations[calculationName];
-	var crossfilterOptions = calculationOptions.crossfilter;
+		// one bar
+		var rangeOfOneBar = crossfilterOptions.max / crossfilterOptions.numberOfBars;
+		var sizeOfOneBar = 240 / crossfilterOptions.numberOfBars;
 
-	// one bar
-	var rangeOfOneBar = crossfilterOptions.max / crossfilterOptions.numberOfBars;
-	var sizeOfOneBar = 240 / crossfilterOptions.numberOfBars;
+		var dimension = profileCrossfilter.dimension(function(d) { return Math.floor(d[calculationName] / rangeOfOneBar) * rangeOfOneBar });
+		var dimensionGroup = dimension.group();
+		charts.push(
+			barChart(sizeOfOneBar - 3)
+				.dimension(dimension)
+				.group(dimensionGroup)
+				.x(d3.scale.linear()
+					.domain([crossfilterOptions.min-rangeOfOneBar, crossfilterOptions.max+rangeOfOneBar])
+						// the second parameter is the total WIDTH
+					.rangeRound([0, (crossfilterOptions.width ? crossfilterOptions.width : 240)]))
+		);
+	}
 
-	var dimension = profileCrossfilter.dimension(function(d) { return Math.floor(d[calculationName] / rangeOfOneBar) * rangeOfOneBar });
-	var dimensionGroup = dimension.group();
-	charts.push(
-		barChart(sizeOfOneBar - 3)
-			.dimension(dimension)
-			.group(dimensionGroup)
-			.x(d3.scale.linear()
-				.domain([crossfilterOptions.min-rangeOfOneBar, crossfilterOptions.max+rangeOfOneBar])
-					// the second parameter is the total WIDTH
-				.rangeRound([0, (crossfilterOptions.width ? crossfilterOptions.width : 240)]))
-	);
+	// Given our array of charts, which we assume are in the same order as the
+	// .chart elements in the DOM, bind the charts to the DOM and render them.
+	// We also listen to the chart's brush events to update the display.
+	chart = d3.selectAll(".chart")
+		.data(charts)
+		.each(function(chart) { chart.on("brush", renderAll).on("brushend", renderAll); });
+
+	// Render the initial lists.
+	list = d3.selectAll(".list")
+		.data([recordList]);
+
+	// Render the total.
+	d3.selectAll("#total")
+		.text(formatNumber(profileCrossfilter.size()));
+
+	renderAll();
 }
+initDrawing();
 
-// Given our array of charts, which we assume are in the same order as the
-// .chart elements in the DOM, bind the charts to the DOM and render them.
-// We also listen to the chart's brush events to update the display.
-var chart = d3.selectAll(".chart")
-	.data(charts)
-	.each(function(chart) { chart.on("brush", renderAll).on("brushend", renderAll); });
-
-// Render the initial lists.
-var list = d3.selectAll(".list")
-	.data([recordList]);
-
-// Render the total.
-d3.selectAll("#total")
-	.text(formatNumber(profileCrossfilter.size()));
-
-renderAll();
 
 // Renders the specified chart or list.
 function render(method) {
@@ -98,8 +102,36 @@ window.reset = function(i) {
 	renderAll();
 };
 
+findCalculationNameByIndex = function(i) {
+	var m = 0;
+	for (var calculationName in window.calculations) {
+		if (m == i) {
+			return calculationName;
+		}
+		m++;
+	}
+};
+/*window.zoomIn = function(i) {
+	// TODO does not work yet
+	calculationName = findCalculationNameByIndex(i);
+	window.calculations[calculationName].crossfilter.globalMin = window.calculations[calculationName].crossfilter.min;
+	window.calculations[calculationName].crossfilter.globalMax = window.calculations[calculationName].crossfilter.max;
+
+	var currentBrushExtent = charts[i].currentBrushExtent();
+	window.calculations[calculationName].crossfilter.min = currentBrushExtent[0];
+	window.calculations[calculationName].crossfilter.max = currentBrushExtent[1];
+
+	initDrawing();
+};
+window.zoomOut = function(i) {
+	// TODO does not work yet
+	window.calculations[calculationName].crossfilter.min = window.calculations[calculationName].crossfilter.globalMin;
+	window.calculations[calculationName].crossfilter.max = window.calculations[calculationName].crossfilter.globalMax;
+	initDrawing();
+};*/
+
 function recordList(div) {
-	var records = startTimeDimension.top(40);
+	var records = startTimeDimension.top(100);
 
 	div.each(function() {
 		var recordSelection = d3.select(this).selectAll(".record")
@@ -111,8 +143,8 @@ function recordList(div) {
 		recordSelection.exit().remove();
 
 		recordSelectionEnter.append("td").html(function(d) {
-			return '<input type="radio" name="file1" value="' + d['id'] + '" />'
-				+  '<input type="radio" name="file2" value="' + d['id'] + '" />';
+			return '<a onclick="jQuery(\'#file1\').val(\'' + d['id'] + '\');">1</a> '
+				+  '<a onclick="jQuery(\'#file2\').val(\'' + d['id'] + '\');">2</a>';
 		});
 
 		recordSelectionEnter.append("td").html(function(d) {
@@ -122,7 +154,15 @@ function recordList(div) {
 
 		for (var optionName in window.options) {
 			recordSelectionEnter.append("td")
-				.text(function(d) {if (typeof d[optionName] == 'string') return d[optionName]});
+				.html(function(d) {
+					var str = "";
+					if (typeof d[optionName] == 'string') str = d[optionName];
+					if (str.length > 50) {
+						str = '<a title="' + str + '">' + str.substring(0, 50) + '...</a>'
+					}
+
+					return str;
+			});
 		}
 		for (var calculationName in window.calculations) {
 			if (window.calculations[calculationName].nameOfRowToDisplayInsteadInTable) {
@@ -166,6 +206,17 @@ function barChart(barWidth) {
 					.attr("href", "javascript:reset(" + id + ")")
 					.attr("class", "reset")
 					.text("reset")
+					.style("display", "none");
+
+				div.select(".title").append("a")
+					.attr("href", "javascript:zoomIn(" + id + ")")
+					.attr("class", "zoom-in")
+					.text("zoom in")
+					.style("display", "none");
+				div.select(".title").append("a")
+					.attr("href", "javascript:zoomOut(" + id + ")")
+					.attr("class", "zoom-out")
+					.text("zoom out")
 					.style("display", "none");
 
 				g = div.append("svg")
@@ -253,7 +304,7 @@ function barChart(barWidth) {
 
 	brush.on("brushstart.chart", function() {
 		var div = d3.select(this.parentNode.parentNode.parentNode);
-		div.select(".title a").style("display", null);
+		div.selectAll(".title a").style("display", null);
 	});
 
 	brush.on("brush.chart", function() {
@@ -320,6 +371,10 @@ function barChart(barWidth) {
 		if (!arguments.length) return group;
 		group = _;
 		return chart;
+	};
+
+	chart.currentBrushExtent = function() {
+		return brush.extent();
 	};
 
 	chart.round = function(_) {

@@ -43,4 +43,18 @@
 	</div>
 	<div id="filter" style="position:fixed; right: 0; top: 70px; height: 500px; width:10%; border: 1px solid #aaa">
 	</div>
+
+	<div>
+		<f:render section="runMetadata" arguments="{profile: profile, file: file1}" />
+		<f:render section="runMetadata" arguments="{profile: profile2, file: file2}" />
+	</div>
+</f:section>
+<f:section name="runMetadata">
+	<f:if condition="{profile}">
+		<h2>Metadata -- {file}</h2>
+		<f:link.action class="btn small" action="xhprof" arguments="{run: file}">XHprof</f:link.action><br />
+		<f:for each="{profile.options}" key="k" as="v">
+			{k}: {v}<br />
+		</f:for>
+	</f:if>
 </f:section>

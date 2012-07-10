@@ -11,7 +11,7 @@
 	<link rel="stylesheet" type="text/css" href="../../../Public/DataTables/media/css/demo_table.css" />
 	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.js"></script>
 	<!--<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.dataTables.min.js"></script>-->
-	<!--<script type="text/javascript" src="../../../Public/jquery.jeditable.mini.js"></script>-->
+	<script type="text/javascript" src="../../../Public/jquery.jeditable.mini.js"></script>
 	<script type="text/javascript" src="../../../Public/bootstrap-twipsy.js"></script>
 	<script type="text/javascript" src="../../../Public/bootstrap-popover.js"></script>
 	<script type="text/javascript" src="../../../Public/crossfilter/d3.v2.js"></script>
@@ -34,7 +34,7 @@
 		margin-bottom: 20px;
 	}
 
-	.reset {
+	.reset, .zoom-in, .zoom-out {
 		padding-left: 1em;
 		font-size: smaller;
 		color: #ccc;
@@ -91,6 +91,11 @@
 	<aside id="totals"><span id="active">-</span> of <span id="total">-</span> runs selected.</aside>
 
 	<f:form method="GET" controller="Details" action="timeline">
+		<p style="clear:both">
+			<f:form.textfield name="file1" id="file1" value="" />
+			<f:form.textfield name="file2" id="file2" value="" />
+			<f:form.submit class="btn primary" value="Compare" />
+		</p>
 		<div id="lists">
 			<table>
 				<thead><tr>
@@ -107,7 +112,6 @@
 				</tbody>
 			</table>
 		</div>
-		<p style="clear:both"><f:form.submit class="btn primary" value="Compare" /></p>
 	</f:form>
 	<f:link.action class="btn danger" action="removeAll">Remove <b>all</b> profiles</f:link.action>
 	<f:link.action class="btn danger" action="removeAllUntagged">Remove all <b>un-tagged</b> profiles</f:link.action>
