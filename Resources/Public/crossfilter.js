@@ -204,15 +204,14 @@ function barChart() {
 
 
 				path = g.selectAll(".bar")
-				// "background"
-					.data(["foreground"])
+					.data(["background", "foreground"])
 					.enter().append("path");
 
 				path
 					.attr("class", function(d) { return d + " bar"; });
 
-				//g.selectAll(".foreground.bar")
-				//	.attr("clip-path", "url(#clip-" + id + ")");
+				g.selectAll(".foreground.bar")
+					.attr("clip-path", "url(#clip-" + id + ")");
 
 
 				// Initialize the brush component with pretty resize handles.
@@ -381,6 +380,8 @@ function barChart() {
 		barWidth = (graphWidth / numberOfBars) - 2;
 
 
+		// We build up a new dimension group; and for everything outside the range
+		// boundaries we return undefined and ignore it during the reduce step.
 		var dimensionGroup = dimension.group(function(v) {
 			if (v < domain[0]) return undefined;
 			if (v > domain[1]) return undefined;
@@ -395,7 +396,6 @@ function barChart() {
 		}, function reduceInitial() {
 			return 0;
 		});
-		console.log("INIT DG", dimensionGroup.all());
 
 		chart.group(dimensionGroup)
 			 .x(d3.scale.linear()
