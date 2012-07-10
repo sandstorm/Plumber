@@ -1,11 +1,12 @@
 <?php
-namespace SandstormMedia\Plumber\ViewHelpers;
+namespace SandstormMedia\Plumber\Service;
 
 use TYPO3\FLOW3\Annotations as FLOW3;
 
 /**
+ * @FLOW3\Scope("singleton")
  */
-class RenderTagsViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
+class RenderTagsService {
 
 	/**
 	 * @param array $tags

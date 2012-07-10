@@ -102,6 +102,7 @@
 				<thead><tr>
 					<th></th>
 					<th></th>
+					<th>Tags</th>
 					<f:for each="{options}" as="x" key="optionName">
 						<th>{optionName}</th>
 					</f:for>
@@ -123,7 +124,8 @@
 			var uris = {
 		]]>
 			timelineDetails: "{f:uri.action(controller: 'Details', action: 'timeline')}",
-			xhprofDetails: "{f:uri.action(controller: 'Details', action: 'xhprof')}"
+			xhprofDetails: "{f:uri.action(controller: 'Details', action: 'xhprof')}",
+			updateTags: '{f:uri.action(action:"updateTags")}'
 		};
 		var profileData = {profileData -> f:format.raw()};
 		var calculations = {calculationsJson -> f:format.raw()};

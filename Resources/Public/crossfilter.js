@@ -108,7 +108,7 @@ function recordList(div) {
 			.data(records, function(d) { return d.startTime; });
 
 		var recordSelectionEnter = recordSelection.enter().append("tr")
-			.attr("class", "record")
+			.attr("class", "record").attr('id', function(d) { return d['id'] });
 
 		recordSelection.exit().remove();
 
@@ -120,6 +120,9 @@ function recordList(div) {
 		recordSelectionEnter.append("td").html(function(d) {
 			return '<a href="' + window.uris.timelineDetails + '?file1=' + d['id'] + '" class="btn small">Timeline &raquo;</a>'
 				+  '<a href="' + window.uris.xhprofDetails + '?run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
+		});
+		recordSelectionEnter.append("td").attr('class', 'tagList').html(function(d) {
+			return d['tagsAsHtml'];
 		});
 
 		for (var optionName in window.options) {
@@ -437,3 +440,24 @@ function barChart() {
 
 	return d3.rebind(chart, brush, "on");
 }
+
+
+
+$('.tagList').live('click', function(event) {
+    event.preventDefault();
+    $(this).editable(window.uris.updateTags, {
+		data: function(value, settings) {
+			// Convert span tags to comma separated tag list
+			var $el = jQuery('<div />');
+			$el.html(value).find('span').replaceWith(function() {
+				return $(this).html() + ', ';
+			});
+			return $el.html();
+		},
+		submitdata: function ( value, settings ) {
+			return {
+				'file': this.parentNode.getAttribute('id')
+			};
+		}
+	});
+});

@@ -22,6 +22,12 @@ class OverviewController extends AbstractController {
 	protected $calculationService;
 
 	/**
+	 * @FLOW3\Inject
+	 * @var \SandstormMedia\Plumber\Service\RenderTagsService
+	 */
+	protected $renderTagsService;
+
+	/**
 	 * Index action
 	 *
 	 * @return void
@@ -71,7 +77,11 @@ class OverviewController extends AbstractController {
 			$currentProfileData = array();
 			$currentProfileData['id'] = $profileId;
 			$currentProfileData['startTimeAsHumanReadableString'] = $profile->getStartTime()->format('Y-m-d H:i:s');
+			$currentProfileData['tagsAsHtml'] = $this->renderTagsService->render($profile->getTags());
 			foreach ($profile->getOptions() as $optionName => $optionValue) {
+				if (!is_string($optionValue)) {
+					continue;
+				}
 				if (!isset($options[$optionName])) {
 					$options[$optionName] = array();
 				}
@@ -155,7 +165,7 @@ class OverviewController extends AbstractController {
 		$tags = \TYPO3\FLOW3\Utility\Arrays::trimExplode(',', $value);
 		$profile->setTags($tags);
 		$profile->save();
-		$this->view->assign('tags', $tags);
+		return $this->renderTagsService->render($tags);
 	}
 
 	/**
