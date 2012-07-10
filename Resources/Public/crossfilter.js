@@ -1,11 +1,5 @@
 // Various formatters.
-var formatNumber = d3.format(",d"),
-	formatDate = d3.time.format("%B %d, %Y"),
-	formatTime = d3.time.format("%I:%M %p");
-
-// A nest operator, for grouping the flight list.
-var nestByDate = d3.nest()
-	.key(function(d) { return d3.time.day(d.date); });
+var formatNumber = d3.format(",d");
 
 // Create the crossfilter for the relevant dimensions and groups.
 var profileCrossfilter = crossfilter(window.profileData),
@@ -43,20 +37,13 @@ function initDrawing() {
 		var calculationOptions = window.calculations[calculationName];
 		var crossfilterOptions = calculationOptions.crossfilter;
 
-		// one bar
-		var rangeOfOneBar = crossfilterOptions.max / crossfilterOptions.numberOfBars;
-		var sizeOfOneBar = 240 / crossfilterOptions.numberOfBars;
-
-		var dimension = profileCrossfilter.dimension(function(d) { return Math.floor(d[calculationName] / rangeOfOneBar) * rangeOfOneBar });
-		var dimensionGroup = dimension.group();
 		charts.push(
-			barChart(sizeOfOneBar - 3)
-				.dimension(dimension)
-				.group(dimensionGroup)
-				.x(d3.scale.linear()
-					.domain([crossfilterOptions.min-rangeOfOneBar, crossfilterOptions.max+rangeOfOneBar])
-						// the second parameter is the total WIDTH
-					.rangeRound([0, (crossfilterOptions.width ? crossfilterOptions.width : 240)]))
+			barChart()
+				.dimension(calculationName)
+				.graphWidth(240)
+				.numberOfBars(crossfilterOptions.numberOfBars)
+				.domain([crossfilterOptions.min, crossfilterOptions.max])
+				.init(profileCrossfilter)
 		);
 	}
 
@@ -176,7 +163,7 @@ function recordList(div) {
 	});
 }
 
-function barChart(barWidth) {
+function barChart() {
 	if (!barChart.id) barChart.id = 0;
 
 	var margin = {top: 10, right: 10, bottom: 20, left: 10},
@@ -188,7 +175,8 @@ function barChart(barWidth) {
 		brushDirty,
 		dimension,
 		group,
-		round;
+		round,
+		barWidth;
 
 	function chart(div) {
 		var width = x.range()[1],
@@ -349,12 +337,6 @@ function barChart(barWidth) {
 		return chart;
 	};
 
-	chart.dimension = function(_) {
-		if (!arguments.length) return dimension;
-		dimension = _;
-		return chart;
-	};
-
 	chart.filter = function(_) {
 		if (_) {
 			brush.extent(_);
@@ -380,6 +362,47 @@ function barChart(barWidth) {
 	chart.round = function(_) {
 		if (!arguments.length) return round;
 		round = _;
+		return chart;
+	};
+
+	/**
+	 * a more high-level API to build charts
+	 */
+	var dimensionFn, graphWidth, numberOfBars, domain;
+	chart.dimension = function(_) {
+		if (typeof _ == 'string') {
+			var dimensionName = _;
+			_ = function(d) {return d[dimensionName]};
+		}
+		dimensionFn = _;
+		return chart;
+	}
+	chart.graphWidth = function(_) {
+		graphWidth = _;
+		return chart;
+	}
+	chart.numberOfBars = function(_) {
+		numberOfBars = _;
+		return chart;
+	}
+	chart.domain = function(_) {
+		domain = _;
+		return chart;
+	}
+	chart.init = function(crossfilter) {
+			// range of one bar = (domain[max]-domain[min]) / numberOfBars
+		var rangeOfOneBar = (domain[1]-domain[0]) / numberOfBars;
+		barWidth = (graphWidth / numberOfBars) - 2;
+
+		dimension = crossfilter.dimension(function(d) { return Math.floor(dimensionFn(d) / rangeOfOneBar) * rangeOfOneBar });
+		var dimensionGroup = dimension.group();
+
+		chart.group(dimensionGroup)
+			 .x(d3.scale.linear()
+		        .domain([domain[0] - rangeOfOneBar, domain[1] + rangeOfOneBar])
+					// the "range" in this case is the pixel size of the graph
+				.rangeRound([0, graphWidth])
+		     );
 		return chart;
 	};
 
