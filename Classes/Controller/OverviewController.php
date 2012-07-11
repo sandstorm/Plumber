@@ -53,16 +53,6 @@ class OverviewController extends AbstractController {
 		$options = array();
 
 		$calculations = $this->settings['calculations'];
-		if (!isset($calculations['startTime'])) {
-			$calculations['startTime'] = array(
-				'label' => 'Start Time',
-				'type' => 'startTime',
-				'nameOfRowToDisplayInsteadInTable' => 'startTimeAsHumanReadableString',
-				'crossfilter' => array(
-					'numberOfBars' => 20
-				)
-			);
-		}
 
 		$currentCalculationHash = sha1(serialize($calculations));
 
@@ -71,12 +61,9 @@ class OverviewController extends AbstractController {
 			$calculationMinMax[$calculationName] = array('min' => INF, 'max' => -INF);
 		}
 
-
-
 		foreach ($profiles as $profileId => $profile) {
 			$currentProfileData = array();
 			$currentProfileData['id'] = $profileId;
-			$currentProfileData['startTimeAsHumanReadableString'] = $profile->getStartTime()->format('Y-m-d H:i:s');
 			$currentProfileData['tagsAsHtml'] = $this->renderTagsService->render($profile->getTags());
 			foreach ($profile->getOptions() as $optionName => $optionValue) {
 				if (!is_string($optionValue)) {

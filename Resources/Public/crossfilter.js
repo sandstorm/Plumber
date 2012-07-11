@@ -1,6 +1,15 @@
 // Various formatters.
 var formatNumber = d3.format(",d");
 
+var startTimeBounds = {};
+window.profileData.forEach(function(d, i) {
+	d.startTime = new Date(parseInt(d.startTime*1000))
+	if (!startTimeBounds.min || startTimeBounds.min > d.startTime)
+		startTimeBounds.min = d.startTime;
+	if (!startTimeBounds.max || startTimeBounds.max < d.startTime)
+		startTimeBounds.max = d.startTime;
+});
+
 // Create the crossfilter for the relevant dimensions and groups.
 var profileCrossfilter = crossfilter(window.profileData),
 	all = profileCrossfilter.groupAll();
@@ -37,15 +46,21 @@ function initDrawing() {
 		var calculationOptions = window.calculations[calculationName];
 		var crossfilterOptions = calculationOptions.crossfilter;
 
-		dimension = profileCrossfilter.dimension(function(d) { return d[calculationName]});
-		charts.push(
-			barChart()
-				.dimension(dimension)
+		var theChart = null;
+
+		if (crossfilterOptions.chartInitializer) {
+			eval(crossfilterOptions.chartInitializer);
+		} else {
+			theChart = barChart()
+				.dimension(profileCrossfilter.dimension(function(d) { return d[calculationName]}))
 				.graphWidth(240)
 				.numberOfBars(crossfilterOptions.numberOfBars)
 				.domain([crossfilterOptions.min, crossfilterOptions.max])
-				.init()
-		);
+				.init();
+			charts.push(theChart);
+		}
+
+
 	}
 
 	// Given our array of charts, which we assume are in the same order as the
@@ -138,11 +153,14 @@ function recordList(div) {
 			});
 		}
 		for (var calculationName in window.calculations) {
-			if (window.calculations[calculationName].nameOfRowToDisplayInsteadInTable) {
-				calculationName = window.calculations[calculationName].nameOfRowToDisplayInsteadInTable;
+			var listDisplayFn;
+			if (window.calculations[calculationName].listDisplayFn) {
+				eval("listDisplayFn = " + window.calculations[calculationName].listDisplayFn);
+			} else {
+				listDisplayFn = function(d) {return d[calculationName]};
 			}
 			recordSelectionEnter.append("td")
-				.text(function(d) {return d[calculationName]});
+				.text(listDisplayFn);
 		}
 
 		recordSelection.order()
@@ -365,12 +383,19 @@ function barChart() {
 		dimension = _
 		return chart;
 	}
+	function updateBarWidth() {
+		if (graphWidth && numberOfBars) {
+			barWidth = (graphWidth / numberOfBars) - 2;
+		}
+	}
 	chart.graphWidth = function(_) {
 		graphWidth = _;
+		updateBarWidth();
 		return chart;
 	}
 	chart.numberOfBars = function(_) {
 		numberOfBars = _;
+		updateBarWidth();
 		return chart;
 	}
 	chart.domain = function(_) {
@@ -380,7 +405,6 @@ function barChart() {
 	chart.init = function() {
 			// range of one bar = (domain[max]-domain[min]) / numberOfBars
 		var rangeOfOneBar = (domain[1]-domain[0]) / numberOfBars;
-		barWidth = (graphWidth / numberOfBars) - 2;
 
 
 		// We build up a new dimension group; and for everything outside the range
