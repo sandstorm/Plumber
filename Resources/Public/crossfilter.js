@@ -439,7 +439,7 @@ function barChart() {
 
 	var originalDomain = null;
 	chart.zoomIn = function() {
-		if (originalDomain == null) originalDomain = domain;
+		if (!originalDomain) originalDomain = domain;
 		domain = brush.extent();
 		chart.init();
 		brush.clear();
@@ -450,7 +450,6 @@ function barChart() {
 		if (!originalDomain) return;
 		var insideDomain = domain;
 		domain = originalDomain;
-		console.log("DD", domain);
 		brush.clear();
 		dimension.filterAll();
 
