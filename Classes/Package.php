@@ -11,7 +11,7 @@ use TYPO3\FLOW3\Annotations as FLOW3;
  */
 class Package extends BasePackage {
 
-	protected function connectToSignals(\TYPO3\FLOW3\SignalSlot\Dispatcher $dispatcher, \SandstormMedia\PhpProfiler\Profiler $profiler, \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $run) {
+	protected function connectToSignals(\TYPO3\FLOW3\SignalSlot\Dispatcher $dispatcher, \SandstormMedia\PhpProfiler\Profiler $profiler, \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $run, \TYPO3\FLOW3\Core\Bootstrap $bootstrap) {
 		$dispatcher->connect('TYPO3\FLOW3\Core\Booting\Sequence', 'beforeInvokeStep', function($step) use($run) {
 			$run->startTimer('Boostrap Sequence: ' . $step->getIdentifier());
 		});
@@ -19,16 +19,21 @@ class Package extends BasePackage {
 			$run->stopTimer('Boostrap Sequence: ' . $step->getIdentifier());
 		});
 
-		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'finishedRuntimeRun', function() use($profiler) {
+		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'finishedRuntimeRun', function() use($profiler, $bootstrap) {
+			$plumberConfiguration = $bootstrap->getEarlyInstance('TYPO3\FLOW3\Configuration\ConfigurationManager')->getConfiguration(\TYPO3\FLOW3\Configuration\ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'SandstormMedia.Plumber');
+
+
 			$run = $profiler->stop();
-			if ($run) {
+			if ($run && isset($plumberConfiguration['enableProfiling']) && $plumberConfiguration['enableProfiling'] === TRUE) {
 				$profiler->save($run);
 			}
 		});
 
-		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'finishedCompiletimeRun', function() use($profiler) {
+		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'finishedCompiletimeRun', function() use($profiler, $bootstrap) {
+			$plumberConfiguration = $bootstrap->getEarlyInstance('TYPO3\FLOW3\Configuration\ConfigurationManager')->getConfiguration(\TYPO3\FLOW3\Configuration\ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'SandstormMedia.Plumber');
+
 			$run = $profiler->stop();
-			if ($run) {
+			if ($run && isset($plumberConfiguration['enableProfiling']) && $plumberConfiguration['enableProfiling'] === TRUE) {
 				$run->setOption('Context', 'COMPILE');
 				$profiler->save($run);
 			}
@@ -58,39 +63,6 @@ class Package extends BasePackage {
 
 	}
 
-	protected function connectToSignalsWithOldBootstrap(\TYPO3\FLOW3\SignalSlot\Dispatcher $dispatcher, \SandstormMedia\PhpProfiler\Profiler $profiler, \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $run) {
-
-		$dispatcher->connect('TYPO3\FLOW3\Core\Bootstrap', 'finishedRuntimeRun', function() use($profiler) {
-			$run = $profiler->stop();
-			if ($run) {
-				$profiler->save($run);
-			}
-		});
-
-
-
-		$dispatcher->connect('TYPO3\Fluid\View\AbstractTemplateView', 'beforeRender', function() use($run) {
-			$run->startTimer('Fluid: Rendering');
-		});
-		$dispatcher->connect('TYPO3\Fluid\View\AbstractTemplateView', 'afterRender', function() use($run) {
-			$run->stopTimer('Fluid: Rendering');
-		});
-
-		$dispatcher->connect('TYPO3\Fluid\View\AbstractTemplateView', 'beforeRenderSection', function($sectionName) use($run) {
-			$run->startTimer('Fluid: Rendering Section', array('Section' => $sectionName));
-		});
-		$dispatcher->connect('TYPO3\Fluid\View\AbstractTemplateView', 'afterRenderSection', function() use($run) {
-			$run->stopTimer('Fluid: Rendering Section');
-		});
-
-		$dispatcher->connect('TYPO3\Fluid\View\AbstractTemplateView', 'beforeRenderPartial', function($partialName, $sectionName) use($run) {
-			$run->startTimer('Fluid: Rendering Partial', array('Partial' => $partialName, 'Section' => $sectionName));
-		});
-		$dispatcher->connect('TYPO3\Fluid\View\AbstractTemplateView', 'afterRenderPartial', function() use($run) {
-			$run->stopTimer('Fluid: Rendering Partial');
-		});
-	}
-
 	public function boot(\TYPO3\FLOW3\Core\Bootstrap $bootstrap) {
 		define('XHPROF_ROOT', $this->getResourcesPath() . 'Private/PHP/xhprof-ui/');
 
@@ -104,8 +76,7 @@ class Package extends BasePackage {
 		$run = $profiler->start();
 		$dispatcher = $bootstrap->getSignalSlotDispatcher();
 		$run->setOption('Context', $bootstrap->getContext());
-		$this->connectToSignals($dispatcher, $profiler, $run);
-		//$this->connectToSignalsWithOldBootstrap($dispatcher, $profiler, $run);
+		$this->connectToSignals($dispatcher, $profiler, $run, $bootstrap);
 	}
 }
 ?>
