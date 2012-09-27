@@ -27,26 +27,7 @@ class OverviewController extends AbstractController {
 	 */
 	protected $renderTagsService;
 
-	/**
-	 * Index action
-	 *
-	 * @return void
-	 */
 	public function indexAction() {
-		$profiles = $this->getProfiles();
-
-		$options = array();
-		foreach ($profiles as $profile) {
-			foreach ($profile->getOptions() as $optionName => $optionValue) {
-				$options[$optionName] = $optionName;
-			}
-		}
-
-		$this->view->assign('profiles', $profiles);
-		$this->view->assign('options', $options);
-	}
-
-	public function crossfilterAction() {
 		$profiles = $this->getProfiles();
 
 		$profileData = array();

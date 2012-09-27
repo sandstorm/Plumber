@@ -2,111 +2,134 @@
 <f:layout name="Main" />
 
 <f:section name="navigation">
-	<li class="active"><f:link.action action="index">Overview</f:link.action></li>
-	<li><f:link.action action="crossfilter">Crossfilter Overview</f:link.action></li>
+	<li><f:link.action action="index">Overview</f:link.action></li>
+	<li class="active"><f:link.action action="crossfilter">Crossfilter Overview</f:link.action></li>
 </f:section>
 
 <f:section name="header">
 	<f:base />
 	<link rel="stylesheet" type="text/css" href="../../../Public/DataTables/media/css/demo_table.css" />
 	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.js"></script>
-	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.dataTables.min.js"></script>
+	<!--<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.dataTables.min.js"></script>-->
 	<script type="text/javascript" src="../../../Public/jquery.jeditable.mini.js"></script>
 	<script type="text/javascript" src="../../../Public/bootstrap-twipsy.js"></script>
 	<script type="text/javascript" src="../../../Public/bootstrap-popover.js"></script>
+	<script type="text/javascript" src="../../../Public/crossfilter/d3.v2.js"></script>
+	<script type="text/javascript" src="../../../Public/crossfilter/crossfilter.v1.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
-			var updateTagsActionUri = '{f:uri.action(action:"updateTags")}';
-
 			<![CDATA[
-			var table = $('#results').dataTable({
-				iDisplayLength: 100
-			});
-
-			$('td:nth-child(3)', table.fnGetNodes()).editable(updateTagsActionUri, {
-				data: function(value, settings) {
-					// Convert span tags to comma separated tag list
-					var $el = jQuery('<div />');
-					$el.html(value).find('span').replaceWith(function() {
-						return $(this).html() + ', ';
-					});
-					return $el.html();
-				},
-				submitdata: function ( value, settings ) {
-					return {
-						'file': this.parentNode.getAttribute('id')
-					};
-				}
-			});
 
 			$('a[rel="popover"]').popover({html: true});
 		});
 	]]></script>
 	<style type="text/css">
-		tr.odd {
-			background-color: #ccc;
-		}
-		tr.odd td.sorting_1 {
-			background-color: #ccc;
-		}
+	#charts {
+		padding: 10px 0;
+	}
 
-		tr.even td.sorting_1 {
-			background-color: #FFF;
-		}
-		td:nth-child(2) {
-			width: 150px;
-		}
-		td:nth-child(3) {
-			width: 100px;
-		}
+	.chart {
+		display: inline-block;
+		height: 151px;
+		margin-bottom: 20px;
+	}
+
+	.reset, .zoom-in, .zoom-out {
+		padding-left: 1em;
+		font-size: smaller;
+		color: #ccc;
+	}
+
+	.background.bar {
+		fill: #ccc;
+	}
+
+	.foreground.bar {
+		fill: steelblue;
+		stroke: #000;
+		stroke-width: 0.5px;
+	}
+
+	.axis path, .axis line {
+		fill: none;
+		stroke: #000;
+		shape-rendering: crispEdges;
+	}
+
+	.axis text {
+		font: 10px sans-serif;
+	}
+
+	.brush rect.extent {
+		fill: steelblue;
+		fill-opacity: .125;
+	}
+
+	.brush .resize path {
+		fill: #eee;
+		stroke: #666;
+	}
 	</style>
 </f:section>
 
 <f:section name="content">
-	<h1>Choose runs!</h1>
+	<div id="charts">
+		<!--<f:for each="{options}" as="x" key="optionName">
+			<div id="chart-{optionName}" class="chart">
+				<div class="title">{optionName}</div>
+			</div>
+		</f:for>-->
+		<f:for each="{settings.calculations}" as="calculationOptions" key="calculationName">
+			<div id="chart-{calculationName}" class="chart">
+				<div class="title">{calculationOptions.label}</div>
+			</div>
+		</f:for>
+		<div id="chart-date" class="chart">
+			<div class="title">Time of Day</div>
+		</div>
+	</div>
+
+	<aside id="totals"><span id="active">-</span> of <span id="total">-</span> runs selected.</aside>
+
 	<f:form method="GET" controller="Details" action="timeline">
-		<table id="results" class="condensed-table">
-			<thead>
-				<tr>
+		<p style="clear:both">
+			<f:form.textfield name="file1" id="file1" value="" />
+			<f:form.textfield name="file2" id="file2" value="" />
+			<f:form.submit class="btn primary" value="Compare" />
+		</p>
+		<div id="lists">
+			<table>
+				<thead><tr>
 					<th></th>
-					<th>Actions</th>
-					<th>Tag</th>
-					<th>Time</th>
-					<f:for each="{options}" as="option">
-						<th>{option}</th>
-					</f:for>
-					<f:for each="{settings.calculations}" as="calculation">
-						<th>{calculation.label}</th>
-					</f:for>
 					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-			<f:for each="{profiles}" as="profile" key="file">
-				<tr id="{file}">
-					<td>
-						<f:form.radio name="file1" value="{file}" />
-						<f:form.radio name="file2" value="{file}" />
-					</td>
-					<td>
-						<f:link.action class="btn small" controller="Details" action="timeline" arguments="{file1: file}">Timeline &raquo;</f:link.action>
-						<f:link.action class="btn small" controller="Details" action="xhprof" arguments="{run: file}">XHProf &raquo;</f:link.action>
-					</td>
-					<td><p:renderTags tags="{profile.tags}" /></td>
-					<td>{profile.startTime -> f:format.date(format: 'Y-m-d H:i:s')}</td>
-					<f:for each="{options}" as="option">
-						<td>{profile.options -> p:objectAccess(path: option)}</td>
+					<th>Tags</th>
+					<f:for each="{options}" as="x" key="optionName">
+						<th>{optionName}</th>
 					</f:for>
-					<f:for each="{settings.calculations}" as="calculation">
-						<td><p:calculate profile="{profile}" calculationOptions="{calculation}"  /></td>
+					<f:for each="{calculations}" as="calculationOptions">
+						<th>{calculationOptions.label}</th>
 					</f:for>
-					<td><f:link.action class="btn small danger" action="remove" arguments="{run: file}">Remove</f:link.action></td>
-				</tr>
-			</f:for>
-			</tbody>
-		</table>
-		<p style="clear:both"><f:form.submit class="btn primary" value="Compare" /></p>
+				</tr></thead>
+				<tbody class="list" id="run-list">
+				</tbody>
+			</table>
+		</div>
 	</f:form>
 	<f:link.action class="btn danger" action="removeAll">Remove <b>all</b> profiles</f:link.action>
 	<f:link.action class="btn danger" action="removeAllUntagged">Remove all <b>un-tagged</b> profiles</f:link.action>
+
+
+	<script type="text/javascript">
+		<![CDATA[
+			var uris = {
+		]]>
+			timelineDetails: "{f:uri.action(controller: 'Details', action: 'timeline')}",
+			xhprofDetails: "{f:uri.action(controller: 'Details', action: 'xhprof')}",
+			updateTags: '{f:uri.action(action:"updateTags")}'
+		};
+		var profileData = {profileData -> f:format.raw()};
+		var calculations = {calculationsJson -> f:format.raw()};
+		var options = {optionsJson -> f:format.raw()};
+	</script>
+	<script type="text/javascript" src="../../../Public/crossfilter.js"></script>
 </f:section>
