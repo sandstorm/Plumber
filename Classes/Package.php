@@ -1,6 +1,16 @@
 <?php
 namespace SandstormMedia\Plumber;
 
+/*                                                                        *
+ * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ *                                                                        *
+ * It is free software; you can redistribute it and/or modify it under    *
+ * the terms of the GNU General Public License, either version 3          *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * The TYPO3 project - inspiring people to share!                         *
+ *                                                                        */
+
 use \TYPO3\FLOW3\Package\Package as BasePackage;
 use TYPO3\FLOW3\Annotations as FLOW3;
 
@@ -39,7 +49,7 @@ class Package extends BasePackage {
 			}
 		});
 
-		$dispatcher->connect('TYPO3\FLOW3\MVC\Dispatcher', 'beforeControllerInvocation', function($request, $controller) use($run) {
+		$dispatcher->connect('TYPO3\FLOW3\Mvc\Dispatcher', 'beforeControllerInvocation', function($request, $response, $controller) use($run) {
 			$run->setOption('Controller Name', get_class($controller));
 			$data = array(
 				'Controller' => get_class($controller)
@@ -50,17 +60,9 @@ class Package extends BasePackage {
 
 			$run->startTimer('MVC: Controller Invocation', $data);
 		});
-		$dispatcher->connect('TYPO3\FLOW3\MVC\Dispatcher', 'afterControllerInvocation', function() use($run) {
+		$dispatcher->connect('TYPO3\FLOW3\Mvc\Dispatcher', 'afterControllerInvocation', function() use($run) {
 			$run->stopTimer('MVC: Controller Invocation');
 		});
-
-		$dispatcher->connect('TYPO3\FLOW3\MVC\Web\RequestBuilder', 'beforeBuild', function() use($run) {
-			$run->startTimer('MVC: Build Request');
-		});
-		$dispatcher->connect('TYPO3\FLOW3\MVC\Web\RequestBuilder', 'afterBuild', function() use($run) {
-			$run->stopTimer('MVC: Build Request');
-		});
-
 	}
 
 	public function boot(\TYPO3\FLOW3\Core\Bootstrap $bootstrap) {
