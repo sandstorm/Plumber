@@ -31,10 +31,10 @@ SandstormMedia:
       startTime:
         label: 'Date'
         type: startTime
-        listDisplayFn: 'function(d) { var f = d3.time.format("%Y-%m-%d %H:%M:%S"); return f(d.startTime);};'
+        listDisplayFn: 'function(d) { var f = d3.time.format("%Y-%m-%d %H:%M:%S"); return f(d.startTime.value);};'
         crossfilter:
           chartInitializer: |
-            var dateDim = profileCrossfilter.dimension(function(d) { return d3.time.day(d["startTime"]);});
+            var dateDim = profileCrossfilter.dimension(function(d) { return d3.time.day(d["startTime"].value);});
 
             theChart = barChart()
               .dimension(dateDim)
@@ -46,7 +46,7 @@ SandstormMedia:
                 .rangeRound([0, 600]));
             charts.push(theChart);
 
-            var timeDim = profileCrossfilter.dimension(function(d) { return d["startTime"].getHours() + d["startTime"].getMinutes() / 60; });
+            var timeDim = profileCrossfilter.dimension(function(d) { return d["startTime"].value.getHours() + d["startTime"].value.getMinutes() / 60; });
 
             theChart = barChart()
               .dimension(timeDim)

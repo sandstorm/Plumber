@@ -3,11 +3,11 @@ var formatNumber = d3.format(",d");
 
 var startTimeBounds = {};
 window.profileData.forEach(function(d, i) {
-	d.startTime = new Date(parseInt(d.startTime*1000))
-	if (!startTimeBounds.min || startTimeBounds.min > d.startTime)
-		startTimeBounds.min = d.startTime;
-	if (!startTimeBounds.max || startTimeBounds.max < d.startTime)
-		startTimeBounds.max = d.startTime;
+	d.startTime.value = new Date(parseInt(d.startTime.value*1000))
+	if (!startTimeBounds.min || startTimeBounds.min > d.startTime.value)
+		startTimeBounds.min = d.startTime.value;
+	if (!startTimeBounds.max || startTimeBounds.max < d.startTime.value)
+		startTimeBounds.max = d.startTime.value;
 });
 
 // Create the crossfilter for the relevant dimensions and groups.
@@ -16,9 +16,12 @@ var profileCrossfilter = crossfilter(window.profileData),
 
 var charts = [], chart, list;
 
-var startTimeDimension = profileCrossfilter.dimension(function(d) {return d.startTime});
+var startTimeDimension = profileCrossfilter.dimension(function(d) {return d.startTime.value});
 
-/*for (var optionName in window.options) {
+/*
+TODO: string options in diagram
+
+for (var optionName in window.options) {
 	var optionDomain = [];
 	for (var i in window.options[optionName]) {
 		optionDomain.push(i);
@@ -52,7 +55,7 @@ function initDrawing() {
 			eval(crossfilterOptions.chartInitializer);
 		} else {
 			theChart = barChart()
-				.dimension(profileCrossfilter.dimension(function(d) { return d[calculationName]}))
+				.dimension(profileCrossfilter.dimension(function(d) { return d[calculationName].value}))
 				.graphWidth(240)
 				.numberOfBars(crossfilterOptions.numberOfBars)
 				.domain([crossfilterOptions.min, crossfilterOptions.max])
@@ -120,7 +123,7 @@ function recordList(div) {
 
 	div.each(function() {
 		var recordSelection = d3.select(this).selectAll(".record")
-			.data(records, function(d) { return d.startTime; });
+			.data(records, function(d) { return d.startTime.value; });
 
 		var recordSelectionEnter = recordSelection.enter().append("tr")
 			.attr("class", "record").attr('id', function(d) { return d['id'] });
@@ -157,10 +160,16 @@ function recordList(div) {
 			if (window.calculations[calculationName].listDisplayFn) {
 				eval("listDisplayFn = " + window.calculations[calculationName].listDisplayFn);
 			} else {
-				listDisplayFn = function(d) {return d[calculationName]};
+				listDisplayFn = function(d) {
+					if (d[calculationName].tableCellHtml) {
+						return d[calculationName].tableCellHtml;
+					} else {
+						return d[calculationName].value;
+					}
+				};
 			}
 			recordSelectionEnter.append("td")
-				.text(listDisplayFn);
+				.html(listDisplayFn);
 		}
 
 		recordSelection.order()

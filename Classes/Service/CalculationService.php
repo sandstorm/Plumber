@@ -10,13 +10,19 @@ class CalculationService {
 
 	/**
 	 *
+	 * Calculate a value in $profile; returning an array with the following data:
+	 *
+	 * - value (required): Numerical value which is the main aggregation result
+	 * - tableCellHtml (optional, string): if given, is used in the results table
+	 *   for display. Helpful f.e. for more verbose output
+	 *
 	 * @param \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
-	 * @return type
+	 * @return array
 	 */
-	public function calculate(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions, $asHtml = FALSE) {
+	public function calculate(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
 		$type = 'calculate' . ucfirst($calculationOptions['type']);
-		return $this->$type($profile, $calculationOptions, $asHtml);
+		return $this->$type($profile, $calculationOptions);
 	}
 
 	/**
@@ -24,8 +30,10 @@ class CalculationService {
 	 * @param array $calculationOptions
 	 * @param type $asHtml
 	 */
-	protected function calculateStartTime(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions, $asHtml) {
-		return $profile->getStartTimeAsFloat();
+	protected function calculateStartTime(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+		return array(
+			'value' => $profile->getStartTimeAsFloat()
+		);
 	}
 
 	/**
@@ -33,7 +41,7 @@ class CalculationService {
 	 * @param \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
 	 */
-	protected function calculateRegexSum(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions, $asHtml) {
+	protected function calculateRegexSum(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
 		if (!isset($calculationOptions['regex'])) throw new \Exception('TODO: Regex not set');
 		$result = 0;
 
@@ -52,9 +60,7 @@ class CalculationService {
 				}
 			}
 		}
-		if (!$asHtml) {
-			return $result;
-		}
+
 		arsort($detailedResult);
 
 		$detailedResultHtml = '<table class="condensed-table" style="font-size:60%">';
@@ -72,7 +78,8 @@ class CalculationService {
 		$aTag->addAttribute('title', 'Top 10');
 		$aTag->addAttribute('data-content', $detailedResultHtml);
 		$aTag->setContent($result);
-		return $aTag->render();
+
+		return array('value' => $result, 'tableCellHtml' => $aTag->render());
 	}
 
 	/**
@@ -89,7 +96,7 @@ class CalculationService {
 				$sum += $duration['stop']*1000 - $duration['start']*1000;
 			}
 		}
-		return round($sum);
+		return array('value' => round($sum));
 	}
 
 	/**
@@ -99,7 +106,7 @@ class CalculationService {
 	protected function calculateMaxMemory(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
 		$memory = $profile->getMemory();
 		$lastSamplingPoint = array_pop($memory);
-		return round($lastSamplingPoint['mem'] / 1024);
+		return array('value' => round($lastSamplingPoint['mem'] / 1024));
 	}
 }
 ?>

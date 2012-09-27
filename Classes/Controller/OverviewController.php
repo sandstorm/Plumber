@@ -70,12 +70,12 @@ class OverviewController extends AbstractController {
 				}
 
 				$currentProfileData[$calculationName] = $calculationResult;
-				if ($calculationResult < $calculationMinMax[$calculationName]['min']) {
-					$calculationMinMax[$calculationName]['min'] = $calculationResult;
+				if ($calculationResult['value'] < $calculationMinMax[$calculationName]['min']) {
+					$calculationMinMax[$calculationName]['min'] = $calculationResult['value'];
 				}
 
-				if ($calculationResult > $calculationMinMax[$calculationName]['max']) {
-					$calculationMinMax[$calculationName]['max'] = $calculationResult;
+				if ($calculationResult['value'] > $calculationMinMax[$calculationName]['max']) {
+					$calculationMinMax[$calculationName]['max'] = $calculationResult['value'];
 				}
 
 			}
