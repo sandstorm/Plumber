@@ -54,10 +54,11 @@ function initDrawing() {
 		if (crossfilterOptions.chartInitializer) {
 			eval(crossfilterOptions.chartInitializer);
 		} else {
+
 			theChart = barChart()
 				.dimension(profileCrossfilter.dimension(function(d) { return d[calculationName].value}))
 				.graphWidth(240)
-				.numberOfBars(crossfilterOptions.numberOfBars)
+				.numberOfBars(crossfilterOptions.numberOfBars || 20)
 				.domain([crossfilterOptions.min, crossfilterOptions.max])
 				.init();
 			charts.push(theChart);
