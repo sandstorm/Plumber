@@ -138,6 +138,7 @@ function recordList(div) {
 		recordSelectionEnter.append("td").html(function(d) {
 			return '<a href="' + window.uris.timelineDetails + '?file1=' + d['id'] + '" class="btn small">Timeline &raquo;</a>'
 				+  '<a href="' + window.uris.xhprofDetails + '?run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
+				+  '<a href="' + window.uris.xhprofDebug + '?run=' + d['id'] + '" title="XHProf Debug">DBG &raquo;</a>'
 		});
 		recordSelectionEnter.append("td").attr('class', 'tagList').html(function(d) {
 			return d['tagsAsHtml'];

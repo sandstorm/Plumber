@@ -112,6 +112,14 @@ class DetailsController extends AbstractController {
 	/**
 	 * @param string $run
 	 */
+	public function xhprofDebugAction($run) {
+		$profile = $this->getProfile($run);
+		\TYPO3\FLOW3\var_dump($profile->getXhprofTrace());
+		return '';
+	}
+	/**
+	 * @param string $run
+	 */
 	public function xhprofAction($run) {
 		$profile = $this->getProfile($run);
 
