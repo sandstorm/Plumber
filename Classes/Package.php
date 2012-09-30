@@ -54,7 +54,7 @@ class Package extends BasePackage {
 			$data = array(
 				'Controller' => get_class($controller)
 			);
-			if ($request instanceof \TYPO3\FLOW3\MVC\Web\Request) {
+			if ($request instanceof \TYPO3\FLOW3\Mvc\ActionRequest) {
 				$data['Action'] = $request->getControllerActionName();
 			}
 
