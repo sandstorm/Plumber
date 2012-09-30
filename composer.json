@@ -1,0 +1,15 @@
+{
+   "name":"sandstormmedia/plumber",
+   "type":"flow3-package",
+   "description":"",
+   "version":"",
+   "require":{
+      "typo3/flow3":"*",
+      "sandstormmedia/phpprofiler":"*"
+   },
+   "autoload":{
+      "psr-0":{
+         "SandstormMedia\\Plumber":"Classes"
+      }
+   }
+}
