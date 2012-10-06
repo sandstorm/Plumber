@@ -11,26 +11,26 @@ namespace SandstormMedia\Plumber\Aspect;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Annotations as FLOW3;
-use TYPO3\FLOW3\Http\Request;
-use TYPO3\FLOW3\Http\Response;
-use TYPO3\FLOW3\Error\Message;
+use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Http\Request;
+use TYPO3\Flow\Http\Response;
+use TYPO3\Flow\Error\Message;
 
 /**
  * Monitor how long the router::route method takes
  *
- * @FLOW3\Scope("singleton")
- * @FLOW3\Aspect
+ * @Flow\Scope("singleton")
+ * @Flow\Aspect
  */
 class RouterMonitoringAspect {
 	/**
 	 * Around advice
 	 *
-	 * @FLOW3\Around("method(TYPO3\FLOW3\Mvc\Routing\Router->route())")
-	 * @param \TYPO3\FLOW3\Aop\JoinPointInterface $joinPoint The current join point
+	 * @Flow\Around("method(TYPO3\Flow\Mvc\Routing\Router->route())")
+	 * @param \TYPO3\Flow\Aop\JoinPointInterface $joinPoint The current join point
 	 * @return array Result of the target method
 	 */
-	public function cacheMatchingCall(\TYPO3\FLOW3\Aop\JoinPointInterface $joinPoint) {
+	public function cacheMatchingCall(\TYPO3\Flow\Aop\JoinPointInterface $joinPoint) {
 		\SandstormMedia\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('MVC: Build Request / Routing');
 		$output = $joinPoint->getAdviceChain()->proceed($joinPoint);
 		\SandstormMedia\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('MVC: Build Request / Routing');

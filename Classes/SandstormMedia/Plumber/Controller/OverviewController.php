@@ -10,23 +10,23 @@ namespace SandstormMedia\Plumber\Controller;
  *                                                                        *
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
-use TYPO3\FLOW3\Annotations as FLOW3;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  * Standard controller for the SandstormMedia.Plumber package
  *
- * @FLOW3\Scope("singleton")
+ * @Flow\Scope("singleton")
  */
 class OverviewController extends AbstractController {
 
 	/**
-	 * @FLOW3\Inject
+	 * @Flow\Inject
 	 * @var \SandstormMedia\Plumber\Service\CalculationService
 	 */
 	protected $calculationService;
 
 	/**
-	 * @FLOW3\Inject
+	 * @Flow\Inject
 	 * @var \SandstormMedia\Plumber\Service\RenderTagsService
 	 */
 	protected $renderTagsService;
@@ -134,7 +134,7 @@ class OverviewController extends AbstractController {
 	 */
 	public function updateTagsAction($file, $value) {
 		$profile = $this->getProfile($file);
-		$tags = \TYPO3\FLOW3\Utility\Arrays::trimExplode(',', $value);
+		$tags = \TYPO3\Flow\Utility\Arrays::trimExplode(',', $value);
 		$profile->setTags($tags);
 		$profile->save();
 		return $this->renderTagsService->render($tags);

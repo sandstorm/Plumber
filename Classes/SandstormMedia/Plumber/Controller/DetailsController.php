@@ -10,12 +10,12 @@ namespace SandstormMedia\Plumber\Controller;
  *                                                                        *
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
-use TYPO3\FLOW3\Annotations as FLOW3;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  * Standard controller for the SandstormMedia.Plumber package
  *
- * @FLOW3\Scope("singleton")
+ * @Flow\Scope("singleton")
  */
 class DetailsController extends AbstractController {
 
@@ -118,7 +118,7 @@ class DetailsController extends AbstractController {
 	 */
 	public function xhprofDebugAction($run) {
 		$profile = $this->getProfile($run);
-		\TYPO3\FLOW3\var_dump($profile->getXhprofTrace());
+		\TYPO3\Flow\var_dump($profile->getXhprofTrace());
 		return '';
 	}
 	/**
@@ -151,7 +151,7 @@ class DetailsController extends AbstractController {
 				'namespace' => array(\XHProf_UI\Utils::STRING_PARAM, 'xhprof'),
 				'all'       => array(\XHProf_UI\Utils::UINT_PARAM, 0),
 			),
-			$xhprof_config, FLOW3_PATH_DATA . '/Logs/Profiles'
+			$xhprof_config, FLOW_PATH_DATA . '/Logs/Profiles'
 		);
 		$report = $xhprof_ui->generate_report();
 

@@ -4,7 +4,7 @@
    "description":"",
    "version":"",
    "require":{
-      "typo3/flow3":"*",
+      "typo3/flow":"*",
       "sandstormmedia/phpprofiler":"*"
    },
    "autoload":{

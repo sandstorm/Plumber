@@ -10,14 +10,14 @@ namespace SandstormMedia\Plumber\ViewHelpers;
  *                                                                        *
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
-use TYPO3\FLOW3\Annotations as FLOW3;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  */
 class CalculateViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
 
 	/**
-	 * @FLOW3\Inject
+	 * @Flow\Inject
 	 * @var \SandstormMedia\Plumber\Service\CalculationService
 	 */
 	protected $calculationService;

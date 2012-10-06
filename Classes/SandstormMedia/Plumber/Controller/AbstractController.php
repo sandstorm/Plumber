@@ -10,28 +10,28 @@ namespace SandstormMedia\Plumber\Controller;
  *                                                                        *
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
-use TYPO3\FLOW3\Annotations as FLOW3;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  * Standard controller for the SandstormMedia.Plumber package
  *
- * @FLOW3\Scope("singleton")
+ * @Flow\Scope("singleton")
  */
-abstract class AbstractController extends \TYPO3\FLOW3\Mvc\Controller\ActionController {
+abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 
 	public function initializeAction() {
 		\SandstormMedia\PhpProfiler\Profiler::getInstance()->stop();
 	}
 
 	protected function getProfile($file) {
-		$file = FLOW3_PATH_DATA . 'Logs/Profiles/' . $file;
+		$file = FLOW_PATH_DATA . 'Logs/Profiles/' . $file;
 		$profile = unserialize(file_get_contents($file));
 		$profile->setFullPath($file);
 		return $profile;
 	}
 
 	public function getProfiles() {
-		$directoryIterator = new \DirectoryIterator(FLOW3_PATH_DATA . 'Logs/Profiles');
+		$directoryIterator = new \DirectoryIterator(FLOW_PATH_DATA . 'Logs/Profiles');
 
 		$profiles = array();
 		foreach ($directoryIterator as $element) {

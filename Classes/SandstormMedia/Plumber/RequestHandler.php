@@ -11,20 +11,20 @@ namespace SandstormMedia\Plumber;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Annotations as FLOW3;
-use TYPO3\FLOW3\Http\Request;
-use TYPO3\FLOW3\Http\Response;
-use TYPO3\FLOW3\Error\Message;
+use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Http\Request;
+use TYPO3\Flow\Http\Response;
+use TYPO3\Flow\Error\Message;
 
 /**
  * A request handler which can handle HTTP requests.
  *
- * @FLOW3\Scope("singleton")
+ * @Flow\Scope("singleton")
  */
-class RequestHandler extends \TYPO3\FLOW3\Http\RequestHandler {
+class RequestHandler extends \TYPO3\Flow\Http\RequestHandler {
 
 	/**
-	 * @var \TYPO3\FLOW3\Http\Response
+	 * @var \TYPO3\Flow\Http\Response
 	 */
 	protected $response;
 
@@ -61,10 +61,10 @@ class RequestHandler extends \TYPO3\FLOW3\Http\RequestHandler {
 		$this->resolveDependencies();
 		$this->request->injectSettings($this->settings);
 
-		$packageManager = $this->bootstrap->getEarlyInstance('TYPO3\FLOW3\Package\PackageManagerInterface');
-		$configurationSource = $this->bootstrap->getObjectManager()->get('TYPO3\FLOW3\Configuration\Source\YamlSource');
+		$packageManager = $this->bootstrap->getEarlyInstance('TYPO3\Flow\Package\PackageManagerInterface');
+		$configurationSource = $this->bootstrap->getObjectManager()->get('TYPO3\Flow\Configuration\Source\YamlSource');
 
-		$this->router->setRoutesConfiguration($configurationSource->load($packageManager->getPackage('SandstormMedia.Plumber')->getConfigurationPath() . \TYPO3\FLOW3\Configuration\ConfigurationManager::CONFIGURATION_TYPE_ROUTES));
+		$this->router->setRoutesConfiguration($configurationSource->load($packageManager->getPackage('SandstormMedia.Plumber')->getConfigurationPath() . \TYPO3\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_ROUTES));
 		$actionRequest = $this->router->route($this->request);
 
 		$this->securityContext->setRequest($actionRequest);
