@@ -12,10 +12,12 @@ SandstormMedia:
         label: 'No. of Object Creations'
         type: regexSum
         regex: '#==>(.*)::__construct#'
-#      objectCreationsInDoctrine:
-#        label: 'No. of Object Creations in doctrine'
-#        type: regexSum
-#        regex: '#.*==>Doctrine\\Common(.*)::__construct#'
+
+      objectCreationsInDoctrine:
+        label: 'No. of Object Creations in doctrine'
+        type: regexSum
+        regex: '#.*==>Doctrine\\Common(.*)::__construct#'
+
       totalRuntime:
         label: 'Runtime (ms)'
         type: timerSum
@@ -25,6 +27,30 @@ SandstormMedia:
       totalMemory:
         label: 'Memory (kb)'
         type: maxMemory
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       startTime:
         label: 'Date'
