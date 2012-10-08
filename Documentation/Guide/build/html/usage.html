@@ -95,7 +95,7 @@ of the run.</p>
 <p>The available dimensions are configured inside the <tt class="docutils literal"><span class="pre">Settings.yaml</span></tt> and that&#8217;s
 also how you can add new dimensions.</p>
 <p>Let&#8217;s check how the default dimensions work:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">SandstormMedia</span><span class="p-Indicator">:</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">Sandstorm</span><span class="p-Indicator">:</span>
   <span class="l-Scalar-Plain">Plumber</span><span class="p-Indicator">:</span>
     <span class="l-Scalar-Plain">calculations</span><span class="p-Indicator">:</span>
       <span class="l-Scalar-Plain">methodCallsOnObject</span><span class="p-Indicator">:</span>
@@ -132,7 +132,7 @@ does not work.</p>
 <p>It counts the number of method invocations in an XHProf trace. To know how the <tt class="docutils literal"><span class="pre">regex</span></tt>
 parameter works, we need to check how an XHProf trace is built:</p>
 <p>An XHProf trace is a big array with elements like the following:</p>
-<div class="highlight-php"><div class="highlight"><pre><span class="s1">&#39;SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun::startTimer==&gt;microtime&#39;</span> <span class="p">(</span><span class="mi">76</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<div class="highlight-php"><div class="highlight"><pre><span class="s1">&#39;Sandstorm\PhpProfiler\Domain\Model\ProfilingRun::startTimer==&gt;microtime&#39;</span> <span class="p">(</span><span class="mi">76</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
    <span class="s1">&#39;ct&#39;</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">integer</span> <span class="mi">10</span>
    <span class="s1">&#39;wt&#39;</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">integer</span> <span class="mi">9</span>
 </pre></div>
@@ -166,7 +166,7 @@ with the top 10 invocations grouped by the regex. Example:</p>
 <p>Custom types are currently not possible.</p>
 <div class="admonition hint">
 <p class="first admonition-title">Hint</p>
-<p class="last">The calculation happens inside <tt class="docutils literal"><span class="pre">SandstormMedia\Plumber\Service\CalculationService</span></tt>,
+<p class="last">The calculation happens inside <tt class="docutils literal"><span class="pre">Sandstorm\Plumber\Service\CalculationService</span></tt>,
 if you want to extend it. Make sure to submit a pull request then :-).</p>
 </div>
 </div>

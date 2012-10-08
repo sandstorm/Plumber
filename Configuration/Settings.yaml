@@ -1,4 +1,4 @@
-SandstormMedia:
+Sandstorm:
   Plumber:
     # should we enable profiling, or just use Plumber as frontend for visualizing
     # profiling runs collected by other profiling collectors (such as the TYPO3 extension)

@@ -1,8 +1,8 @@
 <?php
-namespace SandstormMedia\Plumber;
+namespace Sandstorm\Plumber;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -64,7 +64,7 @@ class RequestHandler extends \TYPO3\Flow\Http\RequestHandler {
 		$packageManager = $this->bootstrap->getEarlyInstance('TYPO3\Flow\Package\PackageManagerInterface');
 		$configurationSource = $this->bootstrap->getObjectManager()->get('TYPO3\Flow\Configuration\Source\YamlSource');
 
-		$this->router->setRoutesConfiguration($configurationSource->load($packageManager->getPackage('SandstormMedia.Plumber')->getConfigurationPath() . \TYPO3\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_ROUTES));
+		$this->router->setRoutesConfiguration($configurationSource->load($packageManager->getPackage('Sandstorm.Plumber')->getConfigurationPath() . \TYPO3\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_ROUTES));
 		$actionRequest = $this->router->route($this->request);
 
 		$this->securityContext->setRequest($actionRequest);

@@ -1,8 +1,8 @@
 <?php
-namespace SandstormMedia\Plumber\Controller;
+namespace Sandstorm\Plumber\Controller;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -13,14 +13,14 @@ namespace SandstormMedia\Plumber\Controller;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
- * Standard controller for the SandstormMedia.Plumber package
+ * Standard controller for the Sandstorm.Plumber package
  *
  * @Flow\Scope("singleton")
  */
 abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 
 	public function initializeAction() {
-		\SandstormMedia\PhpProfiler\Profiler::getInstance()->stop();
+		\Sandstorm\PhpProfiler\Profiler::getInstance()->stop();
 	}
 
 	protected function getProfile($file) {

@@ -1,8 +1,8 @@
 <?php
-namespace SandstormMedia\Plumber\Service;
+namespace Sandstorm\Plumber\Service;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -26,21 +26,21 @@ class CalculationService {
 	 * - tableCellHtml (optional, string): if given, is used in the results table
 	 *   for display. Helpful f.e. for more verbose output
 	 *
-	 * @param \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile
+	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
 	 * @return array
 	 */
-	public function calculate(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	public function calculate(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
 		$type = 'calculate' . ucfirst($calculationOptions['type']);
 		return $this->$type($profile, $calculationOptions);
 	}
 
 	/**
-	 * @param \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile
+	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
 	 * @param type $asHtml
 	 */
-	protected function calculateStartTime(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	protected function calculateStartTime(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
 		return array(
 			'value' => $profile->getStartTimeAsFloat()
 		);
@@ -48,10 +48,10 @@ class CalculationService {
 
 	/**
 	 *
-	 * @param \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile
+	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
 	 */
-	protected function calculateRegexSum(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	protected function calculateRegexSum(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
 		if (!isset($calculationOptions['regex'])) throw new \Exception('TODO: Regex not set');
 		$result = 0;
 
@@ -93,10 +93,10 @@ class CalculationService {
 	}
 
 	/**
-	 * @param \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile
+	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
 	 */
-	protected function calculateTimerSum(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	protected function calculateTimerSum(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
 		if (!isset($calculationOptions['timerName'])) throw new \Exception('TODO: timerName not set');
 
 		$sum = 0;
@@ -110,10 +110,10 @@ class CalculationService {
 	}
 
 	/**
-	 * @param \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile
+	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
 	 */
-	protected function calculateMaxMemory(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	protected function calculateMaxMemory(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
 		$memory = $profile->getMemory();
 		$lastSamplingPoint = array_pop($memory);
 		return array('value' => round($lastSamplingPoint['mem'] / 1024));

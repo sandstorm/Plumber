@@ -21,7 +21,7 @@
   name: 'Start'
   uriPattern: 'profiler'
   defaults:
-    '@package':    'SandstormMedia.Plumber'
+    '@package':    'Sandstorm.Plumber'
     '@controller': 'Standard'
     '@action':     'index'
     '@format':     'html'
@@ -29,6 +29,6 @@
   name: 'all other profiles'
   uriPattern: 'profiler/{@controller}/{@action}'
   defaults:
-    '@package':    'SandstormMedia.Plumber'
+    '@package':    'Sandstorm.Plumber'
     '@format':     'html'
   appendExceedingArguments: true

@@ -1,8 +1,8 @@
 <?php
-namespace SandstormMedia\Plumber;
+namespace Sandstorm\Plumber;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -15,13 +15,13 @@ use \TYPO3\Flow\Package\Package as BasePackage;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
- * Package base class of the SandstormMedia.Plumber package.
+ * Package base class of the Sandstorm.Plumber package.
  *
  * @Flow\Scope("singleton")
  */
 class Package extends BasePackage {
 
-	protected function connectToSignals(\TYPO3\Flow\SignalSlot\Dispatcher $dispatcher, \SandstormMedia\PhpProfiler\Profiler $profiler, \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $run, \TYPO3\Flow\Core\Bootstrap $bootstrap) {
+	protected function connectToSignals(\TYPO3\Flow\SignalSlot\Dispatcher $dispatcher, \Sandstorm\PhpProfiler\Profiler $profiler, \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $run, \TYPO3\Flow\Core\Bootstrap $bootstrap) {
 		$dispatcher->connect('TYPO3\Flow\Core\Booting\Sequence', 'beforeInvokeStep', function($step) use($run) {
 			$run->startTimer('Boostrap Sequence: ' . $step->getIdentifier());
 		});
@@ -30,7 +30,7 @@ class Package extends BasePackage {
 		});
 
 		$dispatcher->connect('TYPO3\Flow\Core\Bootstrap', 'finishedRuntimeRun', function() use($profiler, $bootstrap) {
-			$plumberConfiguration = $bootstrap->getEarlyInstance('TYPO3\Flow\Configuration\ConfigurationManager')->getConfiguration(\TYPO3\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'SandstormMedia.Plumber');
+			$plumberConfiguration = $bootstrap->getEarlyInstance('TYPO3\Flow\Configuration\ConfigurationManager')->getConfiguration(\TYPO3\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'Sandstorm.Plumber');
 
 
 			$run = $profiler->stop();
@@ -40,7 +40,7 @@ class Package extends BasePackage {
 		});
 
 		$dispatcher->connect('TYPO3\Flow\Core\Bootstrap', 'finishedCompiletimeRun', function() use($profiler, $bootstrap) {
-			$plumberConfiguration = $bootstrap->getEarlyInstance('TYPO3\Flow\Configuration\ConfigurationManager')->getConfiguration(\TYPO3\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'SandstormMedia.Plumber');
+			$plumberConfiguration = $bootstrap->getEarlyInstance('TYPO3\Flow\Configuration\ConfigurationManager')->getConfiguration(\TYPO3\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'Sandstorm.Plumber');
 
 			$run = $profiler->stop();
 			if ($run && isset($plumberConfiguration['enableProfiling']) && $plumberConfiguration['enableProfiling'] === TRUE) {
@@ -73,7 +73,7 @@ class Package extends BasePackage {
 			mkdir(FLOW_PATH_DATA . 'Logs/Profiles');
 		}
 
-		$profiler = \SandstormMedia\PhpProfiler\Profiler::getInstance();
+		$profiler = \Sandstorm\PhpProfiler\Profiler::getInstance();
 		$profiler->setConfiguration('profilePath', FLOW_PATH_DATA . 'Logs/Profiles');
 
 		$run = $profiler->start();

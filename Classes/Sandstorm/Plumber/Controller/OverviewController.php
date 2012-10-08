@@ -1,8 +1,8 @@
 <?php
-namespace SandstormMedia\Plumber\Controller;
+namespace Sandstorm\Plumber\Controller;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -13,7 +13,7 @@ namespace SandstormMedia\Plumber\Controller;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
- * Standard controller for the SandstormMedia.Plumber package
+ * Standard controller for the Sandstorm.Plumber package
  *
  * @Flow\Scope("singleton")
  */
@@ -21,13 +21,13 @@ class OverviewController extends AbstractController {
 
 	/**
 	 * @Flow\Inject
-	 * @var \SandstormMedia\Plumber\Service\CalculationService
+	 * @var \Sandstorm\Plumber\Service\CalculationService
 	 */
 	protected $calculationService;
 
 	/**
 	 * @Flow\Inject
-	 * @var \SandstormMedia\Plumber\Service\RenderTagsService
+	 * @var \Sandstorm\Plumber\Service\RenderTagsService
 	 */
 	protected $renderTagsService;
 

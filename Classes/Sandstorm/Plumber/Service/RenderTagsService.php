@@ -1,8 +1,8 @@
 <?php
-namespace SandstormMedia\Plumber\Service;
+namespace Sandstorm\Plumber\Service;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *

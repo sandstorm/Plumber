@@ -1,8 +1,8 @@
 <?php
-namespace SandstormMedia\Plumber\Controller;
+namespace Sandstorm\Plumber\ViewHelpers;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -10,22 +10,18 @@ namespace SandstormMedia\Plumber\Controller;
  *                                                                        *
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
+
 use TYPO3\Flow\Annotations as Flow;
 
 /**
- * Standard controller for the SandstormMedia.Plumber package
- *
- * @Flow\Scope("singleton")
  */
-class StandardController extends AbstractController {
+class ObjectAccessViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
 
 	/**
-	 * Index action
-	 *
-	 * @return void
+	 * @param string $path
 	 */
-	public function indexAction() {
-		$this->redirect('index', 'Overview');
+	public function render($path) {
+		return \TYPO3\Flow\Reflection\ObjectAccess::getPropertyPath($this->renderChildren(), $path);
 	}
 }
 ?>

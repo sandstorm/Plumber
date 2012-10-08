@@ -1,8 +1,8 @@
 <?php
-namespace SandstormMedia\Plumber\Aspect;
+namespace Sandstorm\Plumber\Aspect;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -31,9 +31,9 @@ class RouterMonitoringAspect {
 	 * @return array Result of the target method
 	 */
 	public function cacheMatchingCall(\TYPO3\Flow\Aop\JoinPointInterface $joinPoint) {
-		\SandstormMedia\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('MVC: Build Request / Routing');
+		\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('MVC: Build Request / Routing');
 		$output = $joinPoint->getAdviceChain()->proceed($joinPoint);
-		\SandstormMedia\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('MVC: Build Request / Routing');
+		\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('MVC: Build Request / Routing');
 		return $output;
 	}
 

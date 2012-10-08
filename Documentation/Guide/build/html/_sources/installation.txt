@@ -10,10 +10,10 @@ To install, just clone the packages from github:
 .. code-block:: bash
 
 	cd <YourFlow3Root>/Packages/Application
-	git clone --recursive git://github.com/sandstorm/Plumber.git SandstormMedia.Plumber
-	git clone --recursive git://github.com/sandstorm/PhpProfiler.git SandstormMedia.PhpProfiler
+	git clone --recursive git://github.com/sandstorm/Plumber.git Sandstorm.Plumber
+	git clone --recursive git://github.com/sandstorm/PhpProfiler.git Sandstorm.PhpProfiler
 	cd ../../
-	./flow3 package:activate SandstormMedia.PhpProfiler
-	./flow3 package:activate SandstormMedia.Plumber
+	./flow3 package:activate Sandstorm.PhpProfiler
+	./flow3 package:activate Sandstorm.Plumber
 
 The system will automatically use XHProf if it is installed.

@@ -1,8 +1,8 @@
 <?php
-namespace SandstormMedia\Plumber\ViewHelpers;
+namespace Sandstorm\Plumber\Controller;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -13,23 +13,19 @@ namespace SandstormMedia\Plumber\ViewHelpers;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
+ * Standard controller for the Sandstorm.Plumber package
+ *
+ * @Flow\Scope("singleton")
  */
-class CalculateViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
+class StandardController extends AbstractController {
 
 	/**
-	 * @Flow\Inject
-	 * @var \SandstormMedia\Plumber\Service\CalculationService
-	 */
-	protected $calculationService;
-
-	/**
+	 * Index action
 	 *
-	 * @param \SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile
-	 * @param array $calculationOptions
-	 * @return type
+	 * @return void
 	 */
-	public function render(\SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
-		return $this->calculationService->calculate($profile, $calculationOptions, TRUE);
+	public function indexAction() {
+		$this->redirect('index', 'Overview');
 	}
 }
 ?>

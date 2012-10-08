@@ -55,7 +55,7 @@ Let's check how the default dimensions work:
 
 .. code-block:: yaml
 
-	SandstormMedia:
+	Sandstorm:
 	  Plumber:
 	    calculations:
 	      methodCallsOnObject:
@@ -102,7 +102,7 @@ parameter works, we need to check how an XHProf trace is built:
 
 An XHProf trace is a big array with elements like the following::
 
-	'SandstormMedia\PhpProfiler\Domain\Model\ProfilingRun::startTimer==>microtime' (76) => array(2)
+	'Sandstorm\PhpProfiler\Domain\Model\ProfilingRun::startTimer==>microtime' (76) => array(2)
 	   'ct' (2) => integer 10
 	   'wt' (2) => integer 9
 
@@ -138,5 +138,5 @@ Your custom type
 
 Custom types are currently not possible.
 
-.. hint:: The calculation happens inside ``SandstormMedia\Plumber\Service\CalculationService``,
+.. hint:: The calculation happens inside ``Sandstorm\Plumber\Service\CalculationService``,
    if you want to extend it. Make sure to submit a pull request then :-).

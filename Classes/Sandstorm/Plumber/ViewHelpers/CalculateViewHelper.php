@@ -1,8 +1,8 @@
 <?php
-namespace SandstormMedia\Plumber\ViewHelpers;
+namespace Sandstorm\Plumber\ViewHelpers;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "SandstormMedia.Plumber".     *
+ * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -10,18 +10,26 @@ namespace SandstormMedia\Plumber\ViewHelpers;
  *                                                                        *
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
-
 use TYPO3\Flow\Annotations as Flow;
 
 /**
  */
-class ObjectAccessViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
+class CalculateViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
 
 	/**
-	 * @param string $path
+	 * @Flow\Inject
+	 * @var \Sandstorm\Plumber\Service\CalculationService
 	 */
-	public function render($path) {
-		return \TYPO3\Flow\Reflection\ObjectAccess::getPropertyPath($this->renderChildren(), $path);
+	protected $calculationService;
+
+	/**
+	 *
+	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+	 * @param array $calculationOptions
+	 * @return type
+	 */
+	public function render(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+		return $this->calculationService->calculate($profile, $calculationOptions, TRUE);
 	}
 }
 ?>
