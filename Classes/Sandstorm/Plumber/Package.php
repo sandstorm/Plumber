@@ -66,7 +66,6 @@ class Package extends BasePackage {
 	}
 
 	public function boot(\TYPO3\Flow\Core\Bootstrap $bootstrap) {
-		$bootstrap->registerRequestHandler(new RequestHandler($bootstrap));
 		define('XHPROF_ROOT', $this->getResourcesPath() . 'Private/PHP/xhprof-ui/');
 
 		if (!file_exists(FLOW_PATH_DATA . 'Logs/Profiles')) {
