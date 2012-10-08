@@ -3,7 +3,7 @@
 	"type":"typo3-flow-package",
 	"description":"Profiling Toolkit for TYPO3 Flow and Neos",
 	"keywords": ["profiling", "profiler", "benchmark", "debugging", "xhprof", "Flow", "TYPO3 Flow", "Neos", "TYPO3 Neos"],
-	"version":"1.0",
+	"version":"1.0.0",
 	"authors": [
 		{
 			"name": "Sebastian Kurfürst",
@@ -19,7 +19,7 @@
 	"license": "GPL-3.0+",
 	"require":{
 		"typo3/flow":"*",
-		"sandstorm/phpprofiler":"*"
+		"sandstorm/phpprofiler": "1.0.*"
 	},
 	"autoload":{
 		"psr-0":{
