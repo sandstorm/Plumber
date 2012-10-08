@@ -1,0 +1,69 @@
+
+body{padding:60px 10px 10px;}
+
+#no_xhprof{width:300px;margin:10% auto 0;text-align:center;}
+	#no_xhprof a{color:#fff;text-decoration:underline;}
+	#no_xhprof a:hover{text-decoration:none;}
+
+h2{line-height:36px;margin:0 0 10px;}
+
+table#stats{width:100%;font-size:12px;}
+	table#stats thead th,table#stats tfoot th{font-size:10px;text-align:center;background-color:#eee;white-space:nowrap;}
+	table#stats thead th.blue,table#stats tfoot th.blue{background-color:#ade6fe;}
+	table#stats thead th:first-child,table#stats tfoot th:first-child{text-align:left;}
+	
+	table#stats tbody td{text-align:left;}
+	table#stats tbody td.right{text-align:right;}
+	table#stats tbody td.center{text-align:center;}
+	table#stats tbody td.fn{}
+	table#stats tbody tr+tr th{border-top:1px solid #ddd;}
+	table#stats tbody tr.spacer td{border-bottom:9px solid #ddd;}
+	
+
+
+/*
+td.sorted {
+  color:#0000FF;
+}
+
+td.vbar, th.vbar {
+  text-align: right;
+  border-left:
+  solid 1px #bdc7d8;
+}
+
+td.vbbar, th.vbar {
+  text-align: right;
+  border-left:
+  solid 1px #bdc7d8;
+  color:blue;
+}
+
+td.vrbar {
+  text-align: right;
+  border-left:solid 1px #bdc7d8;
+  color:red;
+}
+
+td.vgbar {
+  text-align: right;
+  border-left: solid 1px #bdc7d8;
+  color:green;
+}
+
+td.vwbar, th.vwbar {
+  text-align: right;
+  border-left: solid 1px white;
+}
+
+td.vwlbar, th.vwlbar {
+  text-align: left;
+  border-left: solid 1px white;
+}
+
+p.blue  {
+  color:blue
+}
+
+
+*/
