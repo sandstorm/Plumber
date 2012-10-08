@@ -19,7 +19,7 @@
 
 -
   name: 'Start'
-  uriPattern: 'profiler'
+  uriPattern: ''
   defaults:
     '@package':    'Sandstorm.Plumber'
     '@controller': 'Standard'
@@ -27,7 +27,7 @@
     '@format':     'html'
 -
   name: 'all other profiles'
-  uriPattern: 'profiler/{@controller}/{@action}'
+  uriPattern: '{@controller}/{@action}'
   defaults:
     '@package':    'Sandstorm.Plumber'
     '@format':     'html'
