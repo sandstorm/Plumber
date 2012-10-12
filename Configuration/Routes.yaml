@@ -27,7 +27,7 @@
     '@format':     'html'
 -
   name: 'all other profiles'
-  uriPattern: '{@controller}/{@action}'
+  uriPattern: '/{@controller}/{@action}'
   defaults:
     '@package':    'Sandstorm.Plumber'
     '@format':     'html'
