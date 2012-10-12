@@ -69,7 +69,7 @@ class Package extends BasePackage {
 		define('XHPROF_ROOT', $this->getResourcesPath() . 'Private/PHP/xhprof-ui/');
 
 		if (!file_exists(FLOW_PATH_DATA . 'Logs/Profiles')) {
-			mkdir(FLOW_PATH_DATA . 'Logs/Profiles');
+			\TYPO3\Flow\Utility\Files::createDirectoryRecursively(FLOW_PATH_DATA . 'Logs/Profiles');
 		}
 
 		$profiler = \Sandstorm\PhpProfiler\Profiler::getInstance();
