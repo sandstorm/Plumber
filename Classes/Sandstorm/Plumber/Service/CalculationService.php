@@ -52,7 +52,10 @@ class CalculationService {
 	 * @param array $calculationOptions
 	 */
 	protected function calculateRegexSum(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
-		if (!isset($calculationOptions['regex'])) throw new \Exception('TODO: Regex not set');
+		if (!isset($calculationOptions['regex'])) {
+			throw new \Exception('TODO: Regex not set');
+		}
+
 		$result = 0;
 
 		$detailedResult = array();
@@ -76,7 +79,10 @@ class CalculationService {
 		$detailedResultHtml = '<table class="condensed-table" style="font-size:60%">';
 		$i = 0;
 		foreach ($detailedResult as $className => $count) {
-			if ($i > 10) break;
+			if ($i > 10) {
+				break;
+			}
+
 			$i++;
 
 			$detailedResultHtml .= sprintf('<tr><td>%s</td><td>%s</td></tr>', $className, $count);
@@ -97,7 +103,9 @@ class CalculationService {
 	 * @param array $calculationOptions
 	 */
 	protected function calculateTimerSum(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
-		if (!isset($calculationOptions['timerName'])) throw new \Exception('TODO: timerName not set');
+		if (!isset($calculationOptions['timerName'])) {
+			throw new \Exception('TODO: timerName not set');
+		}
 
 		$sum = 0;
 

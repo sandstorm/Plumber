@@ -26,7 +26,7 @@ class DetailsController extends AbstractController {
 	 */
 	public function timelineAction($file1, $file2 = NULL) {
 		$profile = $this->getProfile($file1);
-		$this->view->assign('numberOfProfiles', $file2===NULL ? 1 : 2);
+		$this->view->assign('numberOfProfiles', $file2 === NULL ? 1 : 2);
 		$this->view->assign('profile', $profile);
 		$this->view->assign('file1', $file1);
 
@@ -51,7 +51,7 @@ class DetailsController extends AbstractController {
 				caption: %s,
 				description: %s,
 				color: "#%s"
-			}));', $eventSourceIndex, (int)($event['start']*1000), (int)($event['stop']*1000), json_encode($event['name']), json_encode($event['data']), $this->getColorForEventName($event['name']));
+			}));', $eventSourceIndex, (int)($event['start'] * 1000), (int)($event['stop'] * 1000), json_encode($event['name']), json_encode($event['data']), $this->getColorForEventName($event['name']));
 		}
 
 		foreach ($profile->getTimestamps() as $event) {
@@ -62,16 +62,14 @@ class DetailsController extends AbstractController {
 				caption: %s,
 				description: %s,
 				color: "#%s"
-			}));', $eventSourceIndex, (int)($event['time']*1000), json_encode($event['name']), json_encode($event['name']), json_encode($event['data']), $this->getColorForEventName($event['name']));
+			}));', $eventSourceIndex, (int)($event['time'] * 1000), json_encode($event['name']), json_encode($event['name']), json_encode($event['data']), $this->getColorForEventName($event['name']));
 		}
-
 
 		$memory = $profile->getMemory();
 		foreach ($memory as &$mem) {
-			$mem['time'] = (int)($mem['time']*1000);
+			$mem['time'] = (int)($mem['time'] * 1000);
 		}
 		$javaScript[] = sprintf('timelineRunner.setMemory(%s, %s);', $eventSourceIndex, json_encode($memory));
-
 
 		return implode("\n", $javaScript);
 	}
@@ -103,9 +101,9 @@ class DetailsController extends AbstractController {
 			$g = hexdec($gHex);
 			$b = hexdec($bHex);
 
-			$r = max(0,min(255,$r + $steps));
-			$g = max(0,min(255,$g + $steps));
-			$b = max(0,min(255,$b + $steps));
+			$r = max(0, min(255, $r + $steps));
+			$g = max(0, min(255, $g + $steps));
+			$b = max(0, min(255, $b + $steps));
 
 			return str_pad(dechex($r), 2, '0') . str_pad(dechex($g), 2, '0') . str_pad(dechex($b), 2, '0');
 		} else {
@@ -127,14 +125,13 @@ class DetailsController extends AbstractController {
 	public function xhprofAction($run) {
 		$profile = $this->getProfile($run);
 
-		require_once XHPROF_ROOT.'/classes/xhprof_ui.php';
-		require_once XHPROF_ROOT.'/classes/xhprof_ui/config.php';
-		require_once XHPROF_ROOT.'/classes/xhprof_ui/compute.php';
-		require_once XHPROF_ROOT.'/classes/xhprof_ui/utils.php';
-		require_once XHPROF_ROOT.'/classes/xhprof_ui/run.php';
-		require_once XHPROF_ROOT.'/classes/xhprof_ui/report/driver.php';
-		require_once XHPROF_ROOT.'/classes/xhprof_ui/report/single.php';
-
+		require_once XHPROF_ROOT . '/classes/xhprof_ui.php';
+		require_once XHPROF_ROOT . '/classes/xhprof_ui/config.php';
+		require_once XHPROF_ROOT . '/classes/xhprof_ui/compute.php';
+		require_once XHPROF_ROOT . '/classes/xhprof_ui/utils.php';
+		require_once XHPROF_ROOT . '/classes/xhprof_ui/run.php';
+		require_once XHPROF_ROOT . '/classes/xhprof_ui/report/driver.php';
+		require_once XHPROF_ROOT . '/classes/xhprof_ui/report/single.php';
 
 		error_reporting(0);
 		$xhprof_config = new \XHProf_UI\Config();
@@ -161,7 +158,6 @@ class DetailsController extends AbstractController {
 
 		$contents = ob_get_contents();
 		ob_end_clean();
-
 
 		$this->view->assign('run', $run);
 		$this->view->assign('contents', $contents);
