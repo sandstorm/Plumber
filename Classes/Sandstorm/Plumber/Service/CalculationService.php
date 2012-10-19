@@ -111,7 +111,7 @@ class CalculationService {
 
 		foreach ($profile->getTimersAsDuration() as $duration) {
 			if ($duration['name'] === $calculationOptions['timerName']) {
-				$sum += $duration['stop']*1000 - $duration['start']*1000;
+				$sum += $duration['stop'] * 1000 - $duration['start'] * 1000;
 			}
 		}
 		return array('value' => round($sum));
