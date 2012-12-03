@@ -125,9 +125,9 @@ class CalculationService {
 				if (isset($matches[1])) {
 					$className = $matches[1];
 					if (!isset($detailedResult[$className])) {
-						$detailedResult[$className] = 0;
+						$detailedResult[$className] = array();
 					}
-					$detailedResult[$className] += $data[$metric];
+					$detailedResult[$className][] = $data[$metric];
 				}
 			}
 		}
