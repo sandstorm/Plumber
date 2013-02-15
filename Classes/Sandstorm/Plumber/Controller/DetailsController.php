@@ -157,6 +157,7 @@ class DetailsController extends AbstractController {
 		$report->render();
 
 		$contents = ob_get_contents();
+		$contents = str_replace('<tbody', '<tbody class="list"', $contents);
 		ob_end_clean();
 
 		$this->view->assign('run', $run);
