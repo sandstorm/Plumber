@@ -6,7 +6,18 @@
 	<li class="active"><a>XHProf View</a></li>
 </f:section>
 
+<f:section name="header">
+	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.js"></script>
+	<script type="text/javascript" src="../../../Public/list.min.js"></script>
+</f:section>
 
 <f:section name="content">
-	{contents -> f:format.raw()}
+	<div id="list">
+		<input class="search" placeholder="Filter List" style="float: right; margin-right: 10px; margin-top: 7px; margin-bottom: 10px;" />
+		{contents -> f:format.raw()}
+	</div>
+	<script type="text/javascript">
+    	var options = { valueNames: [ 'fn' ] };
+	    var featureList = new List('list', options);
+</script>
 </f:section>
