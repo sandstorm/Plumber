@@ -119,12 +119,13 @@ class DetailsController extends AbstractController {
 		\TYPO3\Flow\var_dump($profile->getXhprofTrace());
 		return '';
 	}
+
 	/**
 	 * @param string $run
+	 * @return void
+	 * @throws \Sandstorm\Plumber\Exception
 	 */
 	public function xhprofAction($run) {
-		$profile = $this->getProfile($run);
-
 		require_once XHPROF_ROOT . '/classes/xhprof_ui.php';
 		require_once XHPROF_ROOT . '/classes/xhprof_ui/config.php';
 		require_once XHPROF_ROOT . '/classes/xhprof_ui/compute.php';
@@ -133,7 +134,6 @@ class DetailsController extends AbstractController {
 		require_once XHPROF_ROOT . '/classes/xhprof_ui/report/driver.php';
 		require_once XHPROF_ROOT . '/classes/xhprof_ui/report/single.php';
 
-		error_reporting(0);
 		$xhprof_config = new \XHProf_UI\Config();
 
 		$xhprof_ui = new \XHProf_UI(
@@ -148,19 +148,27 @@ class DetailsController extends AbstractController {
 				'namespace' => array(\XHProf_UI\Utils::STRING_PARAM, 'xhprof'),
 				'all'       => array(\XHProf_UI\Utils::UINT_PARAM, 0),
 			),
-			$xhprof_config, FLOW_PATH_DATA . '/Logs/Profiles'
+			$xhprof_config,
+			FLOW_PATH_DATA . 'Logs/Profiles'
 		);
 		$report = $xhprof_ui->generate_report();
 
+		if ($report === FALSE) {
+			$message = 'A report could not be generated.';
+			$xhprofPathAndFileName = sprintf('%sLogs/Profiles/%s.xhprof', FLOW_PATH_DATA, $run);
+			if (!file_exists($xhprofPathAndFileName)) {
+				$message .= sprintf(' The required profile file "%s" does not exist.', $xhprofPathAndFileName);
+			}
+			if (!extension_loaded('xhprof')) {
+				$message .= ' Hint: the required PHP extension "xhprof" is not loaded which might be the reason.';
+			}
+			throw new \Sandstorm\Plumber\Exception($message, 1360937314);
+		}
+
 		ob_start();
-
 		$report->render();
-
-		$contents = ob_get_contents();
-		ob_end_clean();
-
+		$this->view->assign('contents', ob_get_flush());
 		$this->view->assign('run', $run);
-		$this->view->assign('contents', $contents);
 	}
 }
 ?>
