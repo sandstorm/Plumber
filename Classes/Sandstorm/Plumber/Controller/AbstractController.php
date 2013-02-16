@@ -23,6 +23,11 @@ abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionContr
 		\Sandstorm\PhpProfiler\Profiler::getInstance()->stop();
 	}
 
+	/**
+	 * @param string $file
+	 *
+	 * @return \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun
+	 */
 	protected function getProfile($file) {
 		$file = FLOW_PATH_DATA . 'Logs/Profiles/' . $file;
 		$profile = unserialize(file_get_contents($file));

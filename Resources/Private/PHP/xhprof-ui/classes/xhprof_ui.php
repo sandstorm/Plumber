@@ -1,14 +1,14 @@
-<?php 
+<?php
 
 class XHProf_UI {
-	
+
 	public $params = array();
 	public $dir = '';
-	
+
 	public $config;
-	
+
 	public $runs = array();
-	
+
 	// default column to sort on -- wall time
 	public $sort = 'wt';
 
@@ -37,13 +37,13 @@ class XHProf_UI {
 
 	function __construct($params, XHProf_UI\Config $config, $dir = null) {
 		$this->params = XHProf_UI\Utils::parse_params($params);
-		
+
 	    // if user hasn't passed a directory location,
 	    // we use the xhprof.output_dir ini setting
 	    // if specified, else we default to the directory
 	    // in which the error_log file resides.
 		if (
-			(!empty($dir) && !is_dir($dir)) || 
+			(!empty($dir) && !is_dir($dir)) ||
 			(empty($dir) && !is_dir($dir = ini_get('xhprof.output_dir')))
 		) {
 			throw new Exception('Warning: Must specify directory location for XHProf runs. '.
@@ -54,7 +54,7 @@ class XHProf_UI {
 
 		$this->dir = $dir;
 	}
-	
+
 	/**
 	 * Generate a XHProf Display View given the various params
 	 *
@@ -81,31 +81,31 @@ class XHProf_UI {
 				if (($data1 = $this->runs[0]->get_data()) && ($data2 = $this->runs[1]->get_data())) {
 					$this->_setup_metrics($data2);
 
-					return new XHProf_UI\Report\Diff(&$this, $data1, $data2);
+					return new XHProf_UI\Report\Diff($this, $data1, $data2);
 				}
-				
+
 			} elseif (count($this->runs) == 1) {
 				if ($data = $this->runs[0]->get_data()) {
 					$this->_setup_metrics($data);
 
-					return new XHProf_UI\Report\Single(&$this, $data);
+					return new XHProf_UI\Report\Single($this, $data);
 				}
 
 			} else {
 				$wts = strlen($wts) > 0 ? explode(',', $wts) : null;
 
-				if ($data = Compute::aggregate_runs(&$this, $this->runs, $wts)) {
+				if ($data = Compute::aggregate_runs($this, $this->runs, $wts)) {
 					$this->_setup_metrics($data);
 
-					return new XHProf_UI\Report\Single(&$this, $data);
+					return new XHProf_UI\Report\Single($this, $data);
 				}
 			}
 		}
 
 		return false;
 	}
-	
-	
+
+
 	public function url(array $params = array()) {
 		return '?'.http_build_query(array_filter(array_merge($this->params, $params)));
 	}
@@ -114,7 +114,7 @@ class XHProf_UI {
 
 	protected function _setup_metrics($data) {
 		extract($this->params, EXTR_SKIP);
-		
+
 		$this->fn = XHProf_UI\Utils::safe_fn($fn);
 
 		if (!empty($sort)) {
