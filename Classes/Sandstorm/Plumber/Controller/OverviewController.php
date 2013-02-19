@@ -43,7 +43,7 @@ class OverviewController extends AbstractController {
 
 		$calculationMinMax = array();
 		foreach ($calculations as $calculationName => $calculationOptions) {
-			$calculationMinMax[$calculationName] = array('min' => INF, 'max' => - INF);
+			$calculationMinMax[$calculationName] = array('min' => PHP_INT_MAX, 'max' => - PHP_INT_MAX);
 		}
 
 		foreach ($profiles as $profileId => $profile) {
