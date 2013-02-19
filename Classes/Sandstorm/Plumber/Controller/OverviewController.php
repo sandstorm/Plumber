@@ -2,7 +2,7 @@
 namespace Sandstorm\Plumber\Controller;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
+ * This script belongs to the TYPO3 Flow package "Sandstorm.Plumber".     *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -10,6 +10,7 @@ namespace Sandstorm\Plumber\Controller;
  *                                                                        *
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
+
 use TYPO3\Flow\Annotations as Flow;
 
 /**
@@ -31,6 +32,11 @@ class OverviewController extends AbstractController {
 	 */
 	protected $renderTagsService;
 
+	/**
+	 * Show an overview of all existing profiles.
+	 *
+	 * @return void
+	 */
 	public function indexAction() {
 		$profiles = $this->getProfiles();
 
@@ -43,7 +49,7 @@ class OverviewController extends AbstractController {
 
 		$calculationMinMax = array();
 		foreach ($calculations as $calculationName => $calculationOptions) {
-			$calculationMinMax[$calculationName] = array('min' => INF, 'max' => - INF);
+			$calculationMinMax[$calculationName] = array('min' => PHP_INT_MAX, 'max' => - PHP_INT_MAX);
 		}
 
 		foreach ($profiles as $profileId => $profile) {
@@ -108,6 +114,27 @@ class OverviewController extends AbstractController {
 		$this->view->assign('optionsJson', json_encode($options));
 	}
 
+	/**
+	 * Updates the profile given in $profileFilename with the tags given in
+	 * $tagList (comma-separated tags) and return the tags rendered as HTML.
+	 *
+	 * @param string $profileFilename
+	 * @param string $tagList
+	 * @return string
+	 */
+	public function updateTagsAction($profileFilename, $tagList) {
+		$profile = $this->getProfile($profileFilename);
+		$tags = \TYPO3\Flow\Utility\Arrays::trimExplode(',', $tagList);
+		$profile->setTags($tags);
+		$profile->save();
+		return $this->renderTagsService->render($tags);
+	}
+
+	/**
+	 * Removes all profiles.
+	 *
+	 * @return void
+	 */
 	public function removeAllAction() {
 		$profiles = $this->getProfiles();
 
@@ -117,6 +144,11 @@ class OverviewController extends AbstractController {
 		$this->redirect('index');
 	}
 
+	/**
+	 * Removes all untagged profiles.
+	 *
+	 * @return void
+	 */
 	public function removeAllUntaggedAction() {
 		$profiles = $this->getProfiles();
 
@@ -129,23 +161,13 @@ class OverviewController extends AbstractController {
 	}
 
 	/**
-	 * @param string $file
-	 * @param string $value
-	 */
-	public function updateTagsAction($file, $value) {
-		$profile = $this->getProfile($file);
-		$tags = \TYPO3\Flow\Utility\Arrays::trimExplode(',', $value);
-		$profile->setTags($tags);
-		$profile->save();
-		return $this->renderTagsService->render($tags);
-	}
-
-	/**
+	 * Removes the given profile.
 	 *
-	 * @param string $run
+	 * @param string $profileFilename
+	 * @return void
 	 */
-	public function removeAction($run) {
-		$profile = $this->getProfile($run);
+	public function removeAction($profileFilename) {
+		$profile = $this->getProfile($profileFilename);
 		$profile->remove();
 		$this->redirect('index');
 	}

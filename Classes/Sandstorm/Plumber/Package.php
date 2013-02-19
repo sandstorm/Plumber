@@ -2,7 +2,7 @@
 namespace Sandstorm\Plumber;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
+ * This script belongs to the TYPO3 Flow package "Sandstorm.Plumber".     *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -21,6 +21,37 @@ use TYPO3\Flow\Annotations as Flow;
  */
 class Package extends BasePackage {
 
+	/**
+	 * Sets up xhprof, some directories, the profiler and wires signals to slots.
+	 *
+	 * @param \TYPO3\Flow\Core\Bootstrap $bootstrap
+	 * @return void
+	 */
+	public function boot(\TYPO3\Flow\Core\Bootstrap $bootstrap) {
+		define('XHPROF_ROOT', $this->getResourcesPath() . 'Private/PHP/xhprof-ui/');
+
+		if (!file_exists(FLOW_PATH_DATA . 'Logs/Profiles')) {
+			\TYPO3\Flow\Utility\Files::createDirectoryRecursively(FLOW_PATH_DATA . 'Logs/Profiles');
+		}
+
+		$profiler = \Sandstorm\PhpProfiler\Profiler::getInstance();
+		$profiler->setConfiguration('profilePath', FLOW_PATH_DATA . 'Logs/Profiles');
+
+		$run = $profiler->start();
+		$dispatcher = $bootstrap->getSignalSlotDispatcher();
+		$run->setOption('Context', $bootstrap->getContext());
+		$this->connectToSignals($dispatcher, $profiler, $run, $bootstrap);
+	}
+
+	/**
+	 * Wire signals to slots as needed.
+	 *
+	 * @param \TYPO3\Flow\SignalSlot\Dispatcher $dispatcher
+	 * @param \Sandstorm\PhpProfiler\Profiler $profiler
+	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $run
+	 * @param \TYPO3\Flow\Core\Bootstrap $bootstrap
+	 * @return void
+	 */
 	protected function connectToSignals(\TYPO3\Flow\SignalSlot\Dispatcher $dispatcher, \Sandstorm\PhpProfiler\Profiler $profiler, \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $run, \TYPO3\Flow\Core\Bootstrap $bootstrap) {
 		$dispatcher->connect('TYPO3\Flow\Core\Booting\Sequence', 'beforeInvokeStep', function($step) use($run) {
 			$run->startTimer('Boostrap Sequence: ' . $step->getIdentifier());
@@ -64,20 +95,5 @@ class Package extends BasePackage {
 		});
 	}
 
-	public function boot(\TYPO3\Flow\Core\Bootstrap $bootstrap) {
-		define('XHPROF_ROOT', $this->getResourcesPath() . 'Private/PHP/xhprof-ui/');
-
-		if (!file_exists(FLOW_PATH_DATA . 'Logs/Profiles')) {
-			\TYPO3\Flow\Utility\Files::createDirectoryRecursively(FLOW_PATH_DATA . 'Logs/Profiles');
-		}
-
-		$profiler = \Sandstorm\PhpProfiler\Profiler::getInstance();
-		$profiler->setConfiguration('profilePath', FLOW_PATH_DATA . 'Logs/Profiles');
-
-		$run = $profiler->start();
-		$dispatcher = $bootstrap->getSignalSlotDispatcher();
-		$run->setOption('Context', $bootstrap->getContext());
-		$this->connectToSignals($dispatcher, $profiler, $run, $bootstrap);
-	}
 }
 ?>

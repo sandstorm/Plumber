@@ -12,7 +12,7 @@
 	],
 	"support": {
 		"issues": "https://github.com/sandstorm/Plumber/issues",
-		"irc": "irc://irc.freenode.net/flow",
+		"irc": "irc://irc.freenode.net/typo3-flow",
 		"source": "https://github.com/sandstorm/Plumber"
 	},
 	"license": "GPL-3.0+",

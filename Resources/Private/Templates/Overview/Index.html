@@ -92,8 +92,8 @@
 
 	<f:form method="GET" controller="Details" action="timeline">
 		<p style="clear:both">
-			<f:form.textfield name="file1" id="file1" value="" />
-			<f:form.textfield name="file2" id="file2" value="" />
+			<f:form.textfield name="runIdentifier1" id="runIdentifier1" value="" />
+			<f:form.textfield name="runIdentifier2" id="runIdentifier2" value="" />
 			<f:form.submit class="btn primary" value="Compare" />
 		</p>
 		<div id="lists">
@@ -125,7 +125,7 @@
 			timelineDetails: "{f:uri.action(controller: 'Details', action: 'timeline')}",
 			xhprofDetails: "{f:uri.action(controller: 'Details', action: 'xhprof')}",
 			updateTags: '{f:uri.action(action:"updateTags")}',
-			xhprofDebug: "{f:uri.action(controller: 'Details', action: 'xhprofDebug')}",
+			xhprofDebug: "{f:uri.action(controller: 'Details', action: 'xhprofDebug')}"
 		};
 		var profileData = {profileData -> f:format.raw()};
 		var calculations = {calculationsJson -> f:format.raw()};

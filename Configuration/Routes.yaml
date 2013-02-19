@@ -4,18 +4,8 @@
 # This file contains the configuration for the MVC router.               #
 # Just add your own modifications as necessary.                          #
 #                                                                        #
-# Please refer to the FLOW3 manual for possible configuration options.   #
+# Please refer to the Flow manual for possible configuration options.    #
 #                                                                        #
-
-##
-# Subroutes from the Welcome package.
-#
-# If the package "Welcome" is installed, its fallback route will point to an
-# informative welcome screen.
-
-##
-# FLOW3 subroutes
-#
 
 -
   name: 'Start'
@@ -27,7 +17,7 @@
     '@format':     'html'
 -
   name: 'all other profiles'
-  uriPattern: '/{@controller}/{@action}'
+  uriPattern: '{@controller}/{@action}'
   defaults:
     '@package':    'Sandstorm.Plumber'
     '@format':     'html'
