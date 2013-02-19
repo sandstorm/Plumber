@@ -4,10 +4,12 @@ Sandstorm:
     # profiling runs collected by other profiling collectors (such as the TYPO3 extension)
     enableProfiling: true
     calculations:
+
       methodCallsOnObject:
         label: 'No. of Method Calls'
         type: regexSum
         regex: '#==>(.*)::.*#'
+
       objectCreations:
         label: 'No. of Object Creations'
         type: regexSum
@@ -24,33 +26,10 @@ Sandstorm:
         timerName: 'Profiling Run'
 #        crossfilter:
 #          numberOfBars: 30
+
       totalMemory:
         label: 'Memory (kb)'
         type: maxMemory
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       startTime:
         label: 'Date'

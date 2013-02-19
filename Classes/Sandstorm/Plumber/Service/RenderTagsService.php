@@ -2,7 +2,7 @@
 namespace Sandstorm\Plumber\Service;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
+ * This script belongs to the TYPO3 Flow package "Sandstorm.Plumber".     *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -19,9 +19,12 @@ use TYPO3\Flow\Annotations as Flow;
 class RenderTagsService {
 
 	/**
+	 * Renders the given tags as HTML output.
+	 *
 	 * @param array $tags
+	 * @return string
 	 */
-	public function render($tags) {
+	public function render(array $tags) {
 		$output = '';
 		foreach ($tags as $tag) {
 			$color = substr(md5(strtolower($tag)), 0, 6);
@@ -29,5 +32,6 @@ class RenderTagsService {
 		}
 		return $output;
 	}
+
 }
 ?>
