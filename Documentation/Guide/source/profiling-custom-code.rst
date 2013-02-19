@@ -37,3 +37,4 @@ Setting Options
 Furthermore, you can set meta-information on the current run (which is called ``options`` currently)::
 
 	\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->setOption('context', 'DEV');
+

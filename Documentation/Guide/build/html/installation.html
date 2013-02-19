@@ -58,18 +58,25 @@
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">Do not install Plumber on production websites. If you do, make sure to disallow access
-to the <tt class="docutils literal"><span class="pre">/profiler</span></tt> URL using htaccess or the like..</p>
+to the <tt class="docutils literal"><span class="pre">/profiler</span></tt> URL using htaccess or the like.</p>
 </div>
-<p>To install, just clone the packages from github:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nb">cd</span> &lt;YourFlow3Root&gt;/Packages/Application
-git clone --recursive git://github.com/sandstorm/Plumber.git Sandstorm.Plumber
-git clone --recursive git://github.com/sandstorm/PhpProfiler.git Sandstorm.PhpProfiler
-<span class="nb">cd</span> ../../
-./flow3 package:activate Sandstorm.PhpProfiler
-./flow3 package:activate Sandstorm.Plumber
+<p>To install, just require the package in your project:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nb">cd</span> &lt;YourProjectRoot&gt;
+composer require sandstorm/plumber <span class="se">\*</span>
 </pre></div>
 </div>
 <p>The system will automatically use XHProf if it is installed.</p>
+<p>Now include the Plumber routes in your global routes configuration:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="p-Indicator">-</span>
+  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="s">&#39;Plumber&#39;</span>
+  <span class="l-Scalar-Plain">uriPattern</span><span class="p-Indicator">:</span> <span class="s">&#39;profiler/&lt;PlumberSubroutes&gt;&#39;</span>
+  <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span>
+        <span class="s">&#39;@format&#39;</span><span class="p-Indicator">:</span> <span class="s">&#39;html&#39;</span>
+  <span class="l-Scalar-Plain">subRoutes</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">PlumberSubroutes</span><span class="p-Indicator">:</span>
+          <span class="l-Scalar-Plain">package</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Sandstorm.Plumber</span>
+</pre></div>
+</div>
 </div>
 
 

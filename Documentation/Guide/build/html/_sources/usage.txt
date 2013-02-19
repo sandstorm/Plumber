@@ -3,9 +3,6 @@ Usage
 
 Just use your web application as normal. To browse profiling reports, go to ``http://yourhost/profiler/``.
 
-.. note:: Plumber automatically registers the ``profiler/`` route, so you do not
-   need to do that manually in your global Routes.yaml.
-
 For each run, the profiler collects the following data:
 
 - meta-information for the current run (like: the context the request was invoked in, the controller being used)
