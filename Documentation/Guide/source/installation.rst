@@ -25,3 +25,5 @@ Now include the Plumber routes in your global routes configuration:
 	  subRoutes:
 		PlumberSubroutes:
 		  package: Sandstorm.Plumber
+
+Check the PhpProfiler documentation for information on optional XHProf backends that can be used.

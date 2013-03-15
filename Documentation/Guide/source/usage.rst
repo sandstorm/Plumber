@@ -41,7 +41,6 @@ XHProf Page
 You can also drill down to the XHProf page, showing the detailed statistics
 of the run.
 
-
 Configuring Custom Dimensions
 -----------------------------
 
