@@ -48,7 +48,6 @@ For each run, the profiler collects the following data:
 
 ### Overview Page
 
-
 ![Overview](http://sandstorm.github.io/Plumber/Documentation/OverviewPage.jpg)
 
 The overview page is the main entry point to the profiler. It shows the different
