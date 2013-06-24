@@ -84,7 +84,7 @@ Timeline Page
 The timeline page gives a visual overview of a request, showing the timers
 of the request, and how memory consumption changed.
 
-.. image:: http://sandstorm.github.io/Plumber/Documentation/TimelinePage.jpg
+.. image:: http://sandstorm.github.io/Plumber/Documentation/TimelinePage.png
    :width: 400px
 
 XHProf Page
@@ -93,6 +93,7 @@ XHProf Page
 You can also drill down to the XHProf page, showing the detailed statistics
 of the run.
 
+.. _configuring-custom-dimensions:
 
 Configuring Custom Dimensions
 =============================
