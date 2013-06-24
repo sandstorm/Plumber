@@ -21,6 +21,7 @@ Table of Contents
 
 * installation_
 * usage_
+* configuring-custom-dimensions_
 
 .. _installation:
 
@@ -31,7 +32,7 @@ Installation
    to the ``/profiler`` URLs.
 
 
-To install, just use composer:
+To install, just use composer::
 
 	composer require --dev sandstorm/plumber 1.0.4
 
@@ -94,7 +95,7 @@ of the run.
 
 
 Configuring Custom Dimensions
------------------------------
+=============================
 
 The available dimensions are configured inside the ``Settings.yaml`` and that's
 also how you can add new dimensions.
@@ -124,21 +125,21 @@ a ``type`` which specifies how the data inside this dimension is aggregated.
 We support the following types:
 
 maxMemory
-~~~~~~~~~
+---------
 
 **Parameters:** None
 
 Output the maximum memory which has been used in kilobytes.
 
 totalRuntime
-~~~~~~~~~~~~
+------------
 
 **Parameters:** ``timerName``
 
 This one sums up the total runtime in milliseconds of a timer specified by ``timerName``.
 
 regexSum
-~~~~~~~~
+--------
 
 **Parameters:** ``regex``
 
@@ -182,7 +183,7 @@ with the top 10 invocations grouped by the regex. Example:
 	#==>TYPO3\\Fluid\\(.*)::__construct#  Matches constructor invocations in Fluid, displaying a Top 10 list of constructor invocations inside the fluid package
 
 Your custom type
-~~~~~~~~~~~~~~~~
+----------------
 
 Custom types are currently not possible.
 
