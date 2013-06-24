@@ -2,7 +2,7 @@
 namespace Sandstorm\Plumber\Service;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
+ * This script belongs to the TYPO3 Flow package "Sandstorm.Plumber".     *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -11,6 +11,8 @@ namespace Sandstorm\Plumber\Service;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sandstorm\PhpProfiler\Domain\Model\ProfilingRun;
+use Sandstorm\Plumber\Exception;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
@@ -29,8 +31,12 @@ class CalculationService {
 	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
 	 * @return array
+	 * @throws \Sandstorm\Plumber\Exception
 	 */
-	public function calculate(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	public function calculate(ProfilingRun $profile, array $calculationOptions) {
+		if (!isset($calculationOptions['type'])) {
+			throw new Exception('The "type" option must be set for calculations.', 1361305367);
+		}
 		$type = 'calculate' . ucfirst($calculationOptions['type']);
 		return $this->$type($profile, $calculationOptions);
 	}
@@ -38,26 +44,28 @@ class CalculationService {
 	/**
 	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
-	 * @param type $asHtml
+	 * @return array
 	 */
-	protected function calculateStartTime(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	protected function calculateStartTime(ProfilingRun $profile, array $calculationOptions) {
 		return array(
 			'value' => $profile->getStartTimeAsFloat()
 		);
 	}
 
 	/**
+	 * Calculate the total number of calls for methods matching the specified regex.
 	 *
 	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
+	 * @return array
+	 * @throws \Sandstorm\Plumber\Exception
 	 */
-	protected function calculateRegexSum(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	protected function calculateRegexSum(ProfilingRun $profile, array $calculationOptions) {
 		if (!isset($calculationOptions['regex'])) {
-			throw new \Exception('TODO: Regex not set');
+			throw new Exception('The "regex" option must be set for "regexSum" calculations.', 1361305368);
 		}
 
 		$result = 0;
-
 		$detailedResult = array();
 		foreach ($profile->getXhprofTrace() as $id => $data) {
 			$matches = NULL;
@@ -79,11 +87,9 @@ class CalculationService {
 		$detailedResultHtml = '<table class="condensed-table" style="font-size:60%">';
 		$i = 0;
 		foreach ($detailedResult as $className => $count) {
-			if ($i > 10) {
+			if ($i++ > 9) {
 				break;
 			}
-
-			$i++;
 
 			$detailedResultHtml .= sprintf('<tr><td>%s</td><td>%s</td></tr>', $className, $count);
 		}
@@ -105,7 +111,7 @@ class CalculationService {
 	 */
 	protected function calculateRegex(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
 		if (!isset($calculationOptions['regex'])) {
-			throw new \Exception('TODO: Regex not set');
+			throw new Exception('Regex not set');
 		}
 
 		$metrics = array(
@@ -165,7 +171,7 @@ class CalculationService {
 	 * @param  string $subtype
 	 * @return integer
 	 */
-	public function calculateSubtype($data, $subtype) {
+	protected function calculateSubtype($data, $subtype) {
 		$result = 0;
 		switch ($subtype) {
 			case 'average':
@@ -185,16 +191,19 @@ class CalculationService {
 	}
 
 	/**
+	 * Calculate the total for the specified timer in the profile.
+	 *
 	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
+	 * @return array
+	 * @throws \Sandstorm\Plumber\Exception
 	 */
-	protected function calculateTimerSum(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	protected function calculateTimerSum(ProfilingRun $profile, array $calculationOptions) {
 		if (!isset($calculationOptions['timerName'])) {
-			throw new \Exception('TODO: timerName not set');
+			throw new Exception('The "timerName" option must be set for "timerSum" calculations.', 1361305369);
 		}
 
 		$sum = 0;
-
 		foreach ($profile->getTimersAsDuration() as $duration) {
 			if ($duration['name'] === $calculationOptions['timerName']) {
 				$sum += $duration['stop'] * 1000 - $duration['start'] * 1000;
@@ -204,10 +213,13 @@ class CalculationService {
 	}
 
 	/**
+	 * Calculate the maximum memory usage for the given profile.
+	 *
 	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
+	 * @return array
 	 */
-	protected function calculateMaxMemory(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	protected function calculateMaxMemory(ProfilingRun $profile, array $calculationOptions) {
 		$memory = $profile->getMemory();
 		$lastSamplingPoint = array_pop($memory);
 		return array('value' => round($lastSamplingPoint['mem'] / 1024));

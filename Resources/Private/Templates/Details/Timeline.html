@@ -35,7 +35,7 @@
 <f:section name="navigation">
 	<li><f:link.action controller="Overview" action="index">Overview</f:link.action></li>
 	<li class="active"><a>Timeline View</a></li>
-	<li><f:link.action action="xhprof" arguments="{run: file1}">XHProf View</f:link.action></li>
+	<li><f:link.action action="xhprof" arguments="{run: runIdentifier1}">XHProf View</f:link.action></li>
 </f:section>
 
 <f:section name="content">
@@ -45,16 +45,16 @@
 	</div>
 
 	<div>
-		<f:render section="runMetadata" arguments="{profile: profile, file: file1}" />
-		<f:render section="runMetadata" arguments="{profile: profile2, file: file2}" />
+		<f:render section="runMetadata" arguments="{profile: profile, run: runIdentifier1}" />
+		<f:render section="runMetadata" arguments="{profile: profile2, run: runIdentifier1}" />
 	</div>
 </f:section>
 <f:section name="runMetadata">
 	<f:if condition="{profile}">
-		<h2>Metadata -- {file}</h2>
-		<f:link.action class="btn small" action="xhprof" arguments="{run: file}">XHprof</f:link.action><br />
+		<h2>Metadata for {run}</h2>
 		<f:for each="{profile.options}" key="k" as="v">
 			{k}: {v}<br />
 		</f:for>
+		<f:link.action class="btn small" action="xhprof" arguments="{run: run}">XHprof</f:link.action><br />
 	</f:if>
 </f:section>

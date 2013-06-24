@@ -30,7 +30,7 @@ Then, add the the following to your global `Routes.yaml` of your distribution:
 ```yaml
 -
   name: 'SandstormPlumber'
-  uriPattern: 'profiler<SandstormPlumberSubroutes>'
+  uriPattern: 'profiler/<SandstormPlumberSubroutes>'
   subRoutes:
     SandstormPlumberSubroutes:
       package: Sandstorm.Plumber
@@ -157,6 +157,14 @@ Furthermore, the regex might contain exactly one submatch pattern. In this case,
 #==>(.*)::__construct#                Matches all constructor invocations, displaying a Top 10 list of constructor invocations
 #==>TYPO3\\Fluid\\(.*)::__construct#  Matches constructor invocations in Fluid, displaying a Top 10 list of constructor invocations inside the fluid package
 ```
+
+### regex
+
+**Paramters:**
+
+* `regex`: '...' (see `regexSum`)
+* `metric`: `time|calls|memory`
+* `subtype`: `sum|average`
 
 ### Your custom type
 

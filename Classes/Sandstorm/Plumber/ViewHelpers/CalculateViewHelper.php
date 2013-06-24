@@ -2,7 +2,7 @@
 namespace Sandstorm\Plumber\ViewHelpers;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
+ * This script belongs to the TYPO3 Flow package "Sandstorm.Plumber".     *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -10,9 +10,11 @@ namespace Sandstorm\Plumber\ViewHelpers;
  *                                                                        *
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
+
 use TYPO3\Flow\Annotations as Flow;
 
 /**
+ * Run calculations for the given profile.
  */
 class CalculateViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
 
@@ -23,13 +25,14 @@ class CalculateViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelpe
 	protected $calculationService;
 
 	/**
+	 * Run calculations for the given profile.
 	 *
 	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
-	 * @return type
+	 * @return array
 	 */
 	public function render(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
-		return $this->calculationService->calculate($profile, $calculationOptions, TRUE);
+		return $this->calculationService->calculate($profile, $calculationOptions);
 	}
 }
 ?>

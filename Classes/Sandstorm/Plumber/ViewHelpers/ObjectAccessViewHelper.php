@@ -2,7 +2,7 @@
 namespace Sandstorm\Plumber\ViewHelpers;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "Sandstorm.Plumber".          *
+ * This script belongs to the TYPO3 Flow package "Sandstorm.Plumber".     *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU General Public License, either version 3          *
@@ -14,11 +14,15 @@ namespace Sandstorm\Plumber\ViewHelpers;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
+ * Uses the given $path to fetch a property on the subject (children).
  */
 class ObjectAccessViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
 
 	/**
+	 * Uses the given $path to fetch a property on the subject (children).
+	 *
 	 * @param string $path
+	 * @return mixed
 	 */
 	public function render($path) {
 		return \TYPO3\Flow\Reflection\ObjectAccess::getPropertyPath($this->renderChildren(), $path);

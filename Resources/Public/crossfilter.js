@@ -2,8 +2,8 @@
 var formatNumber = d3.format(",d");
 
 var startTimeBounds = {};
-window.profileData.forEach(function(d, i) {
-	d.startTime.value = new Date(parseInt(d.startTime.value*1000))
+window.profileData.forEach(function (d, i) {
+	d.startTime.value = new Date(parseInt(d.startTime.value * 1000))
 	if (!startTimeBounds.min || startTimeBounds.min > d.startTime.value)
 		startTimeBounds.min = d.startTime.value;
 	if (!startTimeBounds.max || startTimeBounds.max < d.startTime.value)
@@ -16,7 +16,9 @@ var profileCrossfilter = crossfilter(window.profileData),
 
 var charts = [], chart, list;
 
-var startTimeDimension = profileCrossfilter.dimension(function(d) {return d.startTime.value});
+var startTimeDimension = profileCrossfilter.dimension(function (d) {
+	return d.startTime.value
+});
 
 /*
 TODO: string options in diagram
@@ -56,7 +58,9 @@ function initDrawing() {
 		} else {
 
 			theChart = barChart()
-				.dimension(profileCrossfilter.dimension(function(d) { return d[calculationName].value}))
+				.dimension(profileCrossfilter.dimension(function (d) {
+					return d[calculationName].value
+				}))
 				.graphWidth(240)
 				.numberOfBars(crossfilterOptions.numberOfBars || 20)
 				.domain([crossfilterOptions.min, crossfilterOptions.max])
@@ -72,7 +76,9 @@ function initDrawing() {
 	// We also listen to the chart's brush events to update the display.
 	chart = d3.selectAll(".chart")
 		.data(charts)
-		.each(function(chart) { chart.on("brush", renderAll).on("brushend", renderAll); });
+		.each(function (chart) {
+			chart.on("brush", renderAll).on("brushend", renderAll);
+		});
 
 	// Render the initial lists.
 	list = d3.selectAll(".list")
@@ -101,21 +107,23 @@ function renderAll() {
 	d3.selectAll('svg .axis g text').attr('transform', 'translate(7,0) rotate(45)').attr('text-anchor', 'left');
 }
 
-window.filter = function(filters) {
-	filters.forEach(function(d, i) { charts[i].filter(d); });
+window.filter = function (filters) {
+	filters.forEach(function (d, i) {
+		charts[i].filter(d);
+	});
 	renderAll();
 };
 
-window.reset = function(i) {
+window.reset = function (i) {
 	charts[i].filter(null);
 	renderAll();
 };
 
-window.zoomIn = function(i) {
+window.zoomIn = function (i) {
 	charts[i].zoomIn();
 	renderAll();
 };
-window.zoomOut = function(i) {
+window.zoomOut = function (i) {
 	charts[i].zoomOut();
 	renderAll();
 };
@@ -130,32 +138,36 @@ function addConcatenator(uri) {
 function recordList(div) {
 	var records = startTimeDimension.top(100);
 
-	div.each(function() {
+	div.each(function () {
 		var recordSelection = d3.select(this).selectAll(".record")
-			.data(records, function(d) { return d.startTime.value; });
+			.data(records, function (d) {
+				return d.startTime.value;
+			});
 
 		var recordSelectionEnter = recordSelection.enter().append("tr")
-			.attr("class", "record").attr('id', function(d) { return d['id'] });
+			.attr("class", "record").attr('id', function (d) {
+				return d['id']
+			});
 
 		recordSelection.exit().remove();
 
-		recordSelectionEnter.append("td").html(function(d) {
-			return '<a onclick="jQuery(\'#file1\').val(\'' + d['id'] + '\');">1</a> '
-				+  '<a onclick="jQuery(\'#file2\').val(\'' + d['id'] + '\');">2</a>';
+		recordSelectionEnter.append("td").html(function (d) {
+			return '<a onclick="jQuery(\'#runIdentifier1\').val(\'' + d['id'] + '\');" class="btn btn-mini">1</a> '
+				+ '<a onclick="jQuery(\'#runIdentifier2\').val(\'' + d['id'] + '\');" class="btn btn-mini">2</a>';
 		});
 
 		recordSelectionEnter.append("td").html(function(d) {
-			return '<a href="' + addConcatenator(window.uris.timelineDetails) + 'file1=' + d['id'] + '" class="btn small">Timeline &raquo;</a>'
+			return '<a href="' + addConcatenator(window.uris.timelineDetails) + 'runIdentifier1=' + d['id'] + '" class="btn small">Timeline &raquo;</a>'
 				+  '<a href="' + addConcatenator(window.uris.xhprofDetails) + 'run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
-				+  '<a href="' + addConcatenator(window.uris.xhprofDebug) + 'run=' + d['id'] + '" title="XHProf Debug">DBG &raquo;</a>'
+				+  '<a href="' + addConcatenator(window.uris.xhprofDebug) + 'runIdentifier=' + d['id'] + '" title="XHProf Debug">DBG &raquo;</a>'
 		});
-		recordSelectionEnter.append("td").attr('class', 'tagList').html(function(d) {
+		recordSelectionEnter.append("td").attr('class', 'tagList').html(function (d) {
 			return d['tagsAsHtml'];
 		});
 
 		for (var optionName in window.options) {
 			recordSelectionEnter.append("td")
-				.html(function(d) {
+				.html(function (d) {
 					var str = "";
 					if (typeof d[optionName] == 'string') str = d[optionName];
 					if (str.length > 50) {
@@ -163,14 +175,14 @@ function recordList(div) {
 					}
 
 					return str;
-			});
+				});
 		}
 		for (var calculationName in window.calculations) {
 			var listDisplayFn;
 			if (window.calculations[calculationName].listDisplayFn) {
 				eval("listDisplayFn = " + window.calculations[calculationName].listDisplayFn);
 			} else {
-				listDisplayFn = function(d) {
+				listDisplayFn = function (d) {
 					if (d[calculationName].tableCellHtml) {
 						return d[calculationName].tableCellHtml;
 					} else {
@@ -207,7 +219,7 @@ function barChart() {
 
 		y.domain([0, (group.top(1).length > 0 ? group.top(1)[0].value : 0)]);
 
-		div.each(function() {
+		div.each(function () {
 			var div = d3.select(this),
 				g = div.select("g"), path;
 
@@ -248,7 +260,9 @@ function barChart() {
 					.enter().append("path");
 
 				path
-					.attr("class", function(d) { return d + " bar"; });
+					.attr("class", function (d) {
+						return d + " bar";
+					});
 
 				g.selectAll(".foreground.bar")
 					.attr("clip-path", "url(#clip-" + id + ")");
@@ -264,7 +278,7 @@ function barChart() {
 
 			path.datum(group.all());
 
-				// Re-draw axis on every hit
+			// Re-draw axis on every hit
 			g.select('g.axis').remove();
 			g.append("g")
 				.attr("class", "axis")
@@ -322,12 +336,12 @@ function barChart() {
 		}
 	}
 
-	brush.on("brushstart.chart", function() {
+	brush.on("brushstart.chart", function () {
 		var div = d3.select(this.parentNode.parentNode.parentNode);
 		div.selectAll(".title a").style("display", null);
 	});
 
-	brush.on("brush.chart", function() {
+	brush.on("brush.chart", function () {
 		var g = d3.select(this.parentNode),
 			extent = brush.extent();
 		if (round) g.select(".brush")
@@ -340,7 +354,7 @@ function barChart() {
 		dimension.filterRange(extent);
 	});
 
-	brush.on("brushend.chart", function() {
+	brush.on("brushend.chart", function () {
 		if (brush.empty()) {
 			var div = d3.select(this.parentNode.parentNode.parentNode);
 			div.select(".title a").style("display", "none");
@@ -349,13 +363,13 @@ function barChart() {
 		}
 	});
 
-	chart.margin = function(_) {
+	chart.margin = function (_) {
 		if (!arguments.length) return margin;
 		margin = _;
 		return chart;
 	};
 
-	chart.x = function(_) {
+	chart.x = function (_) {
 		if (!arguments.length) return x;
 		x = _;
 		axis.scale(x);
@@ -364,13 +378,13 @@ function barChart() {
 		return chart;
 	};
 
-	chart.y = function(_) {
+	chart.y = function (_) {
 		if (!arguments.length) return y;
 		y = _;
 		return chart;
 	};
 
-	chart.filter = function(_) {
+	chart.filter = function (_) {
 		if (_) {
 			brush.extent(_);
 			dimension.filterRange(_);
@@ -382,13 +396,13 @@ function barChart() {
 		return chart;
 	};
 
-	chart.group = function(_) {
+	chart.group = function (_) {
 		if (!arguments.length) return group;
 		group = _;
 		return chart;
 	};
 
-	chart.round = function(_) {
+	chart.round = function (_) {
 		if (!arguments.length) return round;
 		round = _;
 		return chart;
@@ -398,7 +412,7 @@ function barChart() {
 	 * a more high-level API to build charts
 	 */
 	var graphWidth, numberOfBars, domain;
-	chart.dimension = function(_) {
+	chart.dimension = function (_) {
 		dimension = _
 		return chart;
 	}
@@ -407,28 +421,29 @@ function barChart() {
 			barWidth = (graphWidth / numberOfBars) - 2;
 		}
 	}
-	chart.graphWidth = function(_) {
+
+	chart.graphWidth = function (_) {
 		graphWidth = _;
 		updateBarWidth();
 		return chart;
 	}
-	chart.numberOfBars = function(_) {
+	chart.numberOfBars = function (_) {
 		numberOfBars = _;
 		updateBarWidth();
 		return chart;
 	}
-	chart.domain = function(_) {
+	chart.domain = function (_) {
 		domain = _;
 		return chart;
 	}
-	chart.init = function() {
-			// range of one bar = (domain[max]-domain[min]) / numberOfBars
-		var rangeOfOneBar = (domain[1]-domain[0]) / numberOfBars;
+	chart.init = function () {
+		// range of one bar = (domain[max]-domain[min]) / numberOfBars
+		var rangeOfOneBar = (domain[1] - domain[0]) / numberOfBars;
 
 
 		// We build up a new dimension group; and for everything outside the range
 		// boundaries we return undefined and ignore it during the reduce step.
-		var dimensionGroup = dimension.group(function(v) {
+		var dimensionGroup = dimension.group(function (v) {
 			if (v < domain[0]) return undefined;
 			if (v > domain[1]) return undefined;
 			return Math.floor(v / rangeOfOneBar) * rangeOfOneBar;
@@ -457,7 +472,7 @@ function barChart() {
 	};
 
 	var originalDomain = null;
-	chart.zoomIn = function() {
+	chart.zoomIn = function () {
 		if (!originalDomain) originalDomain = domain;
 		domain = brush.extent();
 		chart.init();
@@ -465,7 +480,7 @@ function barChart() {
 		brushDirty = true;
 		return chart;
 	};
-	chart.zoomOut = function() {
+	chart.zoomOut = function () {
 		if (!originalDomain) return;
 		var insideDomain = domain;
 		domain = originalDomain;
@@ -484,21 +499,21 @@ function barChart() {
 }
 
 
-
-$('.tagList').live('click', function(event) {
-    event.preventDefault();
-    $(this).editable(window.uris.updateTags, {
-		data: function(value, settings) {
+$('.tagList').live('click', function (event) {
+	event.preventDefault();
+	$(this).editable(window.uris.updateTags, {
+		name: 'tagList',
+		data: function (value, settings) {
 			// Convert span tags to comma separated tag list
 			var $el = jQuery('<div />');
-			$el.html(value).find('span').replaceWith(function() {
+			$el.html(value).find('span').replaceWith(function () {
 				return $(this).html() + ', ';
 			});
 			return $el.html();
 		},
-		submitdata: function ( value, settings ) {
+		submitdata: function (value, settings) {
 			return {
-				'file': this.parentNode.getAttribute('id')
+				'profileFilename': this.parentNode.getAttribute('id')
 			};
 		}
 	});
