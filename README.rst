@@ -1,10 +1,10 @@
-=============================================
-Plumber -- Profiling TYPO3 Flow, Neos and CMS
-=============================================
+============================================
+Plumber - Profiling TYPO3 Flow, Neos and CMS
+============================================
 
 -- Measuring the flow of your application --
 
-(c) Sebastian Kurfürst, Sandstorm Media UG (haftungsbeschränkt)
+Copyright: Sebastian Kurfürst, Sandstorm Media UG (haftungsbeschränkt)
 
 Plumber is a profiling and tracing tool with the following features:
 
@@ -16,6 +16,13 @@ Plumber is a profiling and tracing tool with the following features:
 * **tag** your profiling runs
 * show **aggregated statistics** in the overview
 
+Table of Contents
+=================
+
+* installation_
+* usage_
+
+.. _installation:
 
 Installation
 ============
@@ -36,10 +43,11 @@ Then, add the the following to your global ``Routes.yaml`` of your distribution:
 	  name: 'SandstormPlumber'
 	  uriPattern: 'profiler<SandstormPlumberSubroutes>'
 	  subRoutes:
-		SandstormPlumberSubroutes:
-		  package: Sandstorm.Plumber
+	    SandstormPlumberSubroutes:
+	      package: Sandstorm.Plumber
 
 
+.. _usage:
 
 Usage
 =====
