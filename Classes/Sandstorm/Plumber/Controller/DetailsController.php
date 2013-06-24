@@ -167,7 +167,12 @@ class DetailsController extends AbstractController {
 
 		ob_start();
 		$report->render();
-		$this->view->assign('contents', ob_get_flush());
+
+		$contents = ob_get_contents();
+		$contents = str_replace('<tbody', '<tbody class="list"', $contents);
+		ob_end_clean();
+		$this->view->assign('contents', $contents);
+
 		$this->view->assign('run', $run);
 	}
 }
