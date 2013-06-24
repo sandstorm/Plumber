@@ -22,6 +22,10 @@ Table of Contents
 * installation_
 * usage_
 * configuring-custom-dimensions_
+* profiling-custom-code_
+* profiling-typo3-cms_
+* credits_
+* license_
 
 .. _installation:
 
@@ -191,6 +195,7 @@ Custom types are currently not possible.
 .. hint:: The calculation happens inside ``Sandstorm\Plumber\Service\CalculationService``,
    if you want to extend it. Make sure to submit a pull request then :-).
 
+.. _profiling-custom-code:
 
 Profiling Custom Code
 =====================
@@ -232,6 +237,7 @@ Furthermore, you can set meta-information on the current run (which is called ``
 
 	\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->setOption('context', 'DEV');
 
+.. _profiling-typo3-cms:
 
 Profiling TYPO3 CMS using Plumber
 =================================
@@ -252,11 +258,15 @@ to the FLOW3 installation inside the extension configuration.
 Then, flush your caches and you should see a profiling run appear in Plumber
 for every page request in TYPO3 CMS.
 
+.. _credits:
+
 Credits
 =======
 
 Developed by Sebastian Kurfürst, Sandstorm Media UG (haftungsbeschränkt). Pull
 requests by various authors.
+
+.. _license:
 
 License
 =======
