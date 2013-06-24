@@ -168,6 +168,22 @@ if you want to extend it. Make sure to submit a pull request then :-).
 
 ## Profiling Custom Code
 
+### Profiling method calls using an Aspect (NEW!)
+
+You can use the `Sandstorm\Plumber\Annotations\Profile` annotation on a method in order
+to profile it:
+
+```php
+class MyClass {
+
+	/**
+	 * @Sandstorm\Plumber\Annotations\Profile
+	 */
+	public function myMethod() {
+	}
+}
+```
+
 ### Adding custom timers
 
 When hunting for performance bottlenecks, it often makes sense to add custom
