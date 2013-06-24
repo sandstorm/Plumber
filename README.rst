@@ -1,10 +1,50 @@
+=============================================
+Plumber -- Profiling TYPO3 Flow, Neos and CMS
+=============================================
+
+-- Measuring the flow of your application --
+
+(c) Sebastian Kurfürst, Sandstorm Media UG (haftungsbeschränkt)
+
+Plumber is a profiling and tracing tool with the following features:
+
+* **list** all profiling runs in an overview
+* show a **graphical timeline** for a single profiling run
+* **filter** the graphical timeline
+* show the **xhprof** analyzer for a single profiling run
+* **compare** two profiling runs with the timeline
+* **tag** your profiling runs
+* show **aggregated statistics** in the overview
+
+
+Installation
+============
+
+.. warning:: Do not install Plumber on production websites. If you do, make sure to disallow access
+   to the ``/profiler`` URLs.
+
+
+To install, just use composer:
+
+	composer require --dev sandstorm/plumber 1.0.4
+
+The system will automatically use XHProf if it is installed.
+
+Then, add the the following to your global ``Routes.yaml`` of your distribution::
+
+	-
+	  name: 'SandstormPlumber'
+	  uriPattern: 'profiler<SandstormPlumberSubroutes>'
+	  subRoutes:
+		SandstormPlumberSubroutes:
+		  package: Sandstorm.Plumber
+
+
+
 Usage
 =====
 
 Just use your web application as normal. To browse profiling reports, go to ``http://yourhost/profiler/``.
-
-.. note:: Plumber automatically registers the ``profiler/`` route, so you do not
-   need to do that manually in your global Routes.yaml.
 
 For each run, the profiler collects the following data:
 
@@ -140,3 +180,76 @@ Custom types are currently not possible.
 
 .. hint:: The calculation happens inside ``Sandstorm\Plumber\Service\CalculationService``,
    if you want to extend it. Make sure to submit a pull request then :-).
+
+
+Profiling Custom Code
+=====================
+
+Adding custom timers
+--------------------
+
+When hunting for performance bottlenecks, it often makes sense to add custom
+timers throughout your application. Doing so is quite easy, as the following
+example demonstrates::
+
+	\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('My Timer');
+	// run some code
+	\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('My Timer');
+
+If the timer name contains a colon (``:``), related timers are grouped together in the User Interface::
+
+	\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('Security: Authentication');
+	\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('Security: Authentication');
+
+	\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('Security: Authorization');
+	\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('Security: Authorization');
+
+.. note:: It's not a problem if multiple timers are active at the same time; even the same timer can be active
+   multiple times at the same time. The following example is perfectly valid::
+
+      \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('t1');
+      \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('t1');
+      \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('t1');
+      \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('t1');
+
+Furthermore, the ``startTimer`` allows a second ``array`` argument containing additional information
+which is shown in the UI.
+
+Setting Options
+---------------
+
+Furthermore, you can set meta-information on the current run (which is called ``options`` currently)::
+
+	\Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->setOption('context', 'DEV');
+
+
+Profiling TYPO3 CMS using Plumber
+=================================
+
+You can also profile TYPO3 CMS using Plumber. For that, you need to install
+https://github.com/sandstorm/typo3v4ext-plumber:
+
+.. code-block:: bash
+
+	cd typo3conf/ext; git clone https://github.com/sandstorm/typo3v4ext-plumber sandstormmedia_plumber
+
+Furthermore, you need a running TYPO3 Flow installation which is used to show the
+profiling data.
+
+After installing the extension in TYPO3 CMS, you need to specify the base path
+to the FLOW3 installation inside the extension configuration.
+
+Then, flush your caches and you should see a profiling run appear in Plumber
+for every page request in TYPO3 CMS.
+
+Credits
+=======
+
+Developed by Sebastian Kurfürst, Sandstorm Media UG (haftungsbeschränkt). Pull
+requests by various authors.
+
+License
+=======
+
+All the code is licensed under the GPL license.
+
