@@ -20,7 +20,7 @@ Warning: Do not install Plumber on production websites. If you do, make sure to 
 To install, just use composer:
 
 ```bash
-composer require --dev sandstorm/plumber 1.0.4
+composer require --dev sandstorm/plumber 1.1.0
 ```
 
 The system will automatically use XHProf if it is installed.
