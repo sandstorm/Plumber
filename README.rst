@@ -64,7 +64,7 @@ For each run, the profiler collects the following data:
 Overview Page
 -------------
 
-.. image:: ../Images/OverviewPage.jpg
+.. image:: http://sandstorm.github.io/Plumber/Documentation/OverviewPage.jpg
    :width: 400px
 
 The overview page is the main entry point to the profiler. It shows the different
@@ -83,7 +83,7 @@ Timeline Page
 The timeline page gives a visual overview of a request, showing the timers
 of the request, and how memory consumption changed.
 
-.. image:: ../Images/TimelinePage.png
+.. image:: http://sandstorm.github.io/Plumber/Documentation/TimelinePage.jpg
    :width: 400px
 
 XHProf Page
