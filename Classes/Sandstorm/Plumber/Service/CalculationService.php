@@ -139,14 +139,16 @@ class CalculationService {
 		}
 
 		$subtype = isset($calculationOptions['subtype']) ? $calculationOptions['subtype'] : 'sum';
-		$result = $this->calculateSubtype($results, $subtype);
 
-		arsort($detailedResult);
+		foreach ($detailedResult as $className => $counts) {
+			$result = $this->calculateSubtype($counts, $subtype);
+			$detailedResult[$className] = $result;
+		}
 
 		$detailedResultHtml = '<table class="condensed-table" style="font-size:60%">';
 		$i = 0;
-		foreach ($detailedResult as $className => $counts) {
-			$result = $this->calculateSubtype($counts, $subtype);
+		arsort($detailedResult);
+		foreach ($detailedResult as $className => $result) {
 			if ($i > 10) {
 				break;
 			}
@@ -161,9 +163,10 @@ class CalculationService {
 		$aTag->addAttribute('rel', 'popover');
 		$aTag->addAttribute('title', 'Top 10');
 		$aTag->addAttribute('data-content', $detailedResultHtml);
-		$aTag->setContent($result);
+		$totalResult = $this->calculateSubtype($results, $subtype);
+		$aTag->setContent($totalResult);
 
-		return array('value' => $result, 'tableCellHtml' => $aTag->render());
+		return array('value' => $totalResult, 'tableCellHtml' => $aTag->render());
 	}
 
 	/**

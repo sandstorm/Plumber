@@ -63,6 +63,7 @@ class DetailsController extends AbstractController {
 		require_once(XHPROF_ROOT . '/classes/xhprof_ui/run.php');
 		require_once(XHPROF_ROOT . '/classes/xhprof_ui/report/driver.php');
 		require_once(XHPROF_ROOT . '/classes/xhprof_ui/report/single.php');
+		error_reporting(0);
 
 		$xhprofConfiguration = new \XHProf_UI\Config();
 
