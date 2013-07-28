@@ -21,30 +21,30 @@ var startTimeDimension = profileCrossfilter.dimension(function (d) {
 });
 
 /*
- TODO: string options in diagram
+TODO: string options in diagram
 
- for (var optionName in window.options) {
- var optionDomain = [];
- for (var i in window.options[optionName]) {
- optionDomain.push(i);
- }
- var crossfilterOptions = {}
+for (var optionName in window.options) {
+	var optionDomain = [];
+	for (var i in window.options[optionName]) {
+		optionDomain.push(i);
+	}
+	var crossfilterOptions = {}
 
- var sizeOfOneBar = 240 / optionDomain.length;
+	var sizeOfOneBar = 240 / optionDomain.length;
 
- var dimension = profileCrossfilter.dimension(function(d) { return d[optionName] });
- var dimensionGroup = dimension.group();
- charts.push(
- barChart(sizeOfOneBar - 3)
- .dimension(dimension)
- .group(dimensionGroup)
- .x(d3.scale.ordinal()
- .domain(optionDomain)
- // the second parameter is the total WIDTH
- // "10" in this case is the size of each bar.
- .range([0, optionDomain.length*sizeOfOneBar]))
- );
- }*/
+	var dimension = profileCrossfilter.dimension(function(d) { return d[optionName] });
+	var dimensionGroup = dimension.group();
+	charts.push(
+		barChart(sizeOfOneBar - 3)
+			.dimension(dimension)
+			.group(dimensionGroup)
+			.x(d3.scale.ordinal()
+				.domain(optionDomain)
+					// the second parameter is the total WIDTH
+					// "10" in this case is the size of each bar.
+				.range([0, optionDomain.length*sizeOfOneBar]))
+	);
+}*/
 function initDrawing() {
 	charts = [];
 	for (var calculationName in window.calculations) {
@@ -127,6 +127,14 @@ window.zoomOut = function (i) {
 	charts[i].zoomOut();
 	renderAll();
 };
+
+function addConcatenator(uri) {
+	if (uri.match(/\?/)) {
+		return uri + '&';
+	}
+	return uri + '?';
+}
+
 function recordList(div) {
 	var records = startTimeDimension.top(100);
 
@@ -148,10 +156,10 @@ function recordList(div) {
 				+ '<a onclick="jQuery(\'#runIdentifier2\').val(\'' + d['id'] + '\');" class="btn btn-mini">2</a>';
 		});
 
-		recordSelectionEnter.append("td").html(function (d) {
-			return '<a href="' + window.uris.timelineDetails + '?runIdentifier1=' + d['id'] + '" class="btn small">Timeline &raquo;</a>'
-				+ '<a href="' + window.uris.xhprofDetails + '?run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
-				+ '<a href="' + window.uris.xhprofDebug + '?runIdentifier=' + d['id'] + '" class="btn small" title="XHProf Debug">DBG &raquo;</a>'
+		recordSelectionEnter.append("td").html(function(d) {
+			return '<a href="' + addConcatenator(window.uris.timelineDetails) + 'runIdentifier1=' + d['id'] + '" class="btn small">Timeline &raquo;</a>'
+				+ '<a href="' + addConcatenator(window.uris.xhprofDetails) + 'run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
+				+ '<a href="' + addConcatenator(window.uris.xhprofDebug) + 'runIdentifier=' + d['id'] + '" class="btn small" title="XHProf Debug">DBG &raquo;</a>'
 		});
 		recordSelectionEnter.append("td").attr('class', 'tagList').html(function (d) {
 			return d['tagsAsHtml'];

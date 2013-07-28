@@ -19,7 +19,7 @@
 		$(document).ready(function() {
 			<![CDATA[
 
-			$('a[rel="popover"]').popover({html: true});
+			$('a[rel="popover"]').popover({html: true, placement: 'left'});
 		});
 	]]></script>
 	<style type="text/css">
@@ -67,6 +67,10 @@
 	.brush .resize path {
 		fill: #eee;
 		stroke: #666;
+	}
+
+	.popover {
+		font-size: 13px;
 	}
 	</style>
 </f:section>

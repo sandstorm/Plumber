@@ -105,6 +105,95 @@ class CalculationService {
 	}
 
 	/**
+	 *
+	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+	 * @param array $calculationOptions
+	 */
+	protected function calculateRegex(ProfilingRun $profile, array $calculationOptions) {
+		if (!isset($calculationOptions['regex'])) {
+			throw new Exception('Regex not set');
+		}
+
+		$metrics = array(
+			'time' => 'wt',
+			'calls' => 'ct',
+			'memory' => 'mu'
+		);
+		$metric = isset($calculationOptions['metric']) ? $metrics[$calculationOptions['metric']] : 'ct';
+
+		$results = array();
+		$detailedResult = array();
+		foreach ($profile->getXhprofTrace() as $id => $data) {
+			$matches = NULL;
+			if (preg_match($calculationOptions['regex'], $id, $matches)) {
+				$results[] = $data[$metric];
+
+				if (isset($matches[1])) {
+					$className = $matches[1];
+					if (!isset($detailedResult[$className])) {
+						$detailedResult[$className] = array();
+					}
+					$detailedResult[$className][] = $data[$metric];
+				}
+			}
+		}
+
+		$subtype = isset($calculationOptions['subtype']) ? $calculationOptions['subtype'] : 'sum';
+
+		foreach ($detailedResult as $className => $counts) {
+			$result = $this->calculateSubtype($counts, $subtype);
+			$detailedResult[$className] = $result;
+		}
+
+		$detailedResultHtml = '<table class="condensed-table" style="font-size:60%">';
+		$i = 0;
+		arsort($detailedResult);
+		foreach ($detailedResult as $className => $result) {
+			if ($i > 10) {
+				break;
+			}
+
+			$i++;
+
+			$detailedResultHtml .= sprintf('<tr><td>%s</td><td>%s</td></tr>', $className, $result);
+		}
+		$detailedResultHtml .= '</table>';
+
+		$aTag = new \TYPO3\Fluid\Core\ViewHelper\TagBuilder('a');
+		$aTag->addAttribute('rel', 'popover');
+		$aTag->addAttribute('title', 'Top 10');
+		$aTag->addAttribute('data-content', $detailedResultHtml);
+		$totalResult = $this->calculateSubtype($results, $subtype);
+		$aTag->setContent($totalResult);
+
+		return array('value' => $totalResult, 'tableCellHtml' => $aTag->render());
+	}
+
+	/**
+	 * @param array $data
+	 * @param string $subtype
+	 * @return integer
+	 */
+	protected function calculateSubtype($data, $subtype) {
+		$result = 0;
+		switch ($subtype) {
+			case 'average':
+				if (count($data) > 0) {
+					$result = array_sum($data) / count($data);
+				}
+				break;
+
+			case 'sum':
+				$result = array_sum($data);
+				break;
+
+			default:
+				break;
+		}
+		return $result;
+	}
+
+	/**
 	 * Calculate the total for the specified timer in the profile.
 	 *
 	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile

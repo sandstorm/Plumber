@@ -17,6 +17,10 @@ Sandstorm:
 #        type: regexSum
 #        regex: '#.*==>Doctrine\\Common(.*)::__construct#'
 
+      totalNeosRenderingTime:
+        label: 'Total Neos Rendering Time'
+        type: timerSum
+        timerName: 'Neos TypoScript Rendering'
       totalRuntime:
         label: 'Runtime (ms)'
         type: timerSum
