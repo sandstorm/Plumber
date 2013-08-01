@@ -21,6 +21,14 @@ use TYPO3\Flow\Annotations as Flow;
 abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 
 	/**
+	 * @param array $settings
+	 * @return void
+	 */
+	public function injectSettings(array $settings) {
+		$this->settings = $settings;
+	}
+
+	/**
 	 * Initializes the controller before invoking an action method.
 	 *
 	 * @return void
@@ -48,7 +56,11 @@ abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionContr
 	 * @return array<\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun>
 	 */
 	public function getProfiles() {
-		$directoryIterator = new \DirectoryIterator(FLOW_PATH_DATA . 'Logs/Profiles');
+		if (!file_exists($this->settings['profilePath'])) {
+			return array();
+		}
+
+		$directoryIterator = new \DirectoryIterator($this->settings['profilePath']);
 
 		$profiles = array();
 		foreach ($directoryIterator as $element) {

@@ -1,5 +1,9 @@
+
 Sandstorm:
   Plumber:
+
+    profilePath: '%FLOW_PATH_DATA%Logs/Profiles'
+
     calculations:
 
       methodCallsOnObject:

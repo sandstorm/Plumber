@@ -29,10 +29,6 @@ class Package extends BasePackage {
 	 */
 	public function boot(Bootstrap $bootstrap) {
 		define('XHPROF_ROOT', $this->getResourcesPath() . 'Private/PHP/xhprof-ui/');
-
-		if (!file_exists(FLOW_PATH_DATA . 'Logs/Profiles')) {
-			Files::createDirectoryRecursively(FLOW_PATH_DATA . 'Logs/Profiles');
-		}
 	}
 
 }
