@@ -12,6 +12,7 @@ namespace Sandstorm\Plumber\Controller;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Utility\Files;
 
 /**
  * Standard controller for the Sandstorm.Plumber package
@@ -44,7 +45,7 @@ abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionContr
 	 * @return \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun
 	 */
 	protected function getProfile($filename) {
-		$pathAndFilename = FLOW_PATH_DATA . 'Logs/Profiles/' . $filename;
+		$pathAndFilename = Files::concatenatePaths(array($this->settings['profilePath'], $filename));
 		$profile = unserialize(file_get_contents($pathAndFilename));
 		$profile->setPathAndFilename($pathAndFilename);
 		return $profile;
