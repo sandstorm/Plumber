@@ -178,14 +178,14 @@ if you want to extend it. Make sure to submit a pull request then :-).
 
 ### Profiling method calls using an Aspect (NEW!)
 
-You can use the `Sandstorm\Plumber\Annotations\Profile` annotation on a method in order
+You can use the `Sandstorm\PhpProfiler\Annotations\Profile` annotation on a method in order
 to profile it:
 
 ```php
 class MyClass {
 
 	/**
-	 * @Sandstorm\Plumber\Annotations\Profile
+	 * @Sandstorm\PhpProfiler\Annotations\Profile
 	 */
 	public function myMethod() {
 	}

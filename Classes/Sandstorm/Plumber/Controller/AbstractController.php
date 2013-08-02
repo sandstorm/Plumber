@@ -12,6 +12,7 @@ namespace Sandstorm\Plumber\Controller;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Utility\Files;
 
 /**
  * Standard controller for the Sandstorm.Plumber package
@@ -19,6 +20,14 @@ use TYPO3\Flow\Annotations as Flow;
  * @Flow\Scope("singleton")
  */
 abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionController {
+
+	/**
+	 * @param array $settings
+	 * @return void
+	 */
+	public function injectSettings(array $settings) {
+		$this->settings = $settings;
+	}
 
 	/**
 	 * Initializes the controller before invoking an action method.
@@ -36,7 +45,7 @@ abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionContr
 	 * @return \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun
 	 */
 	protected function getProfile($filename) {
-		$pathAndFilename = FLOW_PATH_DATA . 'Logs/Profiles/' . $filename;
+		$pathAndFilename = Files::concatenatePaths(array($this->settings['profilePath'], $filename));
 		$profile = unserialize(file_get_contents($pathAndFilename));
 		$profile->setPathAndFilename($pathAndFilename);
 		return $profile;
@@ -48,7 +57,11 @@ abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionContr
 	 * @return array<\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun>
 	 */
 	public function getProfiles() {
-		$directoryIterator = new \DirectoryIterator(FLOW_PATH_DATA . 'Logs/Profiles');
+		if (!file_exists($this->settings['profilePath'])) {
+			return array();
+		}
+
+		$directoryIterator = new \DirectoryIterator($this->settings['profilePath']);
 
 		$profiles = array();
 		foreach ($directoryIterator as $element) {
