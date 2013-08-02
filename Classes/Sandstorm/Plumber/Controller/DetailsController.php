@@ -195,5 +195,6 @@ class DetailsController extends AbstractController {
 			return substr(sha1($name), 0, 6);
 		}
 	}
+
 }
 ?>

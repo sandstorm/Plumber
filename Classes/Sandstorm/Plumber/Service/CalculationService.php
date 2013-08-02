@@ -109,7 +109,7 @@ class CalculationService {
 	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
 	 * @param array $calculationOptions
 	 */
-	protected function calculateRegex(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
+	protected function calculateRegex(ProfilingRun $profile, array $calculationOptions) {
 		if (!isset($calculationOptions['regex'])) {
 			throw new Exception('Regex not set');
 		}
@@ -170,8 +170,8 @@ class CalculationService {
 	}
 
 	/**
-	 * @param  array $data
-	 * @param  string $subtype
+	 * @param array $data
+	 * @param string $subtype
 	 * @return integer
 	 */
 	protected function calculateSubtype($data, $subtype) {

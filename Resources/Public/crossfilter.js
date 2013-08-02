@@ -158,8 +158,8 @@ function recordList(div) {
 
 		recordSelectionEnter.append("td").html(function(d) {
 			return '<a href="' + addConcatenator(window.uris.timelineDetails) + 'runIdentifier1=' + d['id'] + '" class="btn small">Timeline &raquo;</a>'
-				+  '<a href="' + addConcatenator(window.uris.xhprofDetails) + 'run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
-				+  '<a href="' + addConcatenator(window.uris.xhprofDebug) + 'runIdentifier=' + d['id'] + '" title="XHProf Debug">DBG &raquo;</a>'
+				+ '<a href="' + addConcatenator(window.uris.xhprofDetails) + 'run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
+				+ '<a href="' + addConcatenator(window.uris.xhprofDebug) + 'runIdentifier=' + d['id'] + '" class="btn small" title="XHProf Debug">DBG &raquo;</a>'
 		});
 		recordSelectionEnter.append("td").attr('class', 'tagList').html(function (d) {
 			return d['tagsAsHtml'];
@@ -245,12 +245,12 @@ function barChart() {
 				g = div.append("svg")
 					.attr("width", width + margin.left + margin.right)
 					.attr("height", height + margin.top + margin.bottom)
-				.append("g")
+					.append("g")
 					.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 				g.append("clipPath")
 					.attr("id", "clip-" + id)
-				.append("rect")
+					.append("rect")
 					.attr("width", width)
 					.attr("height", height);
 
@@ -345,9 +345,9 @@ function barChart() {
 		var g = d3.select(this.parentNode),
 			extent = brush.extent();
 		if (round) g.select(".brush")
-				.call(brush.extent(extent = extent.map(round)))
+			.call(brush.extent(extent = extent.map(round)))
 			.selectAll(".resize")
-				.style("display", null);
+			.style("display", null);
 		g.select("#clip-" + id + " rect")
 			.attr("x", x(extent[0]))
 			.attr("width", x(extent[1]) - x(extent[0]));
@@ -459,14 +459,14 @@ function barChart() {
 		});
 
 		chart.group(dimensionGroup)
-			 .x(d3.scale.linear()
+			.x(d3.scale.linear()
 				.domain([domain[0], domain[1]])
 				.nice()
-					// the "range" in this case is the pixel size of the graph
+				// the "range" in this case is the pixel size of the graph
 				.rangeRound([0, graphWidth])
-		     ).round(function(value) {
+			).round(function (value) {
 				return Math.floor(value / rangeOfOneBar) * rangeOfOneBar;
-			 });
+			});
 
 		return chart;
 	};
