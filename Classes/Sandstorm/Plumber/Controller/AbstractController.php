@@ -34,7 +34,7 @@ abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionContr
 	 *
 	 * @return void
 	 */
-	public function initializeAction() {
+	protected function initializeAction() {
 		\Sandstorm\PhpProfiler\Profiler::getInstance()->stop();
 	}
 
