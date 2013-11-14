@@ -1,0 +1,8 @@
+resources:
+  methods:
+    Sandstorm_Plumber_ProfilerActions: 'method(Sandstorm\Plumber\Controller\DetailsController->(timeline|xhprof|xhprofDebug)Action()) || method(Sandstorm\Plumber\Controller\OverviewController->(index|updateTags|removeAll|removeAllUntagged|remove)Action()) || method(Sandstorm\Plumber\Controller\StandardController->indexAction())'
+
+acls:
+  Everybody:
+    methods:
+      Sandstorm_Plumber_ProfilerActions:    GRANT
