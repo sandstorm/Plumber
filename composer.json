@@ -18,7 +18,7 @@
 	"license": "GPL-3.0+",
 	"require":{
 		"typo3/flow":"*",
-		"sandstorm/phpprofiler": "1.1.*"
+		"sandstorm/phpprofiler": "2.*"
 	},
 	"autoload":{
 		"psr-0":{
