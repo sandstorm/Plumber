@@ -11,7 +11,6 @@ namespace Sandstorm\Plumber;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-
 use TYPO3\Flow\Package\Package as BasePackage;
 use TYPO3\Flow\Core\Bootstrap;
 use TYPO3\Flow\Utility\Files;
@@ -19,17 +18,18 @@ use TYPO3\Flow\Utility\Files;
 /**
  * TYPO3 Flow package bootstrap
  */
-class Package extends BasePackage {
+class Package extends BasePackage
+{
 
-	/**
-	 * Sets up xhprof and some directories.
-	 *
-	 * @param Bootstrap $bootstrap
-	 * @return void
-	 */
-	public function boot(Bootstrap $bootstrap) {
-		define('XHPROF_ROOT', $this->getResourcesPath() . 'Private/PHP/xhprof-ui/');
-	}
+    /**
+     * Sets up xhprof and some directories.
+     *
+     * @param Bootstrap $bootstrap
+     * @return void
+     */
+    public function boot(Bootstrap $bootstrap)
+    {
+        define('XHPROF_ROOT', $this->getResourcesPath() . 'Private/PHP/xhprof-ui/');
+    }
 
 }
-?>

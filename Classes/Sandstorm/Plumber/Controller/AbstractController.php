@@ -19,59 +19,64 @@ use TYPO3\Flow\Utility\Files;
  *
  * @Flow\Scope("singleton")
  */
-abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionController {
+abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionController
+{
 
-	/**
-	 * @param array $settings
-	 * @return void
-	 */
-	public function injectSettings(array $settings) {
-		$this->settings = $settings;
-	}
+    /**
+     * @param array $settings
+     * @return void
+     */
+    public function injectSettings(array $settings)
+    {
+        $this->settings = $settings;
+    }
 
-	/**
-	 * Initializes the controller before invoking an action method.
-	 *
-	 * @return void
-	 */
-	protected function initializeAction() {
-		\Sandstorm\PhpProfiler\Profiler::getInstance()->stop();
-	}
+    /**
+     * Initializes the controller before invoking an action method.
+     *
+     * @return void
+     */
+    protected function initializeAction()
+    {
+        \Sandstorm\PhpProfiler\Profiler::getInstance()->stop();
+    }
 
-	/**
-	 * Returns a ProfilingRun instance that has been saved as $filename.
-	 *
-	 * @param string $filename
-	 * @return \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun
-	 */
-	protected function getProfile($filename) {
-		$pathAndFilename = Files::concatenatePaths(array($this->settings['profilePath'], $filename));
-		$profile = unserialize(file_get_contents($pathAndFilename));
-		$profile->setPathAndFilename($pathAndFilename);
-		return $profile;
-	}
+    /**
+     * Returns a ProfilingRun instance that has been saved as $filename.
+     *
+     * @param string $filename
+     * @return \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun
+     */
+    protected function getProfile($filename)
+    {
+        $pathAndFilename = Files::concatenatePaths(array($this->settings['profilePath'], $filename));
+        $profile = unserialize(file_get_contents($pathAndFilename));
+        $profile->setPathAndFilename($pathAndFilename);
+        return $profile;
+    }
 
-	/**
-	 * Returns an array of ProfilingRun instances that have been saved earlier.
-	 *
-	 * @return array<\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun>
-	 */
-	public function getProfiles() {
-		if (!file_exists($this->settings['profilePath'])) {
-			return array();
-		}
+    /**
+     * Returns an array of ProfilingRun instances that have been saved earlier.
+     *
+     * @return array<\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun>
+     */
+    public function getProfiles()
+    {
+        if (!file_exists($this->settings['profilePath'])) {
+            return array();
+        }
 
-		$directoryIterator = new \DirectoryIterator($this->settings['profilePath']);
+        $directoryIterator = new \DirectoryIterator($this->settings['profilePath']);
 
-		$profiles = array();
-		foreach ($directoryIterator as $element) {
-			if (preg_match('/\.profile$/', $element->getFilename())) {
-				$profiles[$element->getFilename()] = unserialize(file_get_contents($element->getPathname()));
-				$profiles[$element->getFilename()]->setPathAndFilename($element->getPathname());
-			}
+        $profiles = array();
+        foreach ($directoryIterator as $element) {
+            if (preg_match('/\.profile$/', $element->getFilename())) {
+                $profiles[$element->getFilename()] = unserialize(file_get_contents($element->getPathname()));
+                $profiles[$element->getFilename()]->setPathAndFilename($element->getPathname());
+            }
 
-		}
-		return $profiles;
-	}
+        }
+        return $profiles;
+    }
 }
-?>
+

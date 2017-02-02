@@ -15,7 +15,7 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * A basic Sandstorm\Plumber-Exception
  */
-class Exception extends \TYPO3\Flow\Exception {
+class Exception extends \TYPO3\Flow\Exception
+{
 
 }
-?>

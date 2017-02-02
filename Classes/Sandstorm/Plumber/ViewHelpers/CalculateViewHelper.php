@@ -16,31 +16,32 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * Run calculations for the given profile.
  */
-class CalculateViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
+class CalculateViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper
+{
 
-	
-	/**
-	 * NOTE: This property has been introduced via code migration to ensure backwards-compatibility.
-	 * @see AbstractViewHelper::isOutputEscapingEnabled()
-	 * @var boolean
-	 */
-	protected $escapeOutput = FALSE;
 
-	/**
-	 * @Flow\Inject
-	 * @var \Sandstorm\Plumber\Service\CalculationService
-	 */
-	protected $calculationService;
+    /**
+     * NOTE: This property has been introduced via code migration to ensure backwards-compatibility.
+     * @see AbstractViewHelper::isOutputEscapingEnabled()
+     * @var boolean
+     */
+    protected $escapeOutput = FALSE;
 
-	/**
-	 * Run calculations for the given profile.
-	 *
-	 * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
-	 * @param array $calculationOptions
-	 * @return array
-	 */
-	public function render(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions) {
-		return $this->calculationService->calculate($profile, $calculationOptions);
-	}
+    /**
+     * @Flow\Inject
+     * @var \Sandstorm\Plumber\Service\CalculationService
+     */
+    protected $calculationService;
+
+    /**
+     * Run calculations for the given profile.
+     *
+     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param array $calculationOptions
+     * @return array
+     */
+    public function render(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions)
+    {
+        return $this->calculationService->calculate($profile, $calculationOptions);
+    }
 }
-?>

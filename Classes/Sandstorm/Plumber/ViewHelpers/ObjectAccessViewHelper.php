@@ -16,24 +16,25 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * Uses the given $path to fetch a property on the subject (children).
  */
-class ObjectAccessViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
+class ObjectAccessViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper
+{
 
-	
-	/**
-	 * NOTE: This property has been introduced via code migration to ensure backwards-compatibility.
-	 * @see AbstractViewHelper::isOutputEscapingEnabled()
-	 * @var boolean
-	 */
-	protected $escapeOutput = FALSE;
 
-	/**
-	 * Uses the given $path to fetch a property on the subject (children).
-	 *
-	 * @param string $path
-	 * @return mixed
-	 */
-	public function render($path) {
-		return \TYPO3\Flow\Reflection\ObjectAccess::getPropertyPath($this->renderChildren(), $path);
-	}
+    /**
+     * NOTE: This property has been introduced via code migration to ensure backwards-compatibility.
+     * @see AbstractViewHelper::isOutputEscapingEnabled()
+     * @var boolean
+     */
+    protected $escapeOutput = FALSE;
+
+    /**
+     * Uses the given $path to fetch a property on the subject (children).
+     *
+     * @param string $path
+     * @return mixed
+     */
+    public function render($path)
+    {
+        return \TYPO3\Flow\Reflection\ObjectAccess::getPropertyPath($this->renderChildren(), $path);
+    }
 }
-?>

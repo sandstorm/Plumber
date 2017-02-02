@@ -16,22 +16,23 @@ use TYPO3\Flow\Annotations as Flow;
 /**
  * @Flow\Scope("singleton")
  */
-class RenderTagsService {
+class RenderTagsService
+{
 
-	/**
-	 * Renders the given tags as HTML output.
-	 *
-	 * @param array $tags
-	 * @return string
-	 */
-	public function render(array $tags) {
-		$output = '';
-		foreach ($tags as $tag) {
-			$color = substr(md5(strtolower($tag)), 0, 6);
-			$output .= sprintf('<span class="label" style="background-color:#%s">%s</span>', $color, $tag);
-		}
-		return $output;
-	}
+    /**
+     * Renders the given tags as HTML output.
+     *
+     * @param array $tags
+     * @return string
+     */
+    public function render(array $tags)
+    {
+        $output = '';
+        foreach ($tags as $tag) {
+            $color = substr(md5(strtolower($tag)), 0, 6);
+            $output .= sprintf('<span class="label" style="background-color:#%s">%s</span>', $color, $tag);
+        }
+        return $output;
+    }
 
 }
-?>

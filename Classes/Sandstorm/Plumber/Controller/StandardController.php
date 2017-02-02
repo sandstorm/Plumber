@@ -18,15 +18,16 @@ use TYPO3\Flow\Annotations as Flow;
  *
  * @Flow\Scope("singleton")
  */
-class StandardController extends AbstractController {
+class StandardController extends AbstractController
+{
 
-	/**
-	 * Index action
-	 *
-	 * @return void
-	 */
-	public function indexAction() {
-		$this->redirect('index', 'Overview');
-	}
+    /**
+     * Index action
+     *
+     * @return void
+     */
+    public function indexAction()
+    {
+        $this->redirect('index', 'Overview');
+    }
 }
-?>
