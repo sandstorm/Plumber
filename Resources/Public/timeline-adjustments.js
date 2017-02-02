@@ -4,11 +4,15 @@ TimelineRunner = function() {
 	this._eventSources = [];
 	this._timeline = null;
 	this._memoryData = {};
+    this._dbQueryData = {};
 	this._detailed = false;
 }
 
-TimelineRunner.MemoryUsageDecorator = function(params) {
-	this._timelineRunner = params.timelineRunner;
+TimelineRunner.MemoryUsageDecorator = function(params, options) {
+	this._timelineRunner = options.timelineRunner;
+	this._dataKey = options.dataKey;
+	this._dataInnerKey = options.dataInnerKey;
+	this._checkboxName = options.checkboxName;
 	this._memoryDataIndex = params.dataset;
 	this._detailed = params.detailed;
 	this._leftOffset = null;
@@ -24,10 +28,10 @@ TimelineRunner.MemoryUsageDecorator.prototype = {
 		this._$layerDiv = null;
 	},
 	paint: function() {
-		var memoryData = this._timelineRunner._memoryData[this._memoryDataIndex];
+		var memoryData = this._timelineRunner[this._dataKey][this._memoryDataIndex];
 		if (!memoryData) return;
 
-		if (this._timelineRunner._$filterContainer.find('input:checkbox[name="showMemory"]').is(':checked')) {
+		if (this._timelineRunner._$filterContainer.find('input:checkbox[name="' + this._checkboxName + '"]').is(':checked')) {
 			this._setupDrawingSurface();
 			this._drawMemoryGraph();
 		} else {
@@ -35,7 +39,7 @@ TimelineRunner.MemoryUsageDecorator.prototype = {
 		}
 	},
 	_setupDrawingSurface: function() {
-		var memoryData = this._timelineRunner._memoryData[this._memoryDataIndex];
+		var memoryData = this._timelineRunner[this._dataKey][this._memoryDataIndex];
 
 		this._removeDrawingSurface();
 
@@ -59,13 +63,13 @@ TimelineRunner.MemoryUsageDecorator.prototype = {
 	},
 	_drawMemoryGraph: function() {
 		var samplingPoint, pointX, pointY, dataPoint,
-			memoryData = this._timelineRunner._memoryData[this._memoryDataIndex];
+			memoryData = this._timelineRunner[this._dataKey][this._memoryDataIndex];
 
 		// Find maximum memory
 		var maximumMemory = 0;
 		for (var i=0, l=memoryData.length; i<l; i++) {
-			if (memoryData[i].mem > maximumMemory) {
-				maximumMemory = memoryData[i].mem;
+			if (memoryData[i][this._dataInnerKey] > maximumMemory) {
+				maximumMemory = memoryData[i][this._dataInnerKey];
 			}
 		}
 
@@ -73,7 +77,7 @@ TimelineRunner.MemoryUsageDecorator.prototype = {
 		var points = [];
 		for (var i=0, l=memoryData.length; i<l; i++) {
 			samplingPoint = memoryData[i];
-			pointY = this._height - (samplingPoint.mem / maximumMemory) * this._height;
+			pointY = this._height - (samplingPoint[this._dataInnerKey] / maximumMemory) * this._height;
 			pointX = this._band.dateToPixelOffset(new Date(samplingPoint.time)) - this._leftOffset;
 			points.push(pointX + ',' + pointY);
 			if (this._detailed) {
@@ -119,6 +123,7 @@ TimelineRunner.prototype = {
 
 	_$filterContainer: null,
 	_memoryData: null,
+	_dbQueryData: null,
 
 	/**
 	 * Name of currently highlighted filter
@@ -147,6 +152,11 @@ TimelineRunner.prototype = {
 	setMemory: function(eventSourceIndex, memoryData) {
 		this._memoryData[eventSourceIndex] = memoryData;
 	},
+
+    setDbQueryCount: function(eventSourceIndex, dbQueryData) {
+        this._dbQueryData[eventSourceIndex] = dbQueryData;
+    },
+
 
 	/***********************************
 	 * SECTION: Setting up timeline
@@ -236,9 +246,9 @@ TimelineRunner.prototype = {
 	},
 	_createDecorators: function(params) {
 		var decorators = [];
-		params.timelineRunner = this;
 
-		decorators[0] = new TimelineRunner.MemoryUsageDecorator(params);
+		decorators[0] = new TimelineRunner.MemoryUsageDecorator(params, {dataKey: '_memoryData', timelineRunner: this, dataInnerKey: 'mem', checkboxName: 'showMemory'});
+		decorators[1] = new TimelineRunner.MemoryUsageDecorator(params, {dataKey: '_dbQueryData', timelineRunner: this, dataInnerKey: 'dbQueryCount', checkboxName: 'showDatabaseQueries'});
 
 		return decorators;
 	},
@@ -313,6 +323,7 @@ TimelineRunner.prototype = {
 		this._$filterContainer.append($('<ul class="inputs-list displaySettings"></ul>'));
 		this._$filterContainer.find('.displaySettings').append($('<li><label><input type="checkbox" name="compactDrawing" checked="checked" /><span>Compact Drawing</span></label></li>'));
 		this._$filterContainer.find('.displaySettings').append($('<li><label><input type="checkbox" name="showMemory" checked="checked" /><span>Show Memory Consumption</span></label></li>'));
+		this._$filterContainer.find('.displaySettings').append($('<li><label><input type="checkbox" name="showDatabaseQueries" checked="checked" /><span>Show Database Queries</span></label></li>'));
 
 		this._$filterContainer.find('ul.filters li').mouseover(function() {
 			var val = $(this).find('input:checkbox').attr('value');

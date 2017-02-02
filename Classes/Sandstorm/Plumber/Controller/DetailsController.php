@@ -168,6 +168,12 @@ class DetailsController extends AbstractController
         }
         $javaScript[] = sprintf('timelineRunner.setMemory(%s, %s);', $eventSourceIndex, json_encode($memory));
 
+        $dbQueryCount = $profile->getDbQueryCount();
+        foreach ($dbQueryCount as &$record) {
+            $record['time'] = (int)($record['time'] * 1000);
+        }
+        $javaScript[] = sprintf('timelineRunner.setDbQueryCount(%s, %s);', $eventSourceIndex, json_encode($dbQueryCount));
+
         return implode("\n", $javaScript);
     }
 
