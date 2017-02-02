@@ -24,7 +24,7 @@ Sandstorm:
       totalNeosRenderingTime:
         label: 'Total Neos Rendering Time'
         type: timerSum
-        timerName: 'Neos TypoScript Rendering'
+        timerName: 'TYPO3.Neos: TypoScript View'
       totalRuntime:
         label: 'Runtime (ms)'
         type: timerSum
@@ -35,6 +35,12 @@ Sandstorm:
       totalMemory:
         label: 'Memory (kb)'
         type: maxMemory
+
+      dbQueries:
+        label: 'Number of DB queries'
+        type: databaseQuerySum
+        timerName: 'Profiling Run'
+
 
       startTime:
         label: 'Date'

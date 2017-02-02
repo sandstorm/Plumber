@@ -129,6 +129,11 @@ class DetailsController extends AbstractController {
 	protected function buildJavaScriptForProfile(ProfilingRun $profile, $eventSourceIndex) {
 		$javaScript = array();
 		foreach ($profile->getTimersAsDuration() as $event) {
+
+		    $data = $event['data'];
+		    if (isset($event['dbQueryCount'])) {
+		        $data['dbQueryCount'] = $event['dbQueryCount'];
+            }
 			$javaScript[] = sprintf('timelineRunner.addEvent(%s, new Timeline.DefaultEventSource.Event({
 				start: new Date(%s),
 				end:  new Date(%s),
@@ -136,7 +141,7 @@ class DetailsController extends AbstractController {
 				caption: %s,
 				description: %s,
 				color: "#%s"
-			}));', $eventSourceIndex, (int)($event['start'] * 1000), (int)($event['stop'] * 1000), json_encode($event['name']), json_encode($event['data']), $this->getColorForEventName($event['name']));
+			}));', $eventSourceIndex, (int)($event['start'] * 1000), (int)($event['stop'] * 1000), json_encode($event['name']), json_encode($data), $this->getColorForEventName($event['name']));
 		}
 
 		foreach ($profile->getTimestamps() as $event) {

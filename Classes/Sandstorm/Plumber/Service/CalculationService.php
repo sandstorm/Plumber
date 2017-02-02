@@ -215,6 +215,28 @@ class CalculationService {
 		return array('value' => round($sum));
 	}
 
+    /**
+     * Calculate the total DB queries for the specified timer in the profile.
+     *
+     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param array $calculationOptions
+     * @return array
+     * @throws \Sandstorm\Plumber\Exception
+     */
+    protected function calculateDatabaseQuerySum(ProfilingRun $profile, array $calculationOptions) {
+        if (!isset($calculationOptions['timerName'])) {
+            throw new Exception('The "timerName" option must be set for "databaseQuerySum" calculations.', 1361305369);
+        }
+
+        $sum = 0;
+        foreach ($profile->getTimersAsDuration() as $duration) {
+            if ($duration['name'] === $calculationOptions['timerName']) {
+                $sum += $duration['dbQueryCount'];
+            }
+        }
+        return array('value' => round($sum));
+    }
+
 	/**
 	 * Calculate the maximum memory usage for the given profile.
 	 *
