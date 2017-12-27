@@ -11,15 +11,15 @@ namespace Sandstorm\Plumber\Controller;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Utility\Files;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Utility\Files;
 
 /**
  * Standard controller for the Sandstorm.Plumber package
  *
  * @Flow\Scope("singleton")
  */
-abstract class AbstractController extends \TYPO3\Flow\Mvc\Controller\ActionController
+abstract class AbstractController extends \Neos\Flow\Mvc\Controller\ActionController
 {
 
     /**

@@ -11,7 +11,7 @@ namespace Sandstorm\Plumber\Controller;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * Standard controller for the Sandstorm.Plumber package
@@ -127,7 +127,7 @@ class OverviewController extends AbstractController
     public function updateTagsAction($profileFilename, $tagList)
     {
         $profile = $this->getProfile($profileFilename);
-        $tags = \TYPO3\Flow\Utility\Arrays::trimExplode(',', $tagList);
+        $tags = \Neos\Flow\Utility\Arrays::trimExplode(',', $tagList);
         $profile->setTags($tags);
         $profile->save();
         return $this->renderTagsService->render($tags);

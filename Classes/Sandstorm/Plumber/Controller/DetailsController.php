@@ -13,7 +13,7 @@ namespace Sandstorm\Plumber\Controller;
 
 use Sandstorm\PhpProfiler\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Exception;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * Standard controller for the Sandstorm.Plumber package
@@ -119,7 +119,7 @@ class DetailsController extends AbstractController
     public function xhprofDebugAction($runIdentifier)
     {
         $profile = $this->getProfile($runIdentifier);
-        \TYPO3\Flow\var_dump($profile->getXhprofTrace());
+        \Neos\Flow\var_dump($profile->getXhprofTrace());
         return '';
     }
 

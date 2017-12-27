@@ -11,7 +11,7 @@ namespace Sandstorm\Plumber\ViewHelpers;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * Uses the given $path to fetch a property on the subject (children).
@@ -35,6 +35,6 @@ class ObjectAccessViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHe
      */
     public function render($path)
     {
-        return \TYPO3\Flow\Reflection\ObjectAccess::getPropertyPath($this->renderChildren(), $path);
+        return \Neos\Flow\Reflection\ObjectAccess::getPropertyPath($this->renderChildren(), $path);
     }
 }

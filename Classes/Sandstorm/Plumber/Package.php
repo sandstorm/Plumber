@@ -11,9 +11,9 @@ namespace Sandstorm\Plumber;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Package\Package as BasePackage;
-use TYPO3\Flow\Core\Bootstrap;
-use TYPO3\Flow\Utility\Files;
+use Neos\Flow\Package\Package as BasePackage;
+use Neos\Flow\Core\Bootstrap;
+use Neos\Flow\Utility\Files;
 
 /**
  * TYPO3 Flow package bootstrap

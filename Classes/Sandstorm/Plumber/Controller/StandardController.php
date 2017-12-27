@@ -11,7 +11,7 @@ namespace Sandstorm\Plumber\Controller;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * Standard controller for the Sandstorm.Plumber package

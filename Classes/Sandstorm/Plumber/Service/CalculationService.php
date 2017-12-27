@@ -13,7 +13,7 @@ namespace Sandstorm\Plumber\Service;
 
 use Sandstorm\PhpProfiler\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Exception;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * @Flow\Scope("singleton")

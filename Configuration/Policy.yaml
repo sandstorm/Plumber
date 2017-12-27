@@ -1,10 +1,10 @@
 
 privilegeTargets:
-  TYPO3\Flow\Security\Authorization\Privilege\Method\MethodPrivilege:
+  Neos\Flow\Security\Authorization\Privilege\Method\MethodPrivilege:
     Sandstorm_Plumber_ProfilerActions:
       matcher: 'method(Sandstorm\Plumber\Controller\DetailsController->(timeline|xhprof|xhprofDebug)Action()) || method(Sandstorm\Plumber\Controller\OverviewController->(index|updateTags|removeAll|removeAllUntagged|remove)Action()) || method(Sandstorm\Plumber\Controller\StandardController->indexAction())'
 roles:
-  'TYPO3.Flow:Everybody':
+  'Neos.Flow:Everybody':
     privileges:
       -
         privilegeTarget: Sandstorm_Plumber_ProfilerActions
