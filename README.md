@@ -1,4 +1,4 @@
-# Plumber - Profiling TYPO3 Flow, Neos and CMS
+# Plumber - Profiling Neos Flow
 
 -- Measuring the flow of your application --
 
@@ -187,27 +187,9 @@ if you want to extend it. Make sure to submit a pull request then :-).
 
 The PhpProfiler documentation has instructions on how to profile custom code.
 
-## Profiling TYPO3 CMS using Plumber
-
-You can also profile TYPO3 CMS using Plumber. For that, you need to install
-https://github.com/sandstorm/typo3v4ext-plumber
-
-```bash
-cd typo3conf/ext; git clone https://github.com/sandstorm/typo3v4ext-plumber sandstormmedia_plumber
-```
-
-Furthermore, you need a running TYPO3 Flow installation which is used to show the
-profiling data with Plumber.
-
-After installing the extension in TYPO3 CMS, you need to specify the base path
-to the Flow installation inside the extension configuration.
-
-Then, flush your caches and you should see a profiling run appear in Plumber
-for every page request in TYPO3 CMS.
-
 ## Credits
 
-Developed by Sebastian Kurfürst, Sandstorm Media UG (haftungsbeschränkt). Pull
+Developed by Sebastian Kurfürst, Sandstorm Media GmbH. Pull
 requests by various authors.
 
 ## License
