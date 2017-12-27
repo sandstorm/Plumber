@@ -1,6 +1,6 @@
 {
     "name": "sandstorm/plumber",
-    "type": "typo3-flow-package",
+    "type": "neos-flow-package",
     "description": "Profiling Toolkit for TYPO3 Flow and Neos",
     "keywords": [
         "profiling",
@@ -27,7 +27,7 @@
     },
     "license": "GPL-3.0+",
     "require": {
-        "typo3/flow": "*",
+        "neos/flow": "*",
         "sandstorm/phpprofiler": "dev-master"
     },
     "autoload": {
