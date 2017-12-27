@@ -1,28 +1,47 @@
 {
-	"name":"sandstorm/plumber",
-	"type":"typo3-flow-package",
-	"description":"Profiling Toolkit for TYPO3 Flow and Neos",
-	"keywords": ["profiling", "profiler", "benchmark", "debugging", "xhprof", "Flow", "TYPO3 Flow", "Neos", "TYPO3 Neos"],
-	"authors": [
-		{
-			"name": "Sebastian Kurfürst",
-			"homepage": "http://sandstorm-media.de",
-			"role": "Developer"
-		}
-	],
-	"support": {
-		"issues": "https://github.com/sandstorm/Plumber/issues",
-		"irc": "irc://irc.freenode.net/typo3-flow",
-		"source": "https://github.com/sandstorm/Plumber"
-	},
-	"license": "GPL-3.0+",
-	"require":{
-		"typo3/flow":"*",
-		"sandstorm/phpprofiler": "dev-master"
-	},
-	"autoload":{
-		"psr-0":{
-			"Sandstorm\\Plumber":"Classes"
-		}
-	}
+    "name": "sandstorm/plumber",
+    "type": "typo3-flow-package",
+    "description": "Profiling Toolkit for TYPO3 Flow and Neos",
+    "keywords": [
+        "profiling",
+        "profiler",
+        "benchmark",
+        "debugging",
+        "xhprof",
+        "Flow",
+        "TYPO3 Flow",
+        "Neos",
+        "TYPO3 Neos"
+    ],
+    "authors": [
+        {
+            "name": "Sebastian Kurfürst",
+            "homepage": "http://sandstorm-media.de",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/sandstorm/Plumber/issues",
+        "irc": "irc://irc.freenode.net/typo3-flow",
+        "source": "https://github.com/sandstorm/Plumber"
+    },
+    "license": "GPL-3.0+",
+    "require": {
+        "typo3/flow": "*",
+        "sandstorm/phpprofiler": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "Sandstorm\\Plumber": "Classes"
+        }
+    },
+    "extra": {
+        "applied-flow-migrations": [
+            "TYPO3.Flow-20141113121400",
+            "TYPO3.Fluid-20150214130800",
+            "TYPO3.Flow-201209251426",
+            "TYPO3.FLOW3-201209201112",
+            "TYPO3.FLOW3-201201261636"
+        ]
+    }
 }
