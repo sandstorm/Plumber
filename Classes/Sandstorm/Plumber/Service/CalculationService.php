@@ -99,7 +99,7 @@ class CalculationService
         }
         $detailedResultHtml .= '</table>';
 
-        $aTag = new \TYPO3\Fluid\Core\ViewHelper\TagBuilder('a');
+        $aTag = new \Neos\FluidAdaptor\Core\ViewHelper\TagBuilder('a');
         $aTag->addAttribute('rel', 'popover');
         $aTag->addAttribute('title', 'Top 10');
         $aTag->addAttribute('data-content', $detailedResultHtml);
@@ -164,7 +164,7 @@ class CalculationService
         }
         $detailedResultHtml .= '</table>';
 
-        $aTag = new \TYPO3\Fluid\Core\ViewHelper\TagBuilder('a');
+        $aTag = new \Neos\FluidAdaptor\Core\ViewHelper\TagBuilder('a');
         $aTag->addAttribute('rel', 'popover');
         $aTag->addAttribute('title', 'Top 10');
         $aTag->addAttribute('data-content', $detailedResultHtml);

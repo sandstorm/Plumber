@@ -16,7 +16,7 @@ use Neos\Flow\Annotations as Flow;
 /**
  * Run calculations for the given profile.
  */
-class CalculateViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper
+class CalculateViewHelper extends \Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper
 {
 
 

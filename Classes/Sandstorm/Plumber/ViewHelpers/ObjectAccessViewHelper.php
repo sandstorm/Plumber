@@ -16,7 +16,7 @@ use Neos\Flow\Annotations as Flow;
 /**
  * Uses the given $path to fetch a property on the subject (children).
  */
-class ObjectAccessViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper
+class ObjectAccessViewHelper extends \Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper
 {
 
 
