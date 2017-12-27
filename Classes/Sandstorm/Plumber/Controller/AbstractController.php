@@ -12,7 +12,7 @@ namespace Sandstorm\Plumber\Controller;
  *                                                                        */
 
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Utility\Files;
+use Neos\Utility\Files;
 
 /**
  * Standard controller for the Sandstorm.Plumber package

@@ -35,6 +35,6 @@ class ObjectAccessViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHe
      */
     public function render($path)
     {
-        return \Neos\Flow\Reflection\ObjectAccess::getPropertyPath($this->renderChildren(), $path);
+        return \Neos\Utility\ObjectAccess::getPropertyPath($this->renderChildren(), $path);
     }
 }

@@ -13,7 +13,7 @@ namespace Sandstorm\Plumber;
 
 use Neos\Flow\Package\Package as BasePackage;
 use Neos\Flow\Core\Bootstrap;
-use Neos\Flow\Utility\Files;
+use Neos\Utility\Files;
 
 /**
  * TYPO3 Flow package bootstrap

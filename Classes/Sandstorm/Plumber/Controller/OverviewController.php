@@ -127,7 +127,7 @@ class OverviewController extends AbstractController
     public function updateTagsAction($profileFilename, $tagList)
     {
         $profile = $this->getProfile($profileFilename);
-        $tags = \Neos\Flow\Utility\Arrays::trimExplode(',', $tagList);
+        $tags = \Neos\Utility\Arrays::trimExplode(',', $tagList);
         $profile->setTags($tags);
         $profile->save();
         return $this->renderTagsService->render($tags);
