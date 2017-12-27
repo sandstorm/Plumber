@@ -21,21 +21,21 @@ Warning: Do not install Plumber on production websites. If you do, make sure to 
 To install, just use composer:
 
 ```bash
-composer require --dev sandstorm/plumber 2.0.*
+composer require --dev sandstorm/plumber 3.0.*
 ```
 
 The system will automatically install PhpProfiler and use XHProf if it is installed.
 
-Then, add the the following to the global `Routes.yaml` of your distribution:
+### Installing XHProf / Tideways on mac
 
-```yaml
--
-  name: 'SandstormPlumber'
-  uriPattern: 'profiler/<SandstormPlumberSubroutes>'
-  subRoutes:
-    SandstormPlumberSubroutes:
-      package: Sandstorm.Plumber
+XHProf is not supported anymore, but the Tideways data format is still 100%
+compatible - and the Tideways PHP Extension is still 100% open source
+
+```bash
+brew install  tideways/homebrew-profiler/php71-tideways --env=std
+echo "tideways.auto_prepend_library=0" >> /usr/local/etc/php/7.1/conf.d/ext-tideways.ini
 ```
+
 
 ## Configuration
 

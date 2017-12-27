@@ -71,3 +71,10 @@ Sandstorm:
                 .domain([0, 24])
                 .rangeRound([0, 240]));
             charts.push(theChart);
+
+Neos:
+  Flow:
+    mvc:
+      routes:
+        'Sandstorm.Plumber':
+          position: start

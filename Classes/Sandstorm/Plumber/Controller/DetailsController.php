@@ -66,7 +66,7 @@ class DetailsController extends AbstractController
         require_once(XHPROF_ROOT . '/classes/xhprof_ui/run.php');
         require_once(XHPROF_ROOT . '/classes/xhprof_ui/report/driver.php');
         require_once(XHPROF_ROOT . '/classes/xhprof_ui/report/single.php');
-        error_reporting(0);
+        $oldErrorReportingLevel = error_reporting(0);
 
         $xhprofConfiguration = new \XHProf_UI\Config();
 
@@ -96,6 +96,7 @@ class DetailsController extends AbstractController
             if (!extension_loaded('xhprof')) {
                 $message .= ' Hint: the required PHP extension "xhprof" is not loaded which might be the reason.';
             }
+            error_reporting($oldErrorReportingLevel);
             throw new Exception($message, 1360937314);
         }
 
