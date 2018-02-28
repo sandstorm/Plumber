@@ -1,0 +1,40 @@
+<f:layout name="Main" />
+
+<f:section name="header">
+	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.js"></script>
+</f:section>
+<f:section name="navigation">
+	<li><f:link.action controller="Overview" action="index">Overview</f:link.action></li>
+    <li><f:link.action action="timeline" arguments="{runIdentifier1: runIdentifier1}">Timeline View</f:link.action></li>
+    <li class="active"><a>SQL View</a></li>
+	<li><f:link.action action="xhprof" arguments="{run: runIdentifier1}">XHProf View</f:link.action></li>
+</f:section>
+
+<f:section name="content">
+	SQL queries (ordered by amount)
+
+    <table>
+        <thead>
+            <tr>
+                <th>Query count</th>
+                <th>Query</th>
+                <th>Accumulated time in seconds</th>
+            </tr>
+        </thead>
+        <tbody>
+        <f:for each="{sqlTimers}" key="query" as="sqlQuery">
+            <tr>
+                <td>
+                    {sqlQuery.individualQueries -> f:count()}
+                </td>
+                <td>
+                    <pre>{sqlQuery.sqlQuery}</pre>
+                </td>
+                <td>
+                    {sqlQuery.accumulatedTime}
+                    <f:link.action action="sqlDetails" arguments="{run: runIdentifier1, query: query}">Details</f:link.action>
+                </td>
+        </f:for>
+        </tbody>
+    </table>
+</f:section>

@@ -1,0 +1,45 @@
+{namespace plumber=Sandstorm\Plumber\ViewHelpers}
+<f:layout name="Main" />
+
+<f:section name="header">
+	<script type="text/javascript" src="../../../Public/DataTables/media/js/jquery.js"></script>
+</f:section>
+<f:section name="navigation">
+	<li><f:link.action controller="Overview" action="index">Overview</f:link.action></li>
+    <li><f:link.action action="timeline" arguments="{runIdentifier1: runIdentifier1}">Timeline View</f:link.action></li>
+    <li class="active"><a>SQL View</a></li>
+	<li><f:link.action action="xhprof" arguments="{run: runIdentifier1}">XHProf View</f:link.action></li>
+</f:section>
+
+<f:section name="content">
+	SQL Details
+
+    <f:link.action class="btn" action="sql" arguments="{runIdentifier1: run}">go back</f:link.action>
+
+    <pre>{sqlQuery.sqlQuery}</pre>
+
+
+    <table>
+        <thead>
+            <tr>
+                <th>Query counter</th>
+                <th>Query Arguments</th>
+                <th>time in seconds</th>
+            </tr>
+        </thead>
+        <tbody>
+        <f:for each="{sqlQuery.individualQueries}" as="individualQuery">
+            <tr>
+                <td>
+                    {individualQuery.queryCounter}
+                </td>
+                <td>
+                    <pre>{individualQuery.queryParams -> plumber:varDump()}</pre>
+                </td>
+                <td>
+                    {individualQuery.time}
+                </td>
+        </f:for>
+        </tbody>
+    </table>
+</f:section>

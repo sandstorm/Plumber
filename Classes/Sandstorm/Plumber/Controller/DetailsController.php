@@ -47,6 +47,72 @@ class DetailsController extends AbstractController
         $this->view->assign('js', $js);
     }
 
+
+    /**
+     *
+     * @param string $runIdentifier1
+     * @return void
+     */
+    public function sqlAction($runIdentifier1)
+    {
+        $sqlTimers = $this->prepareSqlTimers($runIdentifier1);
+
+        $this->view->assign('runIdentifier1', $runIdentifier1);
+        $this->view->assign('sqlTimers', $sqlTimers);
+    }
+
+
+    /**
+     * @param string $run
+     * @param string $query
+     */
+    public function sqlDetailsAction($run, $query)
+    {
+        $sqlTimers = $this->prepareSqlTimers($run);
+        $this->view->assign('sqlQuery', $sqlTimers[$query]);
+        $this->view->assign('run', $run);
+    }
+
+    protected function prepareSqlTimers($runIdentifier)
+    {
+        $profile = $this->getProfile($runIdentifier);
+
+        $queryCounter = 0;
+        $sqlTimers = [];
+        foreach ($profile->getTimersAsDuration(false) as $timer) {
+            if ($timer['name'] !== 'SQL Query') {
+                continue;
+            }
+            $queryCounter++;
+            $queryParams = $timer['data'];
+            $sqlQuery = $queryParams['_sql'];
+            unset($queryParams['_sql']);
+
+            if (!isset($sqlTimers[$sqlQuery])) {
+                $sqlTimers[$sqlQuery] = [
+                    'sqlQuery' => $sqlQuery,
+                    'accumulatedTime' => 0,
+                    'individualQueries' => []
+                ];
+            }
+
+            $timeDelta = $timer['stop'] - $timer['start'];
+            $sqlTimers[$sqlQuery]['accumulatedTime'] += $timeDelta;
+
+            $sqlTimers[$sqlQuery]['individualQueries'][] = [
+                'queryCounter' => $queryCounter,
+                'queryParams' => $queryParams,
+                'time' => $timeDelta
+            ];
+        }
+
+        uasort($sqlTimers, function($a, $b) {
+            return $b['accumulatedTime'] <=> $a['accumulatedTime'];
+        });
+
+        return $sqlTimers;
+    }
+
     /**
      * Show the XHProf view for the given $runIdentifier
      *

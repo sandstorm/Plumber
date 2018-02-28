@@ -158,6 +158,7 @@ function recordList(div) {
 
 		recordSelectionEnter.append("td").html(function(d) {
 			return '<a href="' + addConcatenator(window.uris.timelineDetails) + 'runIdentifier1=' + d['id'] + '" class="btn small">Timeline &raquo;</a>'
+			    + '<a href="' + addConcatenator(window.uris.sqlDetails) + 'runIdentifier1=' + d['id'] + '" class="btn small">SQL &raquo;</a>'
 				+ '<a href="' + addConcatenator(window.uris.xhprofDetails) + 'run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
 				+ '<a href="' + addConcatenator(window.uris.xhprofDebug) + 'runIdentifier=' + d['id'] + '" class="btn small" title="XHProf Debug">DBG &raquo;</a>'
 		});
