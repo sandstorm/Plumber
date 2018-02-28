@@ -35,6 +35,7 @@
                 </td>
                 <td>
                     <pre>{individualQuery.queryParams -> plumber:varDump()}</pre>
+                    <pre>{plumber:insertParametersToQuery(params: individualQuery.queryParams, sqlQuery: sqlQuery.sqlQuery)}</pre>
                 </td>
                 <td>
                     {individualQuery.time}
