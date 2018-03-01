@@ -45,8 +45,14 @@ class InsertParametersToQueryViewHelper extends \Neos\FluidAdaptor\Core\ViewHelp
         }
         foreach ($params as $key => $value) {
             // we love SQL injections ^^
+            if (is_array($value) && count($value) > 0) {
+                // support for multi-valued string properties; used in "IN" queries
+                $value = implode('", "', array_map('strval', $value));
+            }
             if (is_string($value)) {
                 $sqlQuery = str_replace(':' . $key, '"' . $value . '"', $sqlQuery);
+            } elseif (is_int($value)) {
+                $sqlQuery = str_replace(':' . $key, $value, $sqlQuery);
             }
         }
         return $sqlQuery;
