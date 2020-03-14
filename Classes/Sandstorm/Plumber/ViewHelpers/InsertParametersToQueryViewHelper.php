@@ -33,13 +33,17 @@ class InsertParametersToQueryViewHelper extends \Neos\FluidAdaptor\Core\ViewHelp
      */
     protected $calculationService;
 
-    /**
-     * @param string $sqlQuery
-     * @param array $params
-     * @return mixed
-     */
-    public function render($sqlQuery, array $params = null)
+
+    public function initializeArguments()
     {
+        $this->registerArgument('sqlQuery', 'string', '', true);
+        $this->registerArgument('params', 'array', '', false, null);
+    }
+
+    public function render()
+    {
+        $sqlQuery = $this->arguments['sqlQuery'];
+        $params = $this->arguments['params'];
         if (!isset($params)) {
             return $sqlQuery;
         }
