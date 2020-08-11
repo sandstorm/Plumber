@@ -84,7 +84,7 @@ class DetailsController extends AbstractController
                 continue;
             }
             $queryCounter++;
-            $queryParams = $timer['data'];
+            $queryParams = json_decode($timer['data'], true);
             $sqlQuery = $queryParams['_sql'];
             unset($queryParams['_sql']);
 
@@ -202,7 +202,7 @@ class DetailsController extends AbstractController
         $javaScript = array();
         foreach ($profile->getTimersAsDuration() as $event) {
 
-            $data = $event['data'];
+            $data = json_decode($event['data'], true);
             if (isset($event['dbQueryCount'])) {
                 $data['dbQueryCount'] = $event['dbQueryCount'];
             }
@@ -226,7 +226,7 @@ class DetailsController extends AbstractController
 				description: %s,
 				color: "#%s"
 			}));', $eventSourceIndex, (int)($event['time'] * 1000), json_encode($event['name']), json_encode($event['name']),
-                json_encode($event['data']), $this->getColorForEventName($event['name']));
+                $event['data'], $this->getColorForEventName($event['name']));
         }
 
         $memory = $profile->getMemory();
