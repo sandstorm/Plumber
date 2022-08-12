@@ -32,6 +32,13 @@ XHProf is not supported anymore, but the Tideways data format is still 100%
 compatible - and the Tideways PHP Extension is still 100% open source
 
 ```bash
+# for PHP 8.1
+brew install kabel/pecl/php@8.1-tideways-xhprof
+
+
+
+
+# for older versions
 brew install  tideways/homebrew-profiler/php71-tideways --env=std
 echo "tideways.auto_prepend_library=0" >> /usr/local/etc/php/7.1/conf.d/ext-tideways.ini
 ```
