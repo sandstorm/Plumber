@@ -7,6 +7,7 @@
 | 1.x-3.x         |                     | ☑️        | ⛔️ not maintained anymore | was still having Plumber and PhpProfiler separated |
 | 4.0.x           | 8.3                 | ☑️        | ☑️                        | Use this for Neos or Flow Projects up to Neos 8.3  |
 | 4.1.x           | 8.4                 | ☑️        | ☑️                        | Neos 8.4                                           |
+| 5.0.x           | 9.0                 | ☑️        | ☑️                        | Neos 9.0 and up                                    |
 
 -- Measuring the flow of your application --
 

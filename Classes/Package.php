@@ -94,7 +94,7 @@ class Package extends BasePackage
             }
         });
 
-        $dispatcher->connect('Neos\Flow\Mvc\Dispatcher', 'beforeControllerInvocation', function ($request, $response, $controller) use ($run) {
+        $dispatcher->connect('Neos\Flow\Mvc\Dispatcher', 'beforeControllerInvocation', function ($request, $controller) use ($run) {
             $run->setOption('Controller Name', get_class($controller));
             $data = array(
                 'Controller' => get_class($controller)
