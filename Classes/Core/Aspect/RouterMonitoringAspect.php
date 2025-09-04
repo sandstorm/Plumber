@@ -1,5 +1,5 @@
 <?php
-namespace Sandstorm\PhpProfiler\Aspect;
+namespace Sandstorm\Plumber\Core\Aspect;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Sandstorm.Phpprofiler". *
@@ -31,9 +31,9 @@ class RouterMonitoringAspect
      */
     public function profileRouteMethod(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
     {
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('MVC: Build Request / Routing');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('MVC: Build Request / Routing');
         $output = $joinPoint->getAdviceChain()->proceed($joinPoint);
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('MVC: Build Request / Routing');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('MVC: Build Request / Routing');
         return $output;
     }
 

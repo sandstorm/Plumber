@@ -99,7 +99,7 @@ parameter works, we need to check how an XHProf trace is built:
 
 An XHProf trace is a big array with elements like the following::
 
-	'Sandstorm\PhpProfiler\Domain\Model\ProfilingRun::startTimer==>microtime' (76) => array(2)
+	'Sandstorm\Plumber\Core\Domain\Model\ProfilingRun::startTimer==>microtime' (76) => array(2)
 	   'ct' (2) => integer 10
 	   'wt' (2) => integer 9
 

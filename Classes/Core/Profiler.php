@@ -1,5 +1,5 @@
 <?php
-namespace Sandstorm\PhpProfiler;
+namespace Sandstorm\Plumber\Core;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Sandstorm.PhpProfiler". *
@@ -152,7 +152,7 @@ class Profiler
     public function save(Domain\Model\ProfilingRun $run)
     {
         $configuration = $this->configurationProvider->__invoke();
-        if (!isset($configuration['plumber']['profilePath'])) {
+        if (!isset($configuration['profilePath'])) {
             throw new \Exception('Profiling path not set');
         }
 

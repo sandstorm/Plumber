@@ -1,11 +1,11 @@
 <?php
-namespace Sandstorm\PhpProfiler\Aspect;
+namespace Sandstorm\Plumber\Core\Aspect;
 
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
-use Sandstorm\PhpProfiler\Sql\Middleware\SqlProfilingMiddleware;
-use Sandstorm\PhpProfiler\Sql\SqlStatementProfiler;
+use Sandstorm\Plumber\Core\Sql\Middleware\SqlProfilingMiddleware;
+use Sandstorm\Plumber\Core\Sql\SqlStatementProfiler;
 
 #[Flow\Aspect]
 class SqlEntityManagerConfigurationAspect {

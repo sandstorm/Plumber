@@ -1,5 +1,5 @@
 <?php
-namespace Sandstorm\PhpProfiler\Aspect\Neos;
+namespace Sandstorm\Plumber\Core\Aspect\Neos;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Sandstorm.Phpprofiler". *
@@ -31,9 +31,9 @@ class TypoScriptMonitoringAspect
      */
     public function profileRenderMethod(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
     {
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript View');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript View');
         $output = $joinPoint->getAdviceChain()->proceed($joinPoint);
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript View');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript View');
         return $output;
     }
 
@@ -46,9 +46,9 @@ class TypoScriptMonitoringAspect
      */
     public function profileTypoScriptCompilation(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
     {
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript Compilation');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript Compilation');
         $output = $joinPoint->getAdviceChain()->proceed($joinPoint);
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript Compilation');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript Compilation');
         return $output;
     }
 
@@ -61,9 +61,9 @@ class TypoScriptMonitoringAspect
      */
     public function profileTemplateImplementationEvaluate(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
     {
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript Template Rendering');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript Template Rendering');
         $output = $joinPoint->getAdviceChain()->proceed($joinPoint);
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript Template Rendering');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript Template Rendering');
         return $output;
     }
 
@@ -76,9 +76,9 @@ class TypoScriptMonitoringAspect
      */
     public function profileMenuRendering(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
     {
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript Menu Rendering');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript Menu Rendering');
         $output = $joinPoint->getAdviceChain()->proceed($joinPoint);
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript Menu Rendering');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript Menu Rendering');
         return $output;
     }
 

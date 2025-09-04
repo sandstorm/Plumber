@@ -1,5 +1,5 @@
 <?php
-namespace Sandstorm\PhpProfiler\Domain\Model;
+namespace Sandstorm\Plumber\Core\Domain\Model;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Sandstorm.PhpProfiler". *
@@ -237,8 +237,8 @@ class ProfilingRun extends EmptyProfilingRun
         $filename = NULL;
         if ($this->pathAndFilename !== NULL) {
             $filename = $this->pathAndFilename;
-        } elseif ($settings !== array() && file_exists($settings['plumber']['profilePath'])) {
-            $filename = $settings['plumber']['profilePath'] . '/' . microtime(TRUE) . '.profile';
+        } elseif ($settings !== array() && file_exists($settings['profilePath'])) {
+            $filename = $settings['profilePath'] . '/' . microtime(TRUE) . '.profile';
         }
 
         if ($filename !== NULL) {
@@ -259,7 +259,7 @@ class ProfilingRun extends EmptyProfilingRun
      */
     protected function saveToXhprofio(array $settings)
     {
-        require_once(__DIR__ . '/../../../../../Resources/Private/Xhprof.io/data.php');
+        require_once(__DIR__ . '/../../../../Resources/Private/Xhprof.io/data.php');
         $pdo = new \PDO($settings['xhprof.io']['dsn'], $settings['xhprof.io']['username'], $settings['xhprof.io']['password']);
         $xhprofData = new \ay\xhprof\Data($pdo);
         $xhprofData->save($this->xhprofTrace);
@@ -273,10 +273,10 @@ class ProfilingRun extends EmptyProfilingRun
      */
     protected function saveToXhgui(array $settings)
     {
-        require_once(__DIR__ . '/../../../../../Resources/Private/Xhgui/Db.php');
-        require_once(__DIR__ . '/../../../../../Resources/Private/Xhgui/Db/Mapper.php');
-        require_once(__DIR__ . '/../../../../../Resources/Private/Xhgui/Profile.php');
-        require_once(__DIR__ . '/../../../../../Resources/Private/Xhgui/Profiles.php');
+        require_once(__DIR__ . '/../../../../Resources/Private/Xhgui/Db.php');
+        require_once(__DIR__ . '/../../../../Resources/Private/Xhgui/Db/Mapper.php');
+        require_once(__DIR__ . '/../../../../Resources/Private/Xhgui/Profile.php');
+        require_once(__DIR__ . '/../../../../Resources/Private/Xhgui/Profiles.php');
         $data = array(
             'profile' => $this->xhprofTrace,
             'meta' => array(

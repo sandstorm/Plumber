@@ -1,5 +1,5 @@
 <?php
-namespace Sandstorm\PhpProfiler\Aspect;
+namespace Sandstorm\Plumber\Core\Aspect;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Sandstorm.Phpprofiler". *
@@ -21,13 +21,13 @@ class ProfilerAspect
 
     /**
      *
-     * @Flow\Around("methodAnnotatedWith(Sandstorm\PhpProfiler\Annotations\Profile)")
+     * @Flow\Around("methodAnnotatedWith(Sandstorm\Plumber\Core\Annotations\Profile)")
      * @param \Neos\Flow\Aop\JoinPointInterface $joinPoint The current join point
      * @return array Result of the target method
      */
     public function profileAround(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
     {
-        $run = \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun();
+        $run = \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun();
         $tag = str_replace('\\', '_', $joinPoint->getClassName()) . ':' . $joinPoint->getMethodName();
 
         $run->startTimer($tag);

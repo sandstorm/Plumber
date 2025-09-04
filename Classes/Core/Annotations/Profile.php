@@ -1,5 +1,5 @@
 <?php
-namespace Sandstorm\PhpProfiler\Annotations;
+namespace Sandstorm\Plumber\Core\Annotations;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Sandstorm.Phpprofiler". *

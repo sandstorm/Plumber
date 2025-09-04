@@ -7,12 +7,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+
     <title>Usage &mdash; Plumber Profiler 1.0.0 documentation</title>
-    
+
     <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
+
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Plumber Profiler 1.0.0 documentation" href="index.html" />
     <link rel="next" title="Profiling Custom Code" href="profiling-custom-code.html" />
-    <link rel="prev" title="Installation" href="installation.html" /> 
+    <link rel="prev" title="Installation" href="installation.html" />
   </head>
   <body>
     <div class="header-wrapper">
@@ -48,11 +48,11 @@
     <div class="content-wrapper">
       <div class="content">
         <div class="document">
-            
+
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body">
-            
+
   <div class="section" id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
 <p>Just use your web application as normal. To browse profiling reports, go to <tt class="docutils literal"><span class="pre">http://yourhost/profiler/</span></tt>.</p>
@@ -127,7 +127,7 @@ does not work.</p>
 <p>It counts the number of method invocations in an XHProf trace. To know how the <tt class="docutils literal"><span class="pre">regex</span></tt>
 parameter works, we need to check how an XHProf trace is built:</p>
 <p>An XHProf trace is a big array with elements like the following:</p>
-<div class="highlight-php"><div class="highlight"><pre><span class="s1">&#39;Sandstorm\PhpProfiler\Domain\Model\ProfilingRun::startTimer==&gt;microtime&#39;</span> <span class="p">(</span><span class="mi">76</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<div class="highlight-php"><div class="highlight"><pre><span class="s1">&#39;Sandstorm\Plumber\Core\Domain\Model\ProfilingRun::startTimer==&gt;microtime&#39;</span> <span class="p">(</span><span class="mi">76</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
    <span class="s1">&#39;ct&#39;</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">integer</span> <span class="mi">10</span>
    <span class="s1">&#39;wt&#39;</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">integer</span> <span class="mi">9</span>
 </pre></div>
@@ -218,7 +218,7 @@ if you want to extend it. Make sure to submit a pull request then :-).</p>
         </div>
 
         <div class="right">
-          
+
     <div class="footer">
         &copy; Copyright 2012, Sebastian Kurfürst.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.

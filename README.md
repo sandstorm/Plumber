@@ -1,5 +1,13 @@
 # Plumber - Profiling Neos Flow
 
+## Versioning Scheme
+
+| Package Version | Neos / Flow Version | Released? | Supported                 | Remarks                                            |
+|-----------------|---------------------|-----------|---------------------------|----------------------------------------------------|
+| 1.x-3.x         |                     | ☑️        | ⛔️ not maintained anymore | was still having Plumber and PhpProfiler separated |
+| 4.0.x           | 8.3                 | ☑️        | ☑️                        | Use this for Neos or Flow Projects up to Neos 8.3  |
+| 4.1.x           | 8.4                 | ☑️        | ☑️                        | Neos 8.4                                           |
+
 -- Measuring the flow of your application --
 
 Plumber is a profiling and tracing GUI with the following features:
@@ -43,6 +51,143 @@ brew install  tideways/homebrew-profiler/php71-tideways --env=std
 echo "tideways.auto_prepend_library=0" >> /usr/local/etc/php/7.1/conf.d/ext-tideways.ini
 ```
 
+# PhpProfiler -- Profiling Neos Flow Applications
+
+-- Measuring the flow of your application --
+
+PhpProfiler is a profiling and tracing tool that measures time spent in various parts of
+your application flow and can leverage XHProf to profile applications.
+
+It stores data in a format understood by Plumber and can also store to the databases used
+by XHProf.io (http://xhprof.io/) and XHGui (https://github.com/preinheimer/xhgui).
+
+## Installation
+
+To install, just use composer:
+
+```bash
+composer require --dev sandstorm/phpprofiler ^3.0.0
+```
+
+The system will automatically install PhpProfiler and use XHProf if it is installed.
+
+## Configuration
+
+This is the default configuration:
+
+```
+Sandstorm:
+  Plumber:
+    profilePath: '%FLOW_PATH_DATA%Logs/Profiles'
+
+    # xhprof.io settings (see http://xhprof.io/)
+    'xhprof.io':
+      enable: false
+      dsn: 'mysql:dbname=xhprofio;host=localhost;charset=utf8'
+      username: ''
+      password: ''
+
+    # preinheimer-xhgui settings (see https://github.com/preinheimer/xhgui)
+    'xhgui':
+      enable: false
+      host: 'mongodb://localhost:27017'
+      dbname: 'xhprof'
+```
+
+To enable the XHProf.io and XHGui backends adjust the configuration as needed, but keep in
+mind that any needed setup (e.g. databasae creation) needs to be done as described in the
+respective documentation.
+
+### Limiting Profiling Run Probability
+
+Using the environment variable ``PHPPROFILER_SAMPLINGRATE`` the probability of runs being
+profiled can be changed. If the variable is not set, every run will be profiled. If a float
+between 0 and 1 is given, that represents a probability between 0% and 100% for every run
+to trigger profiling.
+
+If limiting the probability to a low enough value, it is feasible to leave PhpProfiler running
+on production instances.
+
+## Profiling Custom Code
+
+PhpProfiler collects regular XHProf data and some data specific to TYPO3 Flow, Neos and CMS.
+
+To collect profiling information on critical parts of a custom application, various options exist.
+
+### Profiling method calls using an Aspect (NEW!)
+
+You can use the `Sandstorm\Plumber\Core\Annotations\Profile` annotation on a method in order
+to profile it:
+
+```php
+class MyClass {
+
+	/**
+	 * @Sandstorm\Plumber\Core\Annotations\Profile
+	 */
+	public function myMethod() {
+	}
+}
+```
+
+### Adding custom timers
+
+When hunting for performance bottlenecks, it often makes sense to add custom
+timers throughout your application. Doing so is quite easy, as the following
+example demonstrates:
+
+```php
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('My Timer');
+// run some code
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('My Timer');
+```
+
+If the timer name contains a colon (`:`), related timers are grouped together in the User Interface:
+
+```php
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('Security: Authentication');
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('Security: Authentication');
+
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('Security: Authorization');
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('Security: Authorization');
+```
+
+It's not a problem if multiple timers are active at the same time; even the same timer can
+be active multiple times at the same time. The following example is perfectly valid:
+
+```php
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('t1');
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('t1');
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('t1');
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('t1');
+```
+
+Furthermore, the `startTimer` allows a second `array` argument containing additional information
+which is shown in the UI.
+
+### Setting Options
+
+Furthermore, you can set meta-information on the current run (which is called `options` currently):
+
+```php
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->setOption('context', 'DEV');
+```
+
+## Viewing the results
+
+For the Plumber UI install the Plumber package as described in it's manual.
+
+For XHProf.ui and XHGui follow the instructions given on the project websites.
+
+## Credits
+
+Originally developed by Sebastian Kurfürst, Sandstorm Media UG (haftungsbeschränkt)
+
+Code from the XHProf.io and XHGui projects is included for storing the data.
+
+## License
+
+All the code is licensed under the GPL license.
 
 ## Configuration
 
@@ -58,7 +203,8 @@ For each run, the profiler collects the following data:
 
 * meta-information for the current run (like: the context the request was invoked in, the controller being used)
 * timers which can be started and stopped, measuring the details of the application flow.
-* the full XHProf profile, containing the (almost) complete call-graph of the run. This is only enabled if XHProf is installed.
+* the full XHProf profile, containing the (almost) complete call-graph of the run. This is only enabled if XHProf is
+  installed.
 
 ### Overview Page
 
@@ -85,7 +231,6 @@ of the request, and how memory consumption changed.
 
 You can also drill down to the XHProf page, showing the detailed statistics
 of the run.
-
 
 ## Configuring Custom Dimensions
 
@@ -141,7 +286,7 @@ parameter works, we need to check how an XHProf trace is built:
 An XHProf trace is a big array with elements like the following:
 
 ```php
-	'Sandstorm\PhpProfiler\Domain\Model\ProfilingRun::startTimer==>microtime' (76) => array(2)
+	'Sandstorm\Plumber\Core\Domain\Model\ProfilingRun::startTimer==>microtime' (76) => array(2)
 	   'ct' (2) => integer 10
 	   'wt' (2) => integer 9
 ```
@@ -155,7 +300,6 @@ Now, the `regexSum` loops over such a trace, and if the regex matches the array 
 it counts the number of calls together.
 
 As an example, let's demonstrate that with some regexes:
-
 
 ```text
 #==>.*__construct#              Matches all constructor invocations
@@ -188,7 +332,6 @@ Custom types are currently not possible.
 
 The calculation happens inside `Sandstorm\Plumber\Service\CalculationService`,
 if you want to extend it. Make sure to submit a pull request then :-).
-
 
 ## Profiling Custom Code
 

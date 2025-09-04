@@ -72,9 +72,25 @@ Sandstorm:
                 .rangeRound([0, 240]));
             charts.push(theChart);
 
+    xhprof.io:
+      enable: false
+      dsn: 'mysql:dbname=xhprofio;host=localhost;charset=utf8'
+      username: ''
+      password: ''
+    xhgui:
+      enable: false
+      host: 'mongodb://localhost:27017'
+      dbname: xhprof
+
+
 Neos:
   Flow:
     mvc:
       routes:
         'Sandstorm.Plumber':
           position: start
+    persistence:
+      doctrine:
+
+        # On the other hand, the SqlStatementProfiler renders the actual queries.
+        sqlLogger: Sandstorm\Plumber\Core\Sql\SqlStatementProfiler

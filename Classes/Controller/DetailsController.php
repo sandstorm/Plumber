@@ -11,7 +11,7 @@ namespace Sandstorm\Plumber\Controller;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use Sandstorm\PhpProfiler\Domain\Model\ProfilingRun;
+use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Exception;
 use Neos\Flow\Annotations as Flow;
 
@@ -193,7 +193,7 @@ class DetailsController extends AbstractController
     /**
      * Build timeline JS code for the given profile.
      *
-     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
      * @param integer $eventSourceIndex
      * @return string
      */

@@ -1,5 +1,5 @@
 <?php
-namespace Sandstorm\PhpProfiler\Domain\Model;
+namespace Sandstorm\Plumber\Core\Domain\Model;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Sandstorm.PhpProfiler". *

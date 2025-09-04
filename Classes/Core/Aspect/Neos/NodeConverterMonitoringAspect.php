@@ -1,5 +1,5 @@
 <?php
-namespace Sandstorm\PhpProfiler\Aspect\Neos;
+namespace Sandstorm\Plumber\Core\Aspect\Neos;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Sandstorm.Phpprofiler". *
@@ -31,9 +31,9 @@ class NodeConverterMonitoringAspect
      */
     public function profileConvertFromMethod(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
     {
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->startTimer('Property Mapping: Node Converter');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('Property Mapping: Node Converter');
         $output = $joinPoint->getAdviceChain()->proceed($joinPoint);
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->getRun()->stopTimer('Property Mapping: Node Converter');
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('Property Mapping: Node Converter');
         return $output;
     }
 

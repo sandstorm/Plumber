@@ -11,7 +11,7 @@ namespace Sandstorm\Plumber\Service;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use Sandstorm\PhpProfiler\Domain\Model\ProfilingRun;
+use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Exception;
 use Neos\Flow\Annotations as Flow;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
@@ -30,7 +30,7 @@ class CalculationService
      * - tableCellHtml (optional, string): if given, is used in the results table
      *   for display. Helpful f.e. for more verbose output
      *
-     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
      * @param array $calculationOptions
      * @return array
      * @throws \Sandstorm\Plumber\Exception
@@ -45,7 +45,7 @@ class CalculationService
     }
 
     /**
-     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
      * @param array $calculationOptions
      * @return array
      */
@@ -59,7 +59,7 @@ class CalculationService
     /**
      * Calculate the total number of calls for methods matching the specified regex.
      *
-     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
      * @param array $calculationOptions
      * @return array
      * @throws \Sandstorm\Plumber\Exception
@@ -111,7 +111,7 @@ class CalculationService
 
     /**
      *
-     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
      * @param array $calculationOptions
      */
     protected function calculateRegex(ProfilingRun $profile, array $calculationOptions)
@@ -203,7 +203,7 @@ class CalculationService
     /**
      * Calculate the total for the specified timer in the profile.
      *
-     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
      * @param array $calculationOptions
      * @return array
      * @throws \Sandstorm\Plumber\Exception
@@ -226,7 +226,7 @@ class CalculationService
     /**
      * Calculate the total DB queries for the specified timer in the profile.
      *
-     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
      * @param array $calculationOptions
      * @return array
      * @throws \Sandstorm\Plumber\Exception
@@ -249,7 +249,7 @@ class CalculationService
     /**
      * Calculate the maximum memory usage for the given profile.
      *
-     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
      * @param array $calculationOptions
      * @return array
      */

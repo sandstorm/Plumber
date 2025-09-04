@@ -38,14 +38,14 @@ abstract class AbstractController extends \Neos\Flow\Mvc\Controller\ActionContro
      */
     protected function initializeAction()
     {
-        \Sandstorm\PhpProfiler\Profiler::getInstance()->stop();
+        \Sandstorm\Plumber\Core\Profiler::getInstance()->stop();
     }
 
     /**
      * Returns a ProfilingRun instance that has been saved as $filename.
      *
      * @param string $filename
-     * @return \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun
+     * @return \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun
      */
     protected function getProfile($filename)
     {
@@ -58,7 +58,7 @@ abstract class AbstractController extends \Neos\Flow\Mvc\Controller\ActionContro
     /**
      * Returns an array of ProfilingRun instances that have been saved earlier.
      *
-     * @return array<\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun>
+     * @return array<\Sandstorm\Plumber\Core\Domain\Model\ProfilingRun>
      */
     public function getProfiles()
     {

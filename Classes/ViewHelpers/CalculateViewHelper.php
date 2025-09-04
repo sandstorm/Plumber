@@ -36,11 +36,11 @@ class CalculateViewHelper extends \Neos\FluidAdaptor\Core\ViewHelper\AbstractVie
     /**
      * Run calculations for the given profile.
      *
-     * @param \Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile
+     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
      * @param array $calculationOptions
      * @return array
      */
-    public function render(\Sandstorm\PhpProfiler\Domain\Model\ProfilingRun $profile, array $calculationOptions)
+    public function render(\Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile, array $calculationOptions)
     {
         return $this->calculationService->calculate($profile, $calculationOptions);
     }
