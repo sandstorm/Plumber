@@ -89,8 +89,4 @@ Neos:
       routes:
         'Sandstorm.Plumber':
           position: start
-    persistence:
-      doctrine:
 
-        # On the other hand, the SqlStatementProfiler renders the actual queries.
-        sqlLogger: Sandstorm\Plumber\Core\Sql\SqlStatementProfiler
