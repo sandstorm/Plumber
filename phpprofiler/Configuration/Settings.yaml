@@ -1,0 +1,24 @@
+
+Sandstorm:
+  PhpProfiler:
+    plumber:
+      profilePath: '%FLOW_PATH_DATA%Logs/Profiles'
+    xhprof.io:
+      enable: false
+      dsn: 'mysql:dbname=xhprofio;host=localhost;charset=utf8'
+      username: ''
+      password: ''
+    xhgui:
+      enable: false
+      host: 'mongodb://localhost:27017'
+      dbname: xhprof
+Neos:
+  Flow:
+    persistence:
+      doctrine:
+
+        # we support two SQL profilers: the SqlStatementCountProfiler only COUNTS queries; without checking how long they are or recording
+        # the individual queries. It is faster with lower overhead than the SqlStatementProfiler.
+        #
+        # On the other hand, the SqlStatementProfiler renders the actual queries.
+        sqlLogger: Sandstorm\PhpProfiler\Sql\SqlStatementProfiler
