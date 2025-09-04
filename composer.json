@@ -1,7 +1,7 @@
 {
     "name": "sandstorm/plumber",
     "type": "neos-flow-package",
-    "description": "Profiling Toolkit for TYPO3 Flow and Neos",
+    "description": "Profiling Toolkit for Neos Flow and Neos",
     "keywords": [
         "profiling",
         "profiler",
@@ -9,30 +9,28 @@
         "debugging",
         "xhprof",
         "Flow",
-        "TYPO3 Flow",
+        "Neos Flow",
         "Neos",
-        "TYPO3 Neos"
+        "Neos CMS"
     ],
     "authors": [
         {
             "name": "Sebastian Kurfürst",
-            "homepage": "http://sandstorm-media.de",
+            "homepage": "http://sandstorm.de",
             "role": "Developer"
         }
     ],
     "support": {
         "issues": "https://github.com/sandstorm/Plumber/issues",
-        "irc": "irc://irc.freenode.net/typo3-flow",
         "source": "https://github.com/sandstorm/Plumber"
     },
     "license": "GPL-3.0+",
     "require": {
-        "neos/flow": "*",
-        "sandstorm/phpprofiler": "dev-master"
+        "neos/flow": "*"
     },
     "autoload": {
-        "psr-0": {
-            "Sandstorm\\Plumber": "Classes"
+        "psr-4": {
+            "Sandstorm\\Plumber\\": "Classes"
         }
     },
     "extra": {
