@@ -1,0 +1,7 @@
+Neos:
+  ContentRepositoryRegistry:
+    presets:
+      'default':
+        debug:
+          tracer:
+            factoryObjectName: Sandstorm\Plumber\Core\ContentRepository\ContentRepositoryPlumberTracerFactory
