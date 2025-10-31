@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Sandstorm\Plumber\Core\ContentRepository;
 
 use Neos\Flow\Annotations as Flow;
-use Neos\ContentRepository\Core\Infrastructure\Tracing\TracerInterface;
+use Neos\ContentRepository\Core\Infrastructure\PerformanceTracing\PerformanceTracerInterface;
 use Sandstorm\Plumber\Core\Profiler;
 
 #[Flow\Proxy(false)]
-class ContentRepositoryPlumberTracer implements TracerInterface
+class PlumberTracer implements PerformanceTracerInterface
 {
     /**
      * @var CurrentSpanMeta[]
@@ -20,19 +20,25 @@ class ContentRepositoryPlumberTracer implements TracerInterface
     {
     }
 
-    public function span(string $name, array $params, \Closure $fn)
+    public function openSpan(string $name, array $params = []): void
     {
         $this->profiler->getRun()->startTimer($name, $params);
-        $this->openSpans[] = new CurrentSpanMeta();
-        try {
-            return $fn();
-        } finally {
-            $this->profiler->getRun()->stopTimer($name);
-            array_pop($this->openSpans);
+        $this->openSpans[] = new CurrentSpanMeta($name);
+    }
+
+    public function closeSpan(): void
+    {
+        if (empty($this->openSpans)) {
+            return;
+        }
+
+        $span = array_pop($this->openSpans);
+        if ($span) {
+            $this->profiler->getRun()->stopTimer($span->name);
         }
     }
 
-    public function mark(string $name, ?array $params = null): void
+    public function mark(string $name, array $params = []): void
     {
         $currentSpan = end($this->openSpans);
         if ($currentSpan === false) {

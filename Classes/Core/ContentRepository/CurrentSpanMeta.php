@@ -14,8 +14,7 @@ final class CurrentSpanMeta
 {
 
     private float $startTime;
-
-    public function __construct()
+    public function __construct(public readonly string $name)
     {
         $this->startTime = microtime(true);
     }
