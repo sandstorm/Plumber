@@ -25,6 +25,10 @@ Sandstorm:
         label: 'Total Neos Rendering Time'
         type: timerSum
         timerName: 'Neos.Neos: TypoScript View'
+      totalContentRepositoryCommandHandlerTime:
+        label: 'Total Neos Command Handling Time'
+        type: timerSum
+        timerName: 'ContentRepository::handle'
       totalRuntime:
         label: 'Runtime (ms)'
         type: timerSum

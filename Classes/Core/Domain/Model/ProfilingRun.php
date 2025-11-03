@@ -355,13 +355,18 @@ class ProfilingRun extends EmptyProfilingRun
      * @return void
      * @api
      */
-    public function startTimer($name, array $data = array())
+    public function startTimer($name, array $data = array()): void
+    {
+        $this->startTimerInternal($name, $data, microtime(TRUE));
+    }
+
+    private function startTimerInternal($name, array $data, float $startTimestamp): void
     {
         if (!isset($this->timers[$name])) {
             $this->timers[$name] = array();
         }
         $this->timers[$name][] = array(
-            'time' => microtime(TRUE),
+            'time' => $startTimestamp,
             'data' => $data,
             'start' => TRUE,
             'mem' => memory_get_peak_usage(TRUE),
@@ -380,6 +385,11 @@ class ProfilingRun extends EmptyProfilingRun
      */
     public function stopTimer($name)
     {
+        $this->stopTimerInternal($name, microtime(TRUE));
+    }
+
+    private function stopTimerInternal(string $name, float $stopTimestamp): void
+    {
         if (!isset($this->timers[$name])) {
             $this->timers[$name] = array();
         }
@@ -390,11 +400,17 @@ class ProfilingRun extends EmptyProfilingRun
         }
 
         $this->timers[$name][] = array(
-            'time' => microtime(TRUE),
+            'time' => $stopTimestamp,
             'start' => FALSE,
             'mem' => memory_get_peak_usage(TRUE),
             'dbQueryCount' => $this->numberOfDatabaseQueries
         );
+    }
+
+    public function manualTimer(string $name, array $data, float $startTimestamp, float $stopTimestamp): void
+    {
+        $this->startTimerInternal($name, $data, $startTimestamp);
+        $this->stopTimerInternal($name, $stopTimestamp);
     }
 
     /**

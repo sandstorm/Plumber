@@ -1,4 +1,5 @@
 <?php
+
 namespace Sandstorm\Plumber\Core\Domain\Model;
 
 /*                                                                        *
@@ -56,6 +57,10 @@ class EmptyProfilingRun
      * @api
      */
     public function stopTimer($name)
+    {
+    }
+
+    public function manualTimer(string $name, array $data, float $startTimestamp, float $stopTimestamp): void
     {
     }
 
