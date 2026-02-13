@@ -30,7 +30,7 @@ Warning: Do not install Plumber on production websites. If you do, make sure to 
 To install, just use composer:
 
 ```bash
-composer require --dev sandstorm/plumber 3.0.*
+composer require --dev sandstorm/plumber
 ```
 
 The system will automatically install PhpProfiler and use XHProf if it is installed.
