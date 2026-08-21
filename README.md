@@ -29,27 +29,57 @@ Warning: Do not install Plumber on production websites. If you do, make sure to 
 To install, just use composer:
 
 ```bash
-composer require --dev sandstorm/plumber 3.0.*
+composer require --dev sandstorm/plumber
 ```
 
 The system will automatically install PhpProfiler and use XHProf if it is installed.
 
-### Installing XHProf / Tideways on mac
+### Installing a trace extension (tideways_xhprof or xhprof)
 
-XHProf is not supported anymore, but the Tideways data format is still 100%
-compatible - and the Tideways PHP Extension is still 100% open source
+Timers, runtime, memory and the DB query count are measured by Plumber itself and need no PHP extension. The
+*function-level trace* does: it comes from a profiler extension, and without one
+`ProfilingRun::getXhprofTrace()` stays empty, no `.xhprof` files are written next to the profiles, and every
+`regexSum` / `regex` calculation in the overview reads 0 - with the default configuration that is the "No. of Method
+Calls" and "No. of Object Creations" columns.
+
+Plumber uses whichever of these two extensions is loaded, preferring the first:
+
+| Extension         | Provides              | Availability                                                                                                                             |
+|-------------------|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| `tideways_xhprof` | `tideways_xhprof_*()` | [tideways/php-xhprof-extension](https://github.com/tideways/php-xhprof-extension), last release v5.0.4 (Dec 2020); no builds for PHP 8.5 |
+| `xhprof`          | `xhprof_*()`          | PECL, builds up to PHP 8.5                                                                                                               |
+
+Both write the same trace format, so the timeline and the xhprof analyzer behave identically either way. On PHP 8.5 and
+newer, `xhprof` is the only one of the two that can be built.
+
+Note that `tideways` (the commercial APM extension, `tideways_*()` without the `_xhprof`) is a different extension and
+is not used by Plumber.
+
+In docker images that ship
+[install-php-extensions](https://github.com/mlocati/docker-php-extension-installer) - the official
+`php` and `frankenphp` images among them - install it with:
 
 ```bash
-# for PHP 8.1
+install-php-extensions xhprof
+```
+
+On mac:
+
+```bash
+# tideways_xhprof, for PHP 8.1
 brew install kabel/pecl/php@8.1-tideways-xhprof
 
-
-
+# xhprof
+pecl install xhprof
 
 # for older versions
 brew install  tideways/homebrew-profiler/php71-tideways --env=std
 echo "tideways.auto_prepend_library=0" >> /usr/local/etc/php/7.1/conf.d/ext-tideways.ini
 ```
+
+Once the extension is loaded, tracing runs for *every* request and every CLI run, which costs noticeable time and writes
+an `.xhprof` file per profiling run. Use the
+`PHPPROFILER_SAMPLINGRATE` environment variable (see below) to profile only a fraction of them.
 
 # PhpProfiler -- Profiling Neos Flow Applications
 
@@ -58,8 +88,8 @@ echo "tideways.auto_prepend_library=0" >> /usr/local/etc/php/7.1/conf.d/ext-tide
 PhpProfiler is a profiling and tracing tool that measures time spent in various parts of
 your application flow and can leverage XHProf to profile applications.
 
-It stores data in a format understood by Plumber and can also store to the databases used
-by XHProf.io (http://xhprof.io/) and XHGui (https://github.com/preinheimer/xhgui).
+It stores data in a format understood by Plumber and can also store to the databases used by XHGui
+(https://github.com/preinheimer/xhgui).
 
 ## Installation
 

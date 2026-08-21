@@ -172,6 +172,10 @@ class ProfilingRun extends EmptyProfilingRun
         $this->startTime = microtime(TRUE);
         if (function_exists('tideways_xhprof_enable')) {
             tideways_xhprof_enable(TIDEWAYS_XHPROF_FLAGS_CPU | TIDEWAYS_XHPROF_FLAGS_MEMORY);
+        } elseif (function_exists('xhprof_enable')) {
+            // The xhprof extension produces the same trace format as tideways_xhprof and is the
+            // only one of the two with builds for PHP versions beyond 8.4.
+            xhprof_enable(XHPROF_FLAGS_CPU | XHPROF_FLAGS_MEMORY);
         }
         $this->startTimer('Profiling Run');
     }
@@ -186,6 +190,8 @@ class ProfilingRun extends EmptyProfilingRun
         $this->stopTimer('Profiling Run');
         if (function_exists('tideways_xhprof_disable')) {
             $this->xhprofTrace = tideways_xhprof_disable();
+        } elseif (function_exists('xhprof_disable')) {
+            $this->xhprofTrace = xhprof_disable();
         }
 
         $this->convertTimersRelativeToStartTime();
