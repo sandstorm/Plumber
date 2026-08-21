@@ -1,32 +1,27 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Controller;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Sandstorm.Plumber".     *
- *                                                                        *
- * It is free software; you can redistribute it and/or modify it under    *
- * the terms of the GNU General Public License, either version 3          *
- * of the License, or (at your option) any later version.                 *
- *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
- *                                                                        */
-
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Utility\Files;
+use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
+use Sandstorm\Plumber\Core\Profiler;
 
 /**
  * Standard controller for the Sandstorm.Plumber package
  *
  * @Flow\Scope("singleton")
  */
-abstract class AbstractController extends \Neos\Flow\Mvc\Controller\ActionController
+abstract class AbstractController extends ActionController
 {
-
     /**
      * @param array $settings
      * @return void
      */
-    public function injectSettings(array $settings)
+    public function injectSettings(array $settings): void
     {
         $this->settings = $settings;
     }
@@ -36,20 +31,20 @@ abstract class AbstractController extends \Neos\Flow\Mvc\Controller\ActionContro
      *
      * @return void
      */
-    protected function initializeAction()
+    protected function initializeAction(): void
     {
-        \Sandstorm\Plumber\Core\Profiler::getInstance()->stop();
+        Profiler::getInstance()->stop();
     }
 
     /**
      * Returns a ProfilingRun instance that has been saved as $filename.
      *
      * @param string $filename
-     * @return \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun
+     * @return ProfilingRun
      */
-    protected function getProfile($filename)
+    protected function getProfile(string $filename): ProfilingRun
     {
-        $pathAndFilename = Files::concatenatePaths(array($this->settings['profilePath'], $filename));
+        $pathAndFilename = Files::concatenatePaths([$this->settings['profilePath'], $filename]);
         $profile = unserialize(file_get_contents($pathAndFilename));
         $profile->setPathAndFilename($pathAndFilename);
         return $profile;
@@ -58,23 +53,26 @@ abstract class AbstractController extends \Neos\Flow\Mvc\Controller\ActionContro
     /**
      * Returns an array of ProfilingRun instances that have been saved earlier.
      *
-     * @return array<\Sandstorm\Plumber\Core\Domain\Model\ProfilingRun>
+     * @return array<ProfilingRun>
      */
-    public function getProfiles()
+    public function getProfiles(): array
     {
         if (!file_exists($this->settings['profilePath'])) {
-            return array();
+            return [];
         }
 
         $directoryIterator = new \DirectoryIterator($this->settings['profilePath']);
 
-        $profiles = array();
+        $profiles = [];
         foreach ($directoryIterator as $element) {
             if (preg_match('/\.profile$/', $element->getFilename())) {
-                $profiles[$element->getFilename()] = unserialize(file_get_contents($element->getPathname()));
-                $profiles[$element->getFilename()]->setPathAndFilename($element->getPathname());
+                $profile = unserialize(file_get_contents($element->getPathname()));
+                if (!$profile instanceof ProfilingRun) {
+                    continue;
+                }
+                $profile->setPathAndFilename($element->getPathname());
+                $profiles[$element->getFilename()] = $profile;
             }
-
         }
         return $profiles;
     }
