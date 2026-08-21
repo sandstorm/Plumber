@@ -26,7 +26,8 @@
     },
     "license": "GPL-3.0+",
     "require": {
-      "neos/flow": "~9.2"
+      "neos/flow": "~9.2",
+      "php": "^8.2"
     },
     "autoload": {
         "psr-4": {
