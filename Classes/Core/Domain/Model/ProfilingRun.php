@@ -190,7 +190,11 @@ class ProfilingRun extends EmptyProfilingRun
         if ($this->pathAndFilename !== null) {
             $filename = $this->pathAndFilename;
         } elseif ($settings !== [] && file_exists($settings['profilePath'])) {
-            $filename = $settings['profilePath'] . '/' . microtime(true) . '.profile';
+            // microtime() resolves to ~0.1 ms only (float precision), so runs finishing in
+            // parallel collide on the filename and overwrite each other mid-write. The process id
+            // does not separate them either: threaded SAPIs such as FrankenPHP serve every request
+            // from the same process, and a rendering pipeline forks many at once.
+            $filename = $settings['profilePath'] . '/' . microtime(true) . '-' . bin2hex(random_bytes(4)) . '.profile';
         }
 
         if ($filename !== null) {
