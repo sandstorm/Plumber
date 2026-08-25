@@ -2,6 +2,13 @@
 Sandstorm:
   Plumber:
 
+    # Profiling costs time in every request and every CLI run and writes a file per run, so it is off unless
+    # asked for. Switch it on for a context (e.g. in Configuration/Development/Settings.yaml), or set
+    # PLUMBER_ENABLED=1 for a single run - the environment variable decides on its own and does not need the
+    # settings to be rebuilt.
+    # The /plumber UI works either way: it only reads the profiles which are already on disk.
+    enabled: false
+
     profilePath: '%FLOW_PATH_DATA%Logs/Profiles'
 
     calculations:
