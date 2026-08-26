@@ -367,18 +367,7 @@ class ProfilingRun extends EmptyProfilingRun
      */
     public function startTimer($name, array $data = array())
     {
-        if (!isset($this->timers[$name])) {
-            $this->timers[$name] = array();
-        }
-        $this->timers[$name][] = array(
-            'time' => microtime(TRUE),
-            'data' => $data,
-            'start' => TRUE,
-            'mem' => memory_get_peak_usage(TRUE),
-            'parent' => $this->activeTimer,
-            'dbQueryCount' => $this->numberOfDatabaseQueries
-        );
-        $this->activeTimer = $name;
+        $this->startTimerInternal($name, $data, microtime(TRUE));
     }
 
     /**
@@ -390,6 +379,58 @@ class ProfilingRun extends EmptyProfilingRun
      */
     public function stopTimer($name)
     {
+        $this->stopTimerInternal($name, microtime(TRUE));
+    }
+
+    /**
+     * Record a timer whose start and stop time were measured elsewhere.
+     *
+     * Callers which time an operation themselves (e.g. a tracer collecting spans in a
+     * subprocess) cannot use startTimer()/stopTimer(), because those stamp the current
+     * time. The two events are appended in one go, so the timer never appears as open.
+     *
+     * @param string $name
+     * @param array $data
+     * @param float $startTimestamp seconds, microtime(TRUE) scale
+     * @param float $stopTimestamp seconds, microtime(TRUE) scale
+     * @return void
+     * @api
+     */
+    public function manualTimer($name, array $data, $startTimestamp, $stopTimestamp)
+    {
+        $this->startTimerInternal($name, $data, $startTimestamp);
+        $this->stopTimerInternal($name, $stopTimestamp);
+    }
+
+    /**
+     * @param string $name
+     * @param array $data
+     * @param float $startTimestamp
+     * @return void
+     */
+    private function startTimerInternal($name, array $data, $startTimestamp)
+    {
+        if (!isset($this->timers[$name])) {
+            $this->timers[$name] = array();
+        }
+        $this->timers[$name][] = array(
+            'time' => $startTimestamp,
+            'data' => $data,
+            'start' => TRUE,
+            'mem' => memory_get_peak_usage(TRUE),
+            'parent' => $this->activeTimer,
+            'dbQueryCount' => $this->numberOfDatabaseQueries
+        );
+        $this->activeTimer = $name;
+    }
+
+    /**
+     * @param string $name
+     * @param float $stopTimestamp
+     * @return void
+     */
+    private function stopTimerInternal($name, $stopTimestamp)
+    {
         if (!isset($this->timers[$name])) {
             $this->timers[$name] = array();
         }
@@ -400,7 +441,7 @@ class ProfilingRun extends EmptyProfilingRun
         }
 
         $this->timers[$name][] = array(
-            'time' => microtime(TRUE),
+            'time' => $stopTimestamp,
             'start' => FALSE,
             'mem' => memory_get_peak_usage(TRUE),
             'dbQueryCount' => $this->numberOfDatabaseQueries

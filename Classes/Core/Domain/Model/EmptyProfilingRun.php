@@ -37,6 +37,28 @@ class EmptyProfilingRun
     }
 
     /**
+     * Returns all tags for this run.
+     *
+     * @return array
+     * @api
+     */
+    public function getTags()
+    {
+        return array();
+    }
+
+    /**
+     * Set tags for this run.
+     *
+     * @param array $tags
+     * @return void
+     * @api
+     */
+    public function setTags(array $tags)
+    {
+    }
+
+    /**
      * Start a timer
      *
      * @param string $name
@@ -56,6 +78,20 @@ class EmptyProfilingRun
      * @api
      */
     public function stopTimer($name)
+    {
+    }
+
+    /**
+     * Record a timer whose start and stop time were measured elsewhere.
+     *
+     * @param string $name
+     * @param array $data
+     * @param float $startTimestamp
+     * @param float $stopTimestamp
+     * @return void
+     * @api
+     */
+    public function manualTimer($name, array $data, $startTimestamp, $stopTimestamp)
     {
     }
 
