@@ -34,6 +34,25 @@ class EmptyProfilingRun
     }
 
     /**
+     * Returns all tags for this run.
+     *
+     * @api
+     */
+    public function getTags(): array
+    {
+        return [];
+    }
+
+    /**
+     * Set tags for this run.
+     *
+     * @api
+     */
+    public function setTags(array $tags): void
+    {
+    }
+
+    /**
      * Start a timer
      * @api
      */
