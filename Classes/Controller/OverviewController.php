@@ -12,6 +12,7 @@ namespace Sandstorm\Plumber\Controller;
  *                                                                        */
 
 use Neos\Flow\Annotations as Flow;
+use Sandstorm\Plumber\Export\ExportFormatRegistry;
 
 /**
  * Standard controller for the Sandstorm.Plumber package
@@ -32,6 +33,9 @@ class OverviewController extends AbstractController
      * @var \Sandstorm\Plumber\Service\RenderTagsService
      */
     protected $renderTagsService;
+
+    #[Flow\Inject]
+    protected ExportFormatRegistry $exportFormatRegistry;
 
     /**
      * Show an overview of all existing profiles.
@@ -114,6 +118,9 @@ class OverviewController extends AbstractController
         $this->view->assign('calculations', $calculations);
         $this->view->assign('options', $options);
         $this->view->assign('optionsJson', json_encode($options));
+        $exportFormats = $this->exportFormatRegistry->getLabels();
+        $this->view->assign('exportFormats', $exportFormats);
+        $this->view->assign('exportFormatsJson', json_encode($exportFormats));
     }
 
     /**
