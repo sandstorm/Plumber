@@ -108,7 +108,19 @@ This is the default configuration:
 ```
 Sandstorm:
   Plumber:
+    # off unless asked for - see "Switching profiling on and off"
+    enabled: false
+
     profilePath: '%FLOW_PATH_DATA%Logs/Profiles'
+
+    # formats offered for download in the overview - see "Exporting profiles"
+    exports:
+      perfetto:
+        className: Sandstorm\Plumber\Export\PerfettoTraceExport
+      sqlite:
+        className: Sandstorm\Plumber\Export\SqliteExport
+        options:
+          withXhprof: false
 
     # xhprof.io settings (see http://xhprof.io/)
     'xhprof.io':
@@ -127,6 +139,42 @@ Sandstorm:
 To enable the XHProf.io and XHGui backends adjust the configuration as needed, but keep in
 mind that any needed setup (e.g. databasae creation) needs to be done as described in the
 respective documentation.
+
+### Switching profiling on and off
+
+Profiling costs time in every request and every CLI run and writes a file per run, so `enabled` is `false` in the
+package defaults. Switch it on for a context, typically in `Configuration/Development/Settings.yaml`:
+
+```yaml
+Sandstorm:
+  Plumber:
+    enabled: true
+```
+
+For a single run, the environment variable `PLUMBER_ENABLED` decides on its own and overrules the setting in both
+directions - handy to profile one CLI command, or to keep one out of the profiles:
+
+```bash
+PLUMBER_ENABLED=1 ./flow some:command
+PLUMBER_ENABLED=0 ./flow some:command
+```
+
+The `/plumber` UI works either way: it only reads the profiles which are already on disk.
+
+The setting cannot be read while the package boots - Flow boots its packages before the configuration is
+available, which is also why `Profiler::setConfigurationProvider()` takes a closure. The run is therefore started
+as usual and discarded again as soon as the settings can be read, in a slot on the boot sequence's
+`afterInvokeStep` signal. What a disabled run costs is one object, two `microtime()` calls and the timers of the
+first two boot steps, all thrown away. `PLUMBER_ENABLED=0` is cheaper still: it returns from `boot()` before
+anything is started at all.
+
+### Profiles are written even when the process calls `exit()`
+
+Plumber saves a run when Flow emits `finishedRuntimeRun` / `finishedCompiletimeRun` at the end of
+`Bootstrap::run()`. A process which ends with `exit()` never gets there - which is how, for instance, every render
+worker of a Flowpack.DecoupledContentStore content release terminates. A shutdown function therefore saves the run
+as well; it also survives a fatal error. On the normal path it writes nothing, because the run has already been
+stopped by then.
 
 ### Limiting Profiling Run Probability
 
@@ -195,6 +243,19 @@ be active multiple times at the same time. The following example is perfectly va
 Furthermore, the `startTimer` allows a second `array` argument containing additional information
 which is shown in the UI.
 
+If you measured the time yourself - a tracer collecting spans, a duration read back from somewhere else - use
+`manualTimer()`, which takes the two timestamps instead of stamping the current time:
+
+```php
+\Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()
+    ->manualTimer('My Timer', ['url' => $url], $startTimestamp, $stopTimestamp);
+```
+
+Both timestamps have to be on the `microtime(true)` scale, because the run rebases every timer against its own
+start time when it stops. Recording a timer this way is what makes a *duration threshold* possible: you cannot
+decide whether a span is worth keeping before you know how long it took. The price is that such a timer has no
+children - its start and stop event are appended in one go.
+
 ### Setting Options
 
 Furthermore, you can set meta-information on the current run (which is called `options` currently):
@@ -208,6 +269,48 @@ Furthermore, you can set meta-information on the current run (which is called `o
 For the Plumber UI install the Plumber package as described in it's manual.
 
 For XHProf.ui and XHGui follow the instructions given on the project websites.
+
+## Exporting profiles
+
+The overview page offers every format registered at `Sandstorm.Plumber.exports` as a download, per profile and -
+via the tag field next to the buttons - for all profiles carrying one tag at once. Two ship with the package.
+
+**Perfetto trace** (`.perfetto.json`) is the Chrome/Catapult JSON Trace Event Format, to be dropped onto
+<https://ui.perfetto.dev>. Its timestamps are absolute, so profiles written by several processes at the same time
+line up on one timeline. Every profile becomes its own process; timers become slices, and because Plumber allows
+several timers to be open at once without nesting, slices are packed onto as many lanes as it takes for them to
+nest cleanly - Perfetto's importer rejects partially overlapping slices on one track. Timestamps become instant
+events, memory and query counters become counter tracks. The XHProf trace is deliberately left out: it is an
+aggregated caller-callee table with no timestamps, so there is no timeline to put it on. Plumber's own XHProf page
+stays the tool for that.
+
+**SQLite database** (`.sqlite`) writes `runs`, `timers`, `timestamps` and - only with `withXhprof: true` -
+`xhprof_functions`, so that questions spanning many profiles become a query:
+
+```sql
+SELECT json_extract(data_json, '$.site') AS site, count(*) AS docs, sum(duration_ms) AS ms
+FROM timers WHERE name = 'Content Release: Render Document'
+GROUP BY 1 ORDER BY ms DESC;
+
+SELECT name, duration_ms FROM timers
+WHERE name LIKE 'Content Release Document: %'
+ORDER BY duration_ms DESC LIMIT 20;
+```
+
+It needs the `pdo_sqlite` extension. `withXhprof` is off by default because a 40 MB profile is on the order of
+100.000 rows there, none of which carries timing information.
+
+To add a format, implement `Sandstorm\Plumber\Export\ExportFormatInterface` and register the class name under
+`Sandstorm.Plumber.exports`.
+
+### Recipe: finding the slow page in a content release
+
+1. `Sandstorm.Plumber.enabled: true`, and in Flowpack.DecoupledContentStore comment in
+   `Flowpack.DecoupledContentStore.nodeRendering.performanceTracer` (see that package's README).
+2. Run a content release. Every render worker writes a profile - one per 20 documents - tagged
+   `contentRelease:<releaseId>`.
+3. On `/plumber`, type that tag into the field next to the download buttons and pick a format: *SQLite* to run the
+   two queries above, *Perfetto trace* to see all workers side by side on one timeline.
 
 ## Credits
 

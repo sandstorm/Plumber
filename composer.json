@@ -29,9 +29,17 @@
     "neos/flow": "~8.4.0",
     "php": "^8.2"
   },
+  "suggest": {
+    "ext-pdo_sqlite": "Needed for the SQLite export format (Sandstorm.Plumber.exports.sqlite)."
+  },
   "autoload": {
     "psr-4": {
       "Sandstorm\\Plumber\\": "Classes"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Sandstorm\\Plumber\\Tests\\": "Tests/"
     }
   },
   "extra": {

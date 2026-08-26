@@ -11,6 +11,18 @@ Sandstorm:
 
     profilePath: '%FLOW_PATH_DATA%Logs/Profiles'
 
+    # Formats the /plumber overview offers for download, per profile and for all profiles of one tag at once.
+    # These are listed and not commented out: a registered format costs nothing until somebody clicks it.
+    exports:
+      perfetto:
+        # Chrome/Catapult JSON trace, to be opened at https://ui.perfetto.dev
+        className: Sandstorm\Plumber\Export\PerfettoTraceExport
+      sqlite:
+        className: Sandstorm\Plumber\Export\SqliteExport
+        options:
+          # also write the aggregated XHProf caller-callee table - large, and without any timeline information
+          withXhprof: false
+
     calculations:
 
       methodCallsOnObject:
