@@ -12,8 +12,6 @@ namespace Sandstorm\Plumber\Core;
  *                                                                        */
 
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Core\Bootstrap;
-use Neos\Flow\Configuration\ConfigurationManager;
 
 /**
  * PHP Profiler
@@ -45,6 +43,13 @@ class Profiler
      * @var Domain\Model\ProfilingRun
      */
     protected $emptyProfilingRun;
+
+    /**
+     * Options which every run of this process gets, including one which is only started later on.
+     *
+     * @var array
+     */
+    protected $runOptions = [];
 
     /**
      * Set up an EmptyProfilingRun
@@ -95,7 +100,52 @@ class Profiler
         }
         $this->currentlyRunningProfilingRun = new Domain\Model\ProfilingRun();
         $this->currentlyRunningProfilingRun->start();
+        foreach ($this->runOptions as $optionName => $optionValue) {
+            $this->currentlyRunningProfilingRun->setOption($optionName, $optionValue);
+        }
         return $this->currentlyRunningProfilingRun;
+    }
+
+    /**
+     * Start a profiling run unless one is already recording, and return it.
+     *
+     * This is for integrations which want to profile one part of a process instead of all of it: with
+     * Sandstorm.Plumber.enabled set to FALSE nothing is recording, and this starts a run at the point the
+     * interesting work begins. It is written to disk by the shutdown function registered during boot.
+     *
+     * If profiling is switched off for the whole process (PLUMBER_ENABLED=0), the package never booted its
+     * profiler and nothing would ever write such a run out - so the EmptyProfilingRun is returned instead.
+     *
+     * @api
+     */
+    public function startIfNotRunning(): Domain\Model\EmptyProfilingRun|Domain\Model\ProfilingRun
+    {
+        if ($this->currentlyRunningProfilingRun !== null) {
+            return $this->currentlyRunningProfilingRun;
+        }
+        if ($this->configurationProvider === null) {
+            return $this->emptyProfilingRun;
+        }
+        return $this->start();
+    }
+
+    /**
+     * Set an option on the current run and on every run started later in this process.
+     *
+     * Context and controller are known long before a lazily started run exists, so they are remembered
+     * here instead of being set on a single run object.
+     *
+     * @param string $name
+     * @param string $value
+     * @return void
+     * @api
+     */
+    public function setRunOption($name, $value)
+    {
+        $this->runOptions[$name] = $value;
+        if ($this->currentlyRunningProfilingRun !== null) {
+            $this->currentlyRunningProfilingRun->setOption($name, $value);
+        }
     }
 
     /**
