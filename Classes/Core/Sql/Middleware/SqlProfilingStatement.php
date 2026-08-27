@@ -88,14 +88,22 @@ final class SqlProfilingStatement extends AbstractStatementMiddleware
      */
     public function execute($params = null): ResultInterface
     {
-        $sqlParams = $params ?? $this->params;
-        $sqlParams['_sql'] = $this->sql;
-        $this->profiler->getRun()->startTimer('SQL Query', $sqlParams);
+        // One timer per query carries the statement and its bound parameters, which in a query-heavy job is 99%
+        // of the events in a profile - hence the switch. logSqlQuery() only counts, so the query count every
+        // timer carries stays correct either way.
+        $recordTimer = $this->profiler->isRecordingSqlQueryTimers();
+        if ($recordTimer) {
+            $sqlParams = $params ?? $this->params;
+            $sqlParams['_sql'] = $this->sql;
+            $this->profiler->getRun()->startTimer('SQL Query', $sqlParams);
+        }
         $this->profiler->getRun()->logSqlQuery($this->sql);
         try {
             return parent::execute($params);
         } finally {
-            $this->profiler->getRun()->stopTimer('SQL Query');
+            if ($recordTimer) {
+                $this->profiler->getRun()->stopTimer('SQL Query');
+            }
         }
     }
 }
