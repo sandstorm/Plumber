@@ -81,4 +81,20 @@ class EmptyProfilingRun
     public function logSqlQuery($sql): void
     {
     }
+
+    /**
+     * From here on, save() writes nothing unless markAsRelevant() is called.
+     *
+     * @api
+     */
+    public function discardUnlessMarkedRelevant(): void
+    {
+    }
+
+    /**
+     * @api
+     */
+    public function markAsRelevant(): void
+    {
+    }
 }

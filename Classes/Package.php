@@ -56,14 +56,15 @@ class Package extends BasePackage
         $dispatcher = $bootstrap->getSignalSlotDispatcher();
         $this->connectToSignals($dispatcher, $profiler, $bootstrap);
         $this->connectToNeosSignals($dispatcher, $profiler);
+        $this->applyRecordingSettings($dispatcher, $profiler, $bootstrap);
         if ($environmentOverride === null) {
             $this->discardRunIfSettingsDisableProfiling($dispatcher, $profiler, $bootstrap);
         }
 
-        // Flow emits finishedRuntimeRun at the end of Bootstrap::run(), and exit() skips it - which is how every
-        // render worker of a content release ends (see Flowpack.DecoupledContentStore's
-        // InterruptibleProcessRuntime). A shutdown function still runs in that case, and it also survives a fatal
-        // error. On the normal path it saves nothing, because stop() returns NULL once the run has been stopped.
+        // Flow emits finishedRuntimeRun at the end of Bootstrap::run(), and exit() skips it - which is how a
+        // worker process that restarts itself after a fixed number of items usually ends. A shutdown function
+        // still runs in that case, and it also survives a fatal error. On the normal path it saves nothing,
+        // because stop() returns NULL once the run has been stopped.
         register_shutdown_function(function () use ($profiler) {
             $profiler->stopAndSave();
         });
@@ -86,6 +87,31 @@ class Package extends BasePackage
     }
 
     /**
+     * Hand Sandstorm.Plumber.record to the profiler as soon as the settings can be read.
+     *
+     * This is connected whether or not the environment variable decides, because what a run records is a
+     * separate question from whether there is a run at all: PLUMBER_ENABLED=1 still respects the record
+     * settings. Runs started later in the process - an integration starting its own - pick them up from the
+     * profiler.
+     */
+    private function applyRecordingSettings(
+        Dispatcher $dispatcher,
+        Profiler $profiler,
+        Bootstrap $bootstrap,
+    ): void {
+        $dispatcher->connect(Sequence::class, 'afterInvokeStep', function ($step) use ($profiler, $bootstrap) {
+            if ($step->getIdentifier() !== 'neos.flow:configuration') {
+                return;
+            }
+
+            $settings = $bootstrap
+                ->getEarlyInstance(ConfigurationManager::class)
+                ->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'Sandstorm.Plumber');
+            $profiler->applyRecordingSettings($settings['record'] ?? []);
+        });
+    }
+
+    /**
      * Throw the profiling run away again unless the settings ask for profiling.
      *
      * Packages are booted before the neos.flow:configuration step, so the settings cannot be read in boot() -
@@ -94,11 +120,6 @@ class Package extends BasePackage
      * Profiler::getRun() return an EmptyProfilingRun, so every timer call afterwards does nothing and nothing is
      * ever written to disk - unless an integration explicitly starts a run again via
      * Profiler::startIfNotRunning() to profile one part of the process.
-     *
-     * @param Dispatcher $dispatcher
-     * @param Profiler $profiler
-     * @param Bootstrap $bootstrap
-     * @return void
      */
     private function discardRunIfSettingsDisableProfiling(
         Dispatcher $dispatcher,

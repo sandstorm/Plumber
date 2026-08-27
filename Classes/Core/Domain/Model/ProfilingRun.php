@@ -84,6 +84,19 @@ class ProfilingRun extends EmptyProfilingRun
     private array $cachedCalculationResults;
 
     /**
+     * Whether start() turns the XHProf trace on. See Sandstorm.Plumber.record.xhprof.
+     */
+    private bool $recordXhprof = true;
+
+    /**
+     * Whether save() writes anything at all unless markAsRelevant() was called. Armed by integrations which
+     * only want the runs in which something interesting happened - see discardUnlessMarkedRelevant().
+     */
+    private bool $requiresRelevance = false;
+
+    private bool $isRelevant = false;
+
+    /**
      * @inheritDoc
      * @api
      */
@@ -129,14 +142,68 @@ class ProfilingRun extends EmptyProfilingRun
         $this->timers = [];
         $this->timestamps = [];
         $this->startTime = microtime(true);
-        if (function_exists('tideways_xhprof_enable')) {
-            tideways_xhprof_enable(TIDEWAYS_XHPROF_FLAGS_CPU | TIDEWAYS_XHPROF_FLAGS_MEMORY);
-        } elseif (function_exists('xhprof_enable')) {
-            // The xhprof extension produces the same trace format as tideways_xhprof and is the
-            // only one of the two with builds for PHP versions beyond 8.4.
-            xhprof_enable(XHPROF_FLAGS_CPU | XHPROF_FLAGS_MEMORY);
+        if ($this->recordXhprof) {
+            if (function_exists('tideways_xhprof_enable')) {
+                tideways_xhprof_enable(TIDEWAYS_XHPROF_FLAGS_CPU | TIDEWAYS_XHPROF_FLAGS_MEMORY);
+            } elseif (function_exists('xhprof_enable')) {
+                // The xhprof extension produces the same trace format as tideways_xhprof and is the
+                // only one of the two with builds for PHP versions beyond 8.4.
+                xhprof_enable(XHPROF_FLAGS_CPU | XHPROF_FLAGS_MEMORY);
+            }
         }
         $this->startTimer('Profiling Run');
+    }
+
+    /**
+     * Decide whether start() turns the XHProf trace on. Has to be called before start().
+     * @api
+     */
+    public function setRecordXhprof(bool $recordXhprof): void
+    {
+        $this->recordXhprof = $recordXhprof;
+    }
+
+    /**
+     * Turn the XHProf trace off again and throw away what it collected so far.
+     *
+     * Packages boot before the settings are readable, so a run which the settings did not want traced has the
+     * trace running already by the time that is known.
+     * @api
+     */
+    public function stopRecordingXhprof(): void
+    {
+        if (!$this->recordXhprof) {
+            return;
+        }
+        $this->recordXhprof = false;
+        if (function_exists('tideways_xhprof_disable')) {
+            tideways_xhprof_disable();
+        } elseif (function_exists('xhprof_disable')) {
+            xhprof_disable();
+        }
+        $this->xhprofTrace = null;
+    }
+
+    /**
+     * From here on, save() writes nothing unless markAsRelevant() is called.
+     *
+     * A worker of a batch job profiles a fixed number of items and then restarts, so a long run produces
+     * thousands of profiles of which only a handful are worth looking at. An integration which knows what "worth
+     * looking at" means arms this at the start and marks the run when it happens.
+     *
+     * @api
+     */
+    public function discardUnlessMarkedRelevant(): void
+    {
+        $this->requiresRelevance = true;
+    }
+
+    /**
+     * @api
+     */
+    public function markAsRelevant(): void
+    {
+        $this->isRelevant = true;
     }
 
     /**
@@ -145,10 +212,12 @@ class ProfilingRun extends EmptyProfilingRun
     public function stop(): void
     {
         $this->stopTimer('Profiling Run');
-        if (function_exists('tideways_xhprof_disable')) {
-            $this->xhprofTrace = tideways_xhprof_disable();
-        } elseif (function_exists('xhprof_disable')) {
-            $this->xhprofTrace = xhprof_disable();
+        if ($this->recordXhprof) {
+            if (function_exists('tideways_xhprof_disable')) {
+                $this->xhprofTrace = tideways_xhprof_disable();
+            } elseif (function_exists('xhprof_disable')) {
+                $this->xhprofTrace = xhprof_disable();
+            }
         }
 
         $this->convertTimersRelativeToStartTime();
@@ -176,6 +245,10 @@ class ProfilingRun extends EmptyProfilingRun
      */
     public function save(array $settings = []): void
     {
+        if ($this->requiresRelevance && !$this->isRelevant) {
+            return;
+        }
+
         if ($settings !== [] && is_array($this->xhprofTrace)) {
             if (FLOW_SAPITYPE === 'CLI') {
                 $_SERVER['HTTP_HOST'] = 'localhost';
@@ -210,6 +283,7 @@ class ProfilingRun extends EmptyProfilingRun
             }
 
             @file_put_contents($filename, serialize($this));
+            ProfileSummary::fromProfilingRun($filename, $this)->save();
         }
     }
 
@@ -275,6 +349,15 @@ class ProfilingRun extends EmptyProfilingRun
         return [];
     }
 
+    /**
+     * The calculation configuration the cached results belong to, so that {@see ProfileSummary} can carry both
+     * over into the sidecar.
+     */
+    public function getCalculationHash(): ?string
+    {
+        return $this->currentCalculationHash ?? null;
+    }
+
     public function setPathAndFilename(string $fullPath): void
     {
         $this->pathAndFilename = $fullPath;
@@ -288,10 +371,7 @@ class ProfilingRun extends EmptyProfilingRun
     public function remove(): void
     {
         if ($this->pathAndFilename !== null) {
-            unlink($this->pathAndFilename);
-            if (file_exists($this->pathAndFilename . '.xhprof')) {
-                unlink($this->pathAndFilename . '.xhprof');
-            }
+            ProfileSummary::fromProfilingRun($this->pathAndFilename, $this)->remove();
         }
     }
 

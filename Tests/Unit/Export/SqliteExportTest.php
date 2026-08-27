@@ -9,8 +9,8 @@ use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Export\SqliteExport;
 
 /**
- * The export exists so that "which site costs the most rendering time in this content release" is a query rather
- * than a click through the UI, so that query is what is asserted.
+ * The export exists so that "which group of items costs the most time in this job" is a query rather than a click
+ * through the UI, so that query is what is asserted.
  */
 final class SqliteExportTest extends UnitTestCase
 {
@@ -36,50 +36,50 @@ final class SqliteExportTest extends UnitTestCase
     public function testTimersOfSeveralProfilesCanBeGroupedByTheirParams(): void
     {
         $database = $this->export([
-            'worker-1.profile' => $this->runWithDocuments(['louis' => 0.4, 'louis-cz' => 0.1]),
-            'worker-2.profile' => $this->runWithDocuments(['louis' => 0.2]),
+            'worker-1.profile' => $this->runWithItems(['first' => 0.4, 'second' => 0.1]),
+            'worker-2.profile' => $this->runWithItems(['first' => 0.2]),
         ]);
 
         $rows = $database->query(
-            "SELECT json_extract(data_json, '\$.site') AS site, count(*) AS docs, sum(duration_ms) AS ms"
-            . " FROM timers WHERE name = 'Content Release: Render Document' GROUP BY 1 ORDER BY ms DESC",
+            "SELECT json_extract(data_json, '\$.group') AS \"group\", count(*) AS items, sum(duration_ms) AS ms"
+            . " FROM timers WHERE name = 'Process Item' GROUP BY 1 ORDER BY ms DESC",
         )->fetchAll(\PDO::FETCH_ASSOC);
 
-        self::assertSame('louis', $rows[0]['site']);
-        self::assertSame(2, (int)$rows[0]['docs']);
+        self::assertSame('first', $rows[0]['group']);
+        self::assertSame(2, (int)$rows[0]['items']);
         self::assertEqualsWithDelta(600.0, (float)$rows[0]['ms'], 1.0);
-        self::assertSame('louis-cz', $rows[1]['site']);
+        self::assertSame('second', $rows[1]['group']);
     }
 
     public function testOneRowPerProfileIsWrittenWithItsTags(): void
     {
-        $run = $this->runWithDocuments(['louis' => 0.1]);
-        $run->setTags(['contentRelease:1756123456']);
+        $run = $this->runWithItems(['first' => 0.1]);
+        $run->setTags(['job:1756123456']);
         $database = $this->export(['worker-1.profile' => $run]);
 
         $rows = $database->query('SELECT file, tags FROM runs')->fetchAll(\PDO::FETCH_ASSOC);
         self::assertCount(1, $rows);
         self::assertSame('worker-1.profile', $rows[0]['file']);
-        self::assertSame(['contentRelease:1756123456'], json_decode($rows[0]['tags'], true));
+        self::assertSame(['job:1756123456'], json_decode($rows[0]['tags'], true));
     }
 
     public function testTheXhprofTableStaysEmptyUnlessItWasAskedFor(): void
     {
-        $database = $this->export(['worker-1.profile' => $this->runWithDocuments(['louis' => 0.1])]);
+        $database = $this->export(['worker-1.profile' => $this->runWithItems(['first' => 0.1])]);
 
         self::assertSame(0, (int)$database->query('SELECT count(*) FROM xhprof_functions')->fetchColumn());
     }
 
     /**
-     * @param array<string, float> $documents site => duration in seconds
+     * @param array<string, float> $items group => duration in seconds
      */
-    private function runWithDocuments(array $documents): ProfilingRun
+    private function runWithItems(array $items): ProfilingRun
     {
         $run = new ProfilingRun();
         $run->start();
         $offset = $run->getStartTimeAsFloat();
-        foreach ($documents as $site => $duration) {
-            $run->manualTimer('Content Release: Render Document', ['site' => $site], $offset, $offset + $duration);
+        foreach ($items as $group => $duration) {
+            $run->manualTimer('Process Item', ['group' => $group], $offset, $offset + $duration);
             $offset += $duration;
         }
         $run->stop();

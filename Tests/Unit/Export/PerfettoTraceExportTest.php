@@ -63,13 +63,13 @@ final class PerfettoTraceExportTest extends UnitTestCase
         $run = new ProfilingRun();
         $run->start();
         $startTime = $run->getStartTimeAsFloat();
-        $run->manualTimer('outer', ['site' => 'louis'], $startTime + 0.25, $startTime + 0.75);
+        $run->manualTimer('outer', ['group' => 'first'], $startTime + 0.25, $startTime + 0.75);
         $run->stop();
 
         $slices = $this->slicesByName($run);
         self::assertSame((int)round(($startTime + 0.25) * 1000000), $slices['outer']['ts']);
         self::assertSame(500000, $slices['outer']['dur']);
-        self::assertSame('louis', $slices['outer']['args']['site']);
+        self::assertSame('first', $slices['outer']['args']['group']);
     }
 
     public function testEachProfileBecomesItsOwnNamedProcess(): void
@@ -86,6 +86,49 @@ final class PerfettoTraceExportTest extends UnitTestCase
         self::assertCount(2, $processNames);
         self::assertContains('first.profile', $processNames);
         self::assertContains('second.profile', $processNames);
+    }
+
+    /**
+     * The controller hands the runs over one at a time, because the profiles of one job do not fit into memory
+     * together - so the export has to work off a generator and must not collect what it is given.
+     */
+    public function testRunsAreConsumedOneAtATime(): void
+    {
+        $live = 0;
+        $runs = (function () use (&$live): \Generator {
+            foreach (['first.profile', 'second.profile', 'third.profile'] as $filename) {
+                $live++;
+                yield $filename => $this->emptyRun();
+            }
+        })();
+
+        (new PerfettoTraceExport())->export($runs, $this->targetPathAndFilename);
+        $trace = json_decode((string)file_get_contents($this->targetPathAndFilename), true);
+
+        self::assertSame(3, $live);
+        self::assertCount(3, array_filter(
+            $trace['traceEvents'],
+            static fn(array $event): bool => $event['ph'] === 'M' && $event['name'] === 'process_name',
+        ));
+    }
+
+    public function testTheCounterTracksCanBeSwitchedOff(): void
+    {
+        $run = new ProfilingRun();
+        $run->start();
+        $startTime = $run->getStartTimeAsFloat();
+        $run->manualTimer('outer', [], $startTime + 0.1, $startTime + 0.2);
+        $run->stop();
+
+        (new PerfettoTraceExport(['withCounters' => false]))->export(
+            ['test.profile' => $run],
+            $this->targetPathAndFilename,
+        );
+        $trace = json_decode((string)file_get_contents($this->targetPathAndFilename), true);
+
+        $byPhase = array_count_values(array_column($trace['traceEvents'], 'ph'));
+        self::assertArrayNotHasKey('C', $byPhase);
+        self::assertGreaterThan(0, $byPhase['X']);
     }
 
     private function emptyRun(): ProfilingRun

@@ -26,7 +26,11 @@ interface ExportFormatInterface
     public function getContentType(): string;
 
     /**
-     * @param array<string, ProfilingRun> $runs keyed by profile filename
+     * The runs are iterable and not an array because the caller hands them over one at a time - the profiles of
+     * one job do not fit into memory together. An implementation must therefore write each run out as it
+     * arrives and must not collect them.
+     *
+     * @param iterable<string, ProfilingRun> $runs keyed by profile filename
      */
-    public function export(array $runs, string $targetPathAndFilename): void;
+    public function export(iterable $runs, string $targetPathAndFilename): void;
 }

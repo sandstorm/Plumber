@@ -189,7 +189,8 @@ function recordList(div) {
 			    + '<a href="' + addConcatenator(window.uris.sqlDetails) + 'runIdentifier1=' + d['id'] + '" class="btn small">SQL &raquo;</a>'
 				+ '<a href="' + addConcatenator(window.uris.xhprofDetails) + 'run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
 				+ '<a href="' + addConcatenator(window.uris.xhprofDebug) + 'runIdentifier=' + d['id'] + '" class="btn small" title="XHProf Debug">DBG &raquo;</a>'
-				+ exportButtons(d['id']);
+				+ exportButtons(d['id'])
+				+ '<a href="' + addConcatenator(window.uris.removeProfile) + 'profileFilename=' + encodeURIComponent(d['id']) + '" class="btn small danger" title="Delete this profile" onclick="return confirm(\'Delete this profile?\');">Delete &times;</a>';
 		});
 		recordSelectionEnter.append("td").attr('class', 'tagList').html(function (d) {
 			return d['tagsAsHtml'];
