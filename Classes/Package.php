@@ -11,7 +11,6 @@ use Neos\Flow\Mvc\ActionRequest;
 use Neos\Flow\Package\Package as BasePackage;
 use Neos\Flow\SignalSlot\Dispatcher;
 use Neos\Utility\Files;
-use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Core\Profiler;
 
 class Package extends BasePackage
@@ -51,12 +50,12 @@ class Package extends BasePackage
             return $settings;
         });
 
-        $run = $profiler->start();
-        $run->setOption('Context', (string) $bootstrap->getContext());
+        $profiler->setRunOption('Context', (string) $bootstrap->getContext());
+        $profiler->start();
 
         $dispatcher = $bootstrap->getSignalSlotDispatcher();
-        $this->connectToSignals($dispatcher, $profiler, $run, $bootstrap);
-        $this->connectToNeosSignals($dispatcher, $run);
+        $this->connectToSignals($dispatcher, $profiler, $bootstrap);
+        $this->connectToNeosSignals($dispatcher, $profiler);
         if ($environmentOverride === null) {
             $this->discardRunIfSettingsDisableProfiling($dispatcher, $profiler, $bootstrap);
         }
@@ -93,7 +92,8 @@ class Package extends BasePackage
      * that is also why the configuration provider above is a closure. Hence the run is started first and
      * discarded as soon as the settings are available: stopping it disables the xhprof trace and makes
      * Profiler::getRun() return an EmptyProfilingRun, so every timer call afterwards does nothing and nothing is
-     * ever written to disk.
+     * ever written to disk - unless an integration explicitly starts a run again via
+     * Profiler::startIfNotRunning() to profile one part of the process.
      *
      * @param Dispatcher $dispatcher
      * @param Profiler $profiler
@@ -125,14 +125,13 @@ class Package extends BasePackage
     private function connectToSignals(
         Dispatcher $dispatcher,
         Profiler $profiler,
-        ProfilingRun $run,
         Bootstrap $bootstrap,
     ): void {
-        $dispatcher->connect('Neos\Flow\Core\Booting\Sequence', 'beforeInvokeStep', function ($step) use ($run) {
-            $run->startTimer('Boostrap Sequence: ' . $step->getIdentifier());
+        $dispatcher->connect('Neos\Flow\Core\Booting\Sequence', 'beforeInvokeStep', function ($step) use ($profiler) {
+            $profiler->getRun()->startTimer('Boostrap Sequence: ' . $step->getIdentifier());
         });
-        $dispatcher->connect('Neos\Flow\Core\Booting\Sequence', 'afterInvokeStep', function ($step) use ($run) {
-            $run->stopTimer('Boostrap Sequence: ' . $step->getIdentifier());
+        $dispatcher->connect('Neos\Flow\Core\Booting\Sequence', 'afterInvokeStep', function ($step) use ($profiler) {
+            $profiler->getRun()->stopTimer('Boostrap Sequence: ' . $step->getIdentifier());
         });
 
         $dispatcher->connect('Neos\Flow\Core\Bootstrap', 'finishedRuntimeRun', function () use ($profiler, $bootstrap) {
@@ -157,8 +156,8 @@ class Package extends BasePackage
         $dispatcher->connect(
             'Neos\Flow\Mvc\Dispatcher',
             'beforeControllerInvocation',
-            function ($request, $response, $controller) use ($run) {
-                $run->setOption('Controller Name', get_class($controller));
+            function ($request, $response, $controller) use ($profiler) {
+                $profiler->setRunOption('Controller Name', get_class($controller));
                 $data = [
                     'Controller' => get_class($controller),
                 ];
@@ -166,11 +165,11 @@ class Package extends BasePackage
                     $data['Action'] = $request->getControllerActionName();
                 }
 
-                $run->startTimer('MVC: Controller Invocation', $data);
+                $profiler->getRun()->startTimer('MVC: Controller Invocation', $data);
             },
         );
-        $dispatcher->connect('Neos\Flow\Mvc\Dispatcher', 'afterControllerInvocation', function () use ($run) {
-            $run->stopTimer('MVC: Controller Invocation');
+        $dispatcher->connect('Neos\Flow\Mvc\Dispatcher', 'afterControllerInvocation', function () use ($profiler) {
+            $profiler->getRun()->stopTimer('MVC: Controller Invocation');
         });
     }
 
@@ -179,20 +178,20 @@ class Package extends BasePackage
      */
     private function connectToNeosSignals(
         Dispatcher $dispatcher,
-        ProfilingRun $run,
+        Profiler $profiler,
     ): void {
-        $dispatcher->connect('Neos\Fusion\Core\Runtime', 'beginEvaluation', function ($fusionPath) use ($run) {
-            $run->startTimer('TypoScript Runtime: ' . $fusionPath);
+        $dispatcher->connect('Neos\Fusion\Core\Runtime', 'beginEvaluation', function ($fusionPath) use ($profiler) {
+            $profiler->getRun()->startTimer('TypoScript Runtime: ' . $fusionPath);
         });
-        $dispatcher->connect('Neos\Fusion\Core\Runtime', 'endEvaluation', function ($fusionPath) use ($run) {
-            $run->stopTimer('TypoScript Runtime: ' . $fusionPath);
+        $dispatcher->connect('Neos\Fusion\Core\Runtime', 'endEvaluation', function ($fusionPath) use ($profiler) {
+            $profiler->getRun()->stopTimer('TypoScript Runtime: ' . $fusionPath);
         });
 
-        $dispatcher->connect('Neos\Neos\View\FusionView', 'beginRender', function () use ($run) {
-            $run->startTimer('Neos TypoScript Rendering');
+        $dispatcher->connect('Neos\Neos\View\FusionView', 'beginRender', function () use ($profiler) {
+            $profiler->getRun()->startTimer('Neos TypoScript Rendering');
         });
-        $dispatcher->connect('Neos\Neos\View\FusionView', 'endRender', function () use ($run) {
-            $run->stopTimer('Neos TypoScript Rendering');
+        $dispatcher->connect('Neos\Neos\View\FusionView', 'endRender', function () use ($profiler) {
+            $profiler->getRun()->stopTimer('Neos TypoScript Rendering');
         });
     }
 

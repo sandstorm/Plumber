@@ -161,6 +161,20 @@ PLUMBER_ENABLED=0 ./flow some:command
 
 The `/plumber` UI works either way: it only reads the profiles which are already on disk.
 
+Leaving it off is also what makes the profile list readable when an integration profiles one part of a process
+instead of all of it. `Profiler::startIfNotRunning()` starts a run at the point the interesting work begins and
+returns the run to record into:
+
+```php
+$run = Profiler::getInstance()->startIfNotRunning();
+$run->manualTimer('Render Document: ' . $url, [], $start, $stop);
+```
+
+Everything wired to the boot and Neos signals - SQL queries, Fusion evaluation, controller invocation - records
+into that run from then on, and the shutdown function writes it out. So with `enabled: false`, the only processes
+which leave a profile behind are the ones doing the work you asked about; `PLUMBER_ENABLED=0` switches off even
+those, because then the package never boots its profiler and nothing would write the run out.
+
 The setting cannot be read while the package boots - Flow boots its packages before the configuration is
 available, which is also why `Profiler::setConfigurationProvider()` takes a closure. The run is therefore started
 as usual and discarded again as soon as the settings can be read, in a slot on the boot sequence's
