@@ -52,6 +52,17 @@ class Profiler
     protected $runOptions = [];
 
     /**
+     * What a run records, from Sandstorm.Plumber.record. Defaults to everything, because packages boot before
+     * the settings are readable and the run started there is already recording by then.
+     *
+     * @var bool[]
+     */
+    private $recording = [
+        'sqlQueries' => true,
+        'xhprof' => true,
+    ];
+
+    /**
      * Set up an EmptyProfilingRun
      */
     protected function __construct()
@@ -99,6 +110,7 @@ class Profiler
             throw new \RuntimeException('Profiling already started', 1363337740);
         }
         $this->currentlyRunningProfilingRun = new Domain\Model\ProfilingRun();
+        $this->currentlyRunningProfilingRun->setRecordXhprof($this->recording['xhprof']);
         $this->currentlyRunningProfilingRun->start();
         foreach ($this->runOptions as $optionName => $optionValue) {
             $this->currentlyRunningProfilingRun->setOption($optionName, $optionValue);
@@ -146,6 +158,38 @@ class Profiler
         if ($this->currentlyRunningProfilingRun !== null) {
             $this->currentlyRunningProfilingRun->setOption($name, $value);
         }
+    }
+
+    /**
+     * Apply Sandstorm.Plumber.record to this process.
+     *
+     * Called once the settings are readable, which is after the run started during boot is already recording -
+     * hence the run in flight is switched over as well as every run started later.
+     *
+     * @param array $recording
+     * @return void
+     * @api
+     */
+    public function applyRecordingSettings(array $recording)
+    {
+        $this->recording = array_merge($this->recording, array_filter($recording, 'is_bool'));
+        if ($this->currentlyRunningProfilingRun !== null && !$this->recording['xhprof']) {
+            $this->currentlyRunningProfilingRun->stopRecordingXhprof();
+        }
+    }
+
+    /**
+     * Whether every SQL query gets its own timer. The query count is recorded either way.
+     *
+     * Read by {@see \Sandstorm\Plumber\Core\Sql\Middleware\SqlProfilingStatement}, which Doctrine instantiates
+     * outside the object manager and which therefore cannot have the setting injected.
+     *
+     * @return boolean
+     * @api
+     */
+    public function isRecordingSqlQueryTimers()
+    {
+        return $this->recording['sqlQueries'];
     }
 
     /**

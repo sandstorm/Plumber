@@ -113,10 +113,17 @@ Sandstorm:
 
     profilePath: '%FLOW_PATH_DATA%Logs/Profiles'
 
+    # what a run collects - see "Keeping profiles small"
+    record:
+      sqlQueries: true
+      xhprof: true
+
     # formats offered for download in the overview - see "Exporting profiles"
     exports:
       perfetto:
         className: Sandstorm\Plumber\Export\PerfettoTraceExport
+        options:
+          withCounters: true
       sqlite:
         className: Sandstorm\Plumber\Export\SqliteExport
         options:
@@ -167,7 +174,7 @@ returns the run to record into:
 
 ```php
 $run = Profiler::getInstance()->startIfNotRunning();
-$run->manualTimer('Render Document: ' . $url, [], $start, $stop);
+$run->manualTimer('Item: ' . $identifier, [], $start, $stop);
 ```
 
 Everything wired to the boot and Neos signals - SQL queries, Fusion evaluation, controller invocation - records
@@ -182,12 +189,53 @@ as usual and discarded again as soon as the settings can be read, in a slot on t
 first two boot steps, all thrown away. `PLUMBER_ENABLED=0` is cheaper still: it returns from `boot()` before
 anything is started at all.
 
+### Keeping profiles small
+
+A batch job whose workers restart every so often writes one profile per restart, and a long run can easily leave
+a four-digit number of them of ~10 MB each behind - more than any memory limit can list at once. Two settings
+decide most of that size.
+
+`record.sqlQueries` gives every SQL query its own timer, carrying the statement and its bound parameters. That is
+how a query shows up on the timeline and in the SQLite export, and in a query-heavy job it is easily **99% of all
+events**. Switching it off keeps the query *count*, so the "Number of DB queries" column and the DB counter track
+are unaffected - only the per-query timers go.
+
+`record.xhprof` writes the `<profile>.xhprof` sidecar of a few megabytes. Without it the XHProf page and the
+"No. of Method Calls" / "No. of Object Creations" columns have nothing to show, and the rest works unchanged.
+
+Both are applied as soon as the settings can be read, which is after the run started during boot is already
+recording - so a trace that the settings did not want is stopped and thrown away rather than never started.
+
+For a long-running process that starts its own run (see above), a third lever is the run itself:
+
+```php
+$run = Profiler::getInstance()->startIfNotRunning();
+$run->discardUnlessMarkedRelevant();   // save() writes nothing from here on ...
+// ... unless something worth looking at happened:
+$run->markAsRelevant();
+```
+
+An integration which knows what "worth looking at" means - a job that only cares about the batches containing an
+item slower than some threshold - arms the run when the work starts and marks it when such an item turns up.
+Batches in which nothing did are never written.
+
+### The `.meta.json` sidecar
+
+Next to every profile, `save()` writes a small JSON file with the run's options, tags and cached calculation
+results. The overview lists profiles from those sidecars alone and only reads a profile when a calculation is
+missing for it, which is what keeps the page openable with thousands of profiles on disk. Calculation results are
+written back into the sidecar, not into the profile.
+
+A profile written by an older Plumber has no sidecar; it is read once when the overview first lists it and gets
+one. Deleting a profile in the UI removes the profile, its XHProf trace and its sidecar together - when deleting
+by hand, take all three.
+
 ### Profiles are written even when the process calls `exit()`
 
 Plumber saves a run when Flow emits `finishedRuntimeRun` / `finishedCompiletimeRun` at the end of
-`Bootstrap::run()`. A process which ends with `exit()` never gets there - which is how, for instance, every render
-worker of a Flowpack.DecoupledContentStore content release terminates. A shutdown function therefore saves the run
-as well; it also survives a fatal error. On the normal path it writes nothing, because the run has already been
+`Bootstrap::run()`. A process which ends with `exit()` never gets there - which is how a worker process that
+restarts itself after a fixed number of items usually terminates. A shutdown function therefore saves the run as
+well; it also survives a fatal error. On the normal path it writes nothing, because the run has already been
 stopped by then.
 
 ### Limiting Profiling Run Probability
@@ -298,16 +346,21 @@ events, memory and query counters become counter tracks. The XHProf trace is del
 aggregated caller-callee table with no timestamps, so there is no timeline to put it on. Plumber's own XHProf page
 stays the tool for that.
 
+The counter tracks are sampled at every timer event and are typically the majority of the events in a trace - in
+one measured example 79.000 of 99.000 - so set `withCounters: false` when exporting many profiles at once.
+
 **SQLite database** (`.sqlite`) writes `runs`, `timers`, `timestamps` and - only with `withXhprof: true` -
 `xhprof_functions`, so that questions spanning many profiles become a query:
 
 ```sql
-SELECT json_extract(data_json, '$.site') AS site, count(*) AS docs, sum(duration_ms) AS ms
-FROM timers WHERE name = 'Content Release: Render Document'
+-- group a timer recorded once per item by something its params carry
+SELECT json_extract(data_json, '$.group') AS "group", count(*) AS items, sum(duration_ms) AS ms
+FROM timers WHERE name = 'Process Item'
 GROUP BY 1 ORDER BY ms DESC;
 
+-- the slowest individual items, where the timer name carries the item
 SELECT name, duration_ms FROM timers
-WHERE name LIKE 'Content Release Document: %'
+WHERE name LIKE 'Item: %'
 ORDER BY duration_ms DESC LIMIT 20;
 ```
 
@@ -317,14 +370,26 @@ It needs the `pdo_sqlite` extension. `withXhprof` is off by default because a 40
 To add a format, implement `Sandstorm\Plumber\Export\ExportFormatInterface` and register the class name under
 `Sandstorm.Plumber.exports`.
 
-### Recipe: finding the slow page in a content release
+### Recipe: finding the slow item in a parallel batch job
 
-1. `Sandstorm.Plumber.enabled: true`, and in Flowpack.DecoupledContentStore comment in
-   `Flowpack.DecoupledContentStore.nodeRendering.performanceTracer` (see that package's README).
-2. Run a content release. Every render worker writes a profile - one per 20 documents - tagged
-   `contentRelease:<releaseId>`.
+1. Have the job record a timer per item into a run of its own, and give every worker's run the same tag so that
+   the profiles belonging to one job can be found together:
+
+   ```php
+   $run = Profiler::getInstance()->startIfNotRunning();
+   $run->setTags(['job:' . $jobId]);
+   $run->manualTimer('Item: ' . $identifier, ['group' => $group], $start, $stop);
+   ```
+
+   Leave `Sandstorm.Plumber.enabled` at `false`, so that the workers are the only processes writing a profile at
+   all and the list is not buried under ordinary requests.
+2. Run the job. Every worker process writes one profile, tagged `job:<jobId>`.
 3. On `/plumber`, type that tag into the field next to the download buttons and pick a format: *SQLite* to run the
    two queries above, *Perfetto trace* to see all workers side by side on one timeline.
+
+For a long job, arm `discardUnlessMarkedRelevant()` so that only the batches containing a slow item are kept, and
+consider `record.sqlQueries: false` and `withCounters: false` - otherwise a big run leaves tens of gigabytes
+behind and its Perfetto trace is larger than <https://ui.perfetto.dev> will load.
 
 ## Credits
 

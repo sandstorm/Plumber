@@ -1,89 +1,85 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Controller;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Sandstorm.Plumber".     *
- *                                                                        *
- * It is free software; you can redistribute it and/or modify it under    *
- * the terms of the GNU General Public License, either version 3          *
- * of the License, or (at your option) any later version.                 *
- *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
- *                                                                        */
-
 use Neos\Flow\Annotations as Flow;
+use Neos\Utility\Arrays;
+use Sandstorm\Plumber\Core\Domain\Model\ProfileSummary;
 use Sandstorm\Plumber\Export\ExportFormatRegistry;
+use Sandstorm\Plumber\Service\CalculationService;
+use Sandstorm\Plumber\Service\RenderTagsService;
 
 /**
- * Standard controller for the Sandstorm.Plumber package
- *
- * @Flow\Scope("singleton")
+ * Overview controller for the Sandstorm.Plumber package
  */
+#[Flow\Scope("singleton")]
 class OverviewController extends AbstractController
 {
+    #[Flow\Inject]
+    protected CalculationService $calculationService;
 
-    /**
-     * @Flow\Inject
-     * @var \Sandstorm\Plumber\Service\CalculationService
-     */
-    protected $calculationService;
-
-    /**
-     * @Flow\Inject
-     * @var \Sandstorm\Plumber\Service\RenderTagsService
-     */
-    protected $renderTagsService;
+    #[Flow\Inject]
+    protected RenderTagsService $renderTagsService;
 
     #[Flow\Inject]
     protected ExportFormatRegistry $exportFormatRegistry;
 
     /**
      * Show an overview of all existing profiles.
-     *
-     * @return void
      */
-    public function indexAction()
+    public function indexAction(): void
     {
-        $profiles = $this->getProfiles();
-
-        $profileData = array();
-        $options = array();
+        $profileData = [];
+        $options = [];
 
         $calculations = $this->settings['calculations'];
 
         $currentCalculationHash = sha1(serialize($calculations));
 
-        $calculationMinMax = array();
+        $calculationMinMax = [];
         foreach ($calculations as $calculationName => $calculationOptions) {
-            $calculationMinMax[$calculationName] = array('min' => PHP_INT_MAX, 'max' => -PHP_INT_MAX);
+            $calculationMinMax[$calculationName] = ['min' => PHP_INT_MAX, 'max' => -PHP_INT_MAX];
         }
 
-        foreach ($profiles as $profileId => $profile) {
-            $currentProfileData = array();
+        // Summaries, not profiles: everything below reads metadata only, and a long batch job leaves thousands
+        // of profiles of ~10 MB behind. A profile is read - once, and released again straight away - only when a
+        // calculation is missing for it, and the result then goes back into the sidecar instead of rewriting the
+        // profile.
+        foreach ($this->getProfileSummaries() as $profileId => $summary) {
+            $currentProfileData = [];
             $currentProfileData['id'] = $profileId;
-            $currentProfileData['tagsAsHtml'] = $this->renderTagsService->render($profile->getTags());
-            foreach ($profile->getOptions() as $optionName => $optionValue) {
+            $currentProfileData['tagsAsHtml'] = $this->renderTagsService->render($summary->getTags());
+            foreach ($summary->getOptions() as $optionName => $optionValue) {
                 if (!is_string($optionValue)) {
                     continue;
                 }
                 if (!isset($options[$optionName])) {
-                    $options[$optionName] = array();
+                    $options[$optionName] = [];
                 }
                 $options[$optionName][$optionValue] = $optionValue;
                 $currentProfileData[$optionName] = $optionValue;
             }
 
-            $cachedCalculationResults = $profile->getCachedCalculationResults($currentCalculationHash);
+            $cachedCalculationResults = $summary->getCalculations($currentCalculationHash);
 
-            $shouldUpdateCalculationCache = FALSE;
-            foreach ($calculations as $calculationName => $calculationOptions) {
-                if (isset($cachedCalculationResults[$calculationName])) {
-                    $calculationResult = $cachedCalculationResults[$calculationName];
-                } else {
-                    $calculationResult = $this->calculationService->calculate($profile, $calculationOptions);
-                    $cachedCalculationResults[$calculationName] = $calculationResult;
-                    $shouldUpdateCalculationCache = TRUE;
+            $missingCalculations = array_diff_key($calculations, $cachedCalculationResults);
+            if ($missingCalculations !== []) {
+                $profile = $this->loadProfile($summary->getPathAndFilename());
+                if ($profile === null) {
+                    continue;
                 }
+                foreach ($missingCalculations as $calculationName => $calculationOptions) {
+                    $cachedCalculationResults[$calculationName] =
+                        $this->calculationService->calculate($profile, $calculationOptions);
+                }
+                unset($profile);
+                $summary->withCalculations($currentCalculationHash, $cachedCalculationResults)->save();
+            }
+
+            foreach ($calculations as $calculationName => $calculationOptions) {
+                $calculationResult = $cachedCalculationResults[$calculationName];
 
                 $currentProfileData[$calculationName] = $calculationResult;
                 if ($calculationResult['value'] < $calculationMinMax[$calculationName]['min']) {
@@ -93,14 +89,8 @@ class OverviewController extends AbstractController
                 if ($calculationResult['value'] > $calculationMinMax[$calculationName]['max']) {
                     $calculationMinMax[$calculationName]['max'] = $calculationResult['value'];
                 }
-
             }
             $profileData[] = $currentProfileData;
-
-            if ($shouldUpdateCalculationCache) {
-                $profile->setCachedCalculationResults($currentCalculationHash, $cachedCalculationResults);
-                $profile->save();
-            }
         }
 
         foreach ($calculations as $calculationName => &$calculationOptions) {
@@ -126,15 +116,11 @@ class OverviewController extends AbstractController
     /**
      * Updates the profile given in $profileFilename with the tags given in
      * $tagList (comma-separated tags) and return the tags rendered as HTML.
-     *
-     * @param string $profileFilename
-     * @param string $tagList
-     * @return string
      */
-    public function updateTagsAction($profileFilename, $tagList)
+    public function updateTagsAction(string $profileFilename, string $tagList): string
     {
         $profile = $this->getProfile($profileFilename);
-        $tags = \Neos\Utility\Arrays::trimExplode(',', $tagList);
+        $tags = Arrays::trimExplode(',', $tagList);
         $profile->setTags($tags);
         $profile->save();
         return $this->renderTagsService->render($tags);
@@ -142,31 +128,24 @@ class OverviewController extends AbstractController
 
     /**
      * Removes all profiles.
-     *
-     * @return void
      */
-    public function removeAllAction()
+    public function removeAllAction(): void
     {
-        $profiles = $this->getProfiles();
-
-        foreach ($profiles as $profile) {
-            $profile->remove();
+        // By path, not by summary: deleting everything has no reason to read anything first.
+        foreach ($this->getProfilePathsAndFilenames() as $pathAndFilename) {
+            ProfileSummary::removeProfile($pathAndFilename);
         }
         $this->redirect('index');
     }
 
     /**
      * Removes all untagged profiles.
-     *
-     * @return void
      */
-    public function removeAllUntaggedAction()
+    public function removeAllUntaggedAction(): void
     {
-        $profiles = $this->getProfiles();
-
-        foreach ($profiles as $profile) {
-            if (count($profile->getTags()) === 0) {
-                $profile->remove();
+        foreach ($this->getProfileSummaries() as $summary) {
+            if (count($summary->getTags()) === 0) {
+                $summary->remove();
             }
         }
         $this->redirect('index');
@@ -174,11 +153,8 @@ class OverviewController extends AbstractController
 
     /**
      * Removes the given profile.
-     *
-     * @param string $profileFilename
-     * @return void
      */
-    public function removeAction($profileFilename)
+    public function removeAction(string $profileFilename): void
     {
         $profile = $this->getProfile($profileFilename);
         $profile->remove();

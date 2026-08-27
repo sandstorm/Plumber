@@ -9,8 +9,8 @@ use Neos\Flow\Annotations as Flow;
 /**
  * Instantiates the export formats configured at Sandstorm.Plumber.exports.
  *
- * Unlike the tracer slot in Flowpack.DecoupledContentStore, the formats are listed and not commented out: a
- * registered format costs nothing until somebody clicks it.
+ * The formats are listed in the settings rather than commented out: a registered format costs nothing until
+ * somebody clicks it.
  */
 #[Flow\Scope('singleton')]
 class ExportFormatRegistry

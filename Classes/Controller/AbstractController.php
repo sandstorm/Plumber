@@ -7,14 +7,14 @@ namespace Sandstorm\Plumber\Controller;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Utility\Files;
+use Sandstorm\Plumber\Core\Domain\Model\ProfileSummary;
 use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Core\Profiler;
 
 /**
- * Standard controller for the Sandstorm.Plumber package
- *
- * @Flow\Scope("singleton")
+ * Abstract controller for the Sandstorm.Plumber package
  */
+#[Flow\Scope("singleton")]
 abstract class AbstractController extends ActionController
 {
     /**
@@ -51,30 +51,77 @@ abstract class AbstractController extends ActionController
     }
 
     /**
-     * Returns an array of ProfilingRun instances that have been saved earlier.
+     * Yields the ProfilingRun instances that have been saved earlier, one at a time.
      *
-     * @return array<ProfilingRun>
+     * A generator and not an array: a long batch job leaves thousands of profiles of ~10 MB behind, and holding
+     * them all at once exhausts any memory limit. Callers must therefore not keep a reference to a run after
+     * moving on to the next one. Where only the metadata is needed, use {@see getProfileSummaries()} instead,
+     * which does not read the profiles at all.
+     *
+     * @return \Generator<string, ProfilingRun>
      */
-    public function getProfiles(): array
+    public function getProfiles(): \Generator
+    {
+        foreach ($this->getProfilePathsAndFilenames() as $filename => $pathAndFilename) {
+            $profile = $this->loadProfile($pathAndFilename);
+            if ($profile !== null) {
+                yield $filename => $profile;
+            }
+        }
+    }
+
+    /**
+     * Yields what the overview shows about each saved run, without reading the profiles themselves.
+     *
+     * A profile written before Plumber wrote sidecars has none, so it is read once here and gets one.
+     *
+     * @return \Generator<string, ProfileSummary>
+     */
+    public function getProfileSummaries(): \Generator
+    {
+        foreach ($this->getProfilePathsAndFilenames() as $filename => $pathAndFilename) {
+            $summary = ProfileSummary::load($pathAndFilename);
+            if ($summary === null) {
+                $profile = $this->loadProfile($pathAndFilename);
+                if ($profile === null) {
+                    continue;
+                }
+                $summary = ProfileSummary::fromProfilingRun($pathAndFilename, $profile);
+                $summary->save();
+            }
+            yield $filename => $summary;
+        }
+    }
+
+    /**
+     * @return array<string, string> profile filename => full path
+     */
+    protected function getProfilePathsAndFilenames(): array
     {
         if (!file_exists($this->settings['profilePath'])) {
             return [];
         }
 
-        $directoryIterator = new \DirectoryIterator($this->settings['profilePath']);
-
-        $profiles = [];
-        foreach ($directoryIterator as $element) {
+        $pathsAndFilenames = [];
+        foreach (new \DirectoryIterator($this->settings['profilePath']) as $element) {
             if (preg_match('/\.profile$/', $element->getFilename())) {
-                $profile = unserialize(file_get_contents($element->getPathname()));
-                if (!$profile instanceof ProfilingRun) {
-                    continue;
-                }
-                $profile->setPathAndFilename($element->getPathname());
-                $profiles[$element->getFilename()] = $profile;
+                $pathsAndFilenames[$element->getFilename()] = $element->getPathname();
             }
         }
-        return $profiles;
+        ksort($pathsAndFilenames);
+
+        return $pathsAndFilenames;
+    }
+
+    protected function loadProfile(string $pathAndFilename): ?ProfilingRun
+    {
+        $profile = unserialize((string) file_get_contents($pathAndFilename));
+        if (!$profile instanceof ProfilingRun) {
+            return null;
+        }
+        $profile->setPathAndFilename($pathAndFilename);
+
+        return $profile;
     }
 }
 

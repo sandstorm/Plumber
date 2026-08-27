@@ -7,8 +7,8 @@ namespace Sandstorm\Plumber\Export;
 use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 
 /**
- * Writes the profiling runs into a SQLite file, so that questions spanning many runs - "which site costs the most
- * rendering time across this content release" - become a GROUP BY instead of a click through the UI.
+ * Writes the profiling runs into a SQLite file, so that questions spanning many runs - "which group of items
+ * costs the most time across this job" - become a GROUP BY instead of a click through the UI.
  *
  * Options:
  *   withXhprof - also write the aggregated caller-callee table. Off by default: a 40 MB profile is on the order
@@ -89,7 +89,7 @@ final class SqliteExport implements ExportFormatInterface
         return 'application/vnd.sqlite3';
     }
 
-    public function export(array $runs, string $targetPathAndFilename): void
+    public function export(iterable $runs, string $targetPathAndFilename): void
     {
         if (!extension_loaded('pdo_sqlite')) {
             throw new \RuntimeException(

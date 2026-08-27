@@ -10,21 +10,31 @@ use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
  * Writes the Chrome/Catapult JSON Trace Event Format, which https://ui.perfetto.dev ingests natively.
  *
  * Timestamps are absolute, not relative to the run, so that profiles written by several processes at the same
- * time - the render workers of one content release, for instance - line up on a single timeline.
+ * time - the worker processes of one batch job, for instance - line up on a single timeline.
  *
  * The XHProf trace is deliberately not exported: it is an aggregated caller-callee table without timestamps, so
  * there is no timeline to put it on. Plumber's own XHProf view stays the tool for that.
+ *
+ * Options:
+ *   withCounters - the memory and DB-query counter tracks, sampled at every timer event. They are the majority
+ *                  of the events in a trace (79.000 of 99.000 in one measured example), so switch them off when
+ *                  exporting many profiles at once.
  */
 final class PerfettoTraceExport implements ExportFormatInterface
 {
     /**
-     * This format has no options; the parameter exists because {@see ExportFormatRegistry} passes the configured
-     * options to every format.
-     *
+     * How many events are collected before they go to disk. Only bounds memory; any value works.
+     */
+    private const WRITE_CHUNK_SIZE = 2000;
+
+    private readonly bool $withCounters;
+
+    /**
      * @param array<string, mixed> $options
      */
     public function __construct(array $options = [])
     {
+        $this->withCounters = (bool)($options['withCounters'] ?? true);
     }
 
     public function getLabel(): string
@@ -42,35 +52,60 @@ final class PerfettoTraceExport implements ExportFormatInterface
         return 'application/json';
     }
 
-    public function export(array $runs, string $targetPathAndFilename): void
+    public function export(iterable $runs, string $targetPathAndFilename): void
     {
-        $traceEvents = [];
-        $sortIndex = 0;
-        foreach ($runs as $filename => $run) {
-            $processId = self::processIdFor($filename);
-            $traceEvents[] = self::metadataEvent($processId, 'process_name', 'name', self::processNameFor($filename, $run));
-            $traceEvents[] = self::metadataEvent($processId, 'process_sort_index', 'sort_index', $sortIndex);
-            $sortIndex++;
-
-            foreach ($this->buildEventsForRun($processId, $run) as $event) {
-                $traceEvents[] = $event;
-            }
+        // Written event by event rather than json_encode()d in one go: the profiles of a whole job are far
+        // larger than the memory limit, and the caller hands the runs over one at a time for the same reason.
+        $handle = fopen($targetPathAndFilename, 'wb');
+        if ($handle === false) {
+            throw new \RuntimeException('Could not write the trace to ' . $targetPathAndFilename, 1756200040);
         }
 
-        $json = json_encode(
-            ['traceEvents' => $traceEvents, 'displayTimeUnit' => 'ms'],
-            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR,
-        );
-        file_put_contents($targetPathAndFilename, $json);
+        fwrite($handle, '{"displayTimeUnit":"ms","traceEvents":[');
+        $buffer = [];
+        $isFirstEvent = true;
+        $sortIndex = 0;
+        foreach ($runs as $filename => $run) {
+            $processId = self::processIdFor((string)$filename);
+            $events = [
+                self::metadataEvent($processId, 'process_name', 'name', self::processNameFor((string)$filename, $run)),
+                self::metadataEvent($processId, 'process_sort_index', 'sort_index', $sortIndex),
+            ];
+            $sortIndex++;
+
+            foreach ($events as $event) {
+                $buffer[] = ($isFirstEvent ? '' : ',') . self::encode($event);
+                $isFirstEvent = false;
+            }
+
+            foreach ($this->buildEventsForRun($processId, $run) as $event) {
+                $buffer[] = ($isFirstEvent ? '' : ',') . self::encode($event);
+                $isFirstEvent = false;
+                if (count($buffer) >= self::WRITE_CHUNK_SIZE) {
+                    fwrite($handle, implode('', $buffer));
+                    $buffer = [];
+                }
+            }
+
+            fwrite($handle, implode('', $buffer));
+            $buffer = [];
+        }
+
+        fwrite($handle, ']}');
+        fclose($handle);
+    }
+
+    private static function encode(array $event): string
+    {
+        return (string)json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * @return \Generator<array<string, mixed>>
      */
-    private function buildEventsForRun(int $processId, ProfilingRun $run): array
+    private function buildEventsForRun(int $processId, ProfilingRun $run): \Generator
     {
         $runStartTime = (float)$run->getStartTimeAsFloat();
-        $events = [];
 
         $timers = $run->getTimersAsDuration();
         usort($timers, static function (array $a, array $b): int {
@@ -83,7 +118,7 @@ final class PerfettoTraceExport implements ExportFormatInterface
             $laneIndex = self::assignLane($lanes, (float)$timer['start'], (float)$timer['stop']);
             $args = is_array($timer['data']) ? $timer['data'] : [];
             $args['dbQueryCount'] = $timer['dbQueryCount'] ?? 0;
-            $events[] = [
+            yield [
                 'ph' => 'X',
                 'name' => $timer['name'],
                 'cat' => 'timer',
@@ -96,11 +131,11 @@ final class PerfettoTraceExport implements ExportFormatInterface
         }
 
         foreach (array_keys($lanes) as $laneIndex) {
-            $events[] = self::metadataEvent($processId, 'thread_name', 'name', 'lane ' . $laneIndex, $laneIndex);
+            yield self::metadataEvent($processId, 'thread_name', 'name', 'lane ' . $laneIndex, $laneIndex);
         }
 
         foreach ($run->getTimestamps() as $timestamp) {
-            $events[] = [
+            yield [
                 'ph' => 'i',
                 's' => 'p',
                 'name' => $timestamp['name'],
@@ -112,15 +147,17 @@ final class PerfettoTraceExport implements ExportFormatInterface
             ];
         }
 
+        if (!$this->withCounters) {
+            return;
+        }
+
         foreach ($run->getMemory() as $memory) {
-            $events[] = self::counterEvent($processId, 'Memory', 'bytes', $memory['mem'], $runStartTime + (float)$memory['time']);
+            yield self::counterEvent($processId, 'Memory', 'bytes', $memory['mem'], $runStartTime + (float)$memory['time']);
         }
 
         foreach ($run->getDbQueryCount() as $dbQueryCount) {
-            $events[] = self::counterEvent($processId, 'DB Queries', 'count', $dbQueryCount['dbQueryCount'], $runStartTime + (float)$dbQueryCount['time']);
+            yield self::counterEvent($processId, 'DB Queries', 'count', $dbQueryCount['dbQueryCount'], $runStartTime + (float)$dbQueryCount['time']);
         }
-
-        return $events;
     }
 
     /**
