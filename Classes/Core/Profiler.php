@@ -12,6 +12,7 @@ namespace Sandstorm\Plumber\Core;
  *                                                                        */
 
 use Neos\Flow\Annotations as Flow;
+use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 
 /**
  * PHP Profiler
@@ -221,13 +222,12 @@ class Profiler
 
     /**
      * Stop a profiling run if one is running, and return it.
-     *
-     * @return Domain\Model\ProfilingRun the profiling run or NULL if none is running
+     * If none is running, null is returned.
      */
-    public function stop()
+    public function stop(): ?ProfilingRun
     {
         if (!$this->currentlyRunningProfilingRun) {
-            return NULL;
+            return null;
         }
         $this->currentlyRunningProfilingRun->stop();
 
