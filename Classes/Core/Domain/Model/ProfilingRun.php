@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sandstorm\Plumber\Core\Domain\Model;
 
-use DateTime;
 use Neos\Flow\Annotations as Flow;
 
 /**
@@ -402,7 +401,7 @@ class ProfilingRun extends EmptyProfilingRun
     public function remove(): void
     {
         if ($this->pathAndFilename !== NULL) {
-            ProfileSummary::fromProfilingRun($this->pathAndFilename, $this)->remove();
+            ProfileSummary::removeProfile($this->pathAndFilename);
         }
     }
 
@@ -503,16 +502,6 @@ class ProfilingRun extends EmptyProfilingRun
             'mem' => memory_get_peak_usage(true),
             'dbQueryCount' => $this->numberOfDatabaseQueries
         ];
-    }
-
-    /**
-     * Returns the start time of this run as a DateTime.
-     *
-     * @return DateTime the start time
-     */
-    public function getStartTime(): DateTime
-    {
-        return DateTime::createFromFormat('U', (string) $this->startTime);
     }
 
     /**
