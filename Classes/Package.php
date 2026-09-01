@@ -1,28 +1,20 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Sandstorm.Plumber".     *
- *                                                                        *
- * It is free software; you can redistribute it and/or modify it under    *
- * the terms of the GNU General Public License, either version 3 of the   *
- * License, or (at your option) any later version.                        *
- *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
- *                                                                        */
-
 use Neos\Flow\Configuration\ConfigurationManager;
-use Neos\Flow\Package\Package as BasePackage;
+use Neos\Flow\Core\Booting\Sequence;
 use Neos\Flow\Core\Bootstrap;
+use Neos\Flow\Mvc\ActionRequest;
+use Neos\Flow\Package\Package as BasePackage;
+use Neos\Flow\SignalSlot\Dispatcher;
 use Neos\Utility\Files;
 use Sandstorm\Plumber\Core\Profiler;
 
-/**
- * TYPO3 Flow package bootstrap
- */
 class Package extends BasePackage
 {
-
     /**
      * Sets up xhprof and some directories.
      *
@@ -33,9 +25,14 @@ class Package extends BasePackage
     {
         define('XHPROF_ROOT', $this->getResourcesPath() . 'Private/PHP/xhprof-ui/');
 
-        if (($samplingRate = getenv('PHPPROFILER_SAMPLINGRATE')) !== FALSE) {
+        $environmentOverride = self::getIsPlumberEnabledFromEnvironment();
+        if ($environmentOverride === false) {
+            return;
+        }
+
+        if (($samplingRate = getenv('PHPPROFILER_SAMPLINGRATE')) !== false) {
             $currentSampleValue = mt_rand() / mt_getrandmax();
-            if ($currentSampleValue > (float)$samplingRate) {
+            if ($currentSampleValue > (float) $samplingRate) {
                 return;
             }
         }
@@ -43,7 +40,8 @@ class Package extends BasePackage
         $profiler = Profiler::getInstance();
         $profiler->setConfigurationProvider(function () use ($bootstrap) {
             $settings =
-                $bootstrap->getEarlyInstance('Neos\Flow\Configuration\ConfigurationManager')
+                $bootstrap
+                    ->getEarlyInstance('Neos\Flow\Configuration\ConfigurationManager')
                     ->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'Sandstorm.Plumber');
             if (!file_exists($settings['profilePath'])) {
                 Files::createDirectoryRecursively($settings['profilePath']);
@@ -52,31 +50,109 @@ class Package extends BasePackage
             return $settings;
         });
 
-        $run = $profiler->start();
-        $run->setOption('Context', (string)$bootstrap->getContext());
+        $profiler->setRunOption('Context', (string) $bootstrap->getContext());
+        $profiler->start();
 
         $dispatcher = $bootstrap->getSignalSlotDispatcher();
-        $this->connectToSignals($dispatcher, $profiler, $run, $bootstrap);
-        $this->connectToNeosSignals($dispatcher, $profiler, $run, $bootstrap);
+        $this->connectToSignals($dispatcher, $profiler, $bootstrap);
+        $this->connectToNeosSignals($dispatcher, $profiler);
+        $this->applyRecordingSettings($dispatcher, $profiler, $bootstrap);
+        if ($environmentOverride === null) {
+            $this->discardRunIfSettingsDisableProfiling($dispatcher, $profiler, $bootstrap);
+        }
+
+        // Flow emits finishedRuntimeRun at the end of Bootstrap::run(), and exit() skips it - which is how a
+        // worker process that restarts itself after a fixed number of items usually ends. A shutdown function
+        // still runs in that case, and it also survives a fatal error. On the normal path it saves nothing,
+        // because stop() returns NULL once the run has been stopped.
+        register_shutdown_function(function () use ($profiler) {
+            $profiler->stopAndSave();
+        });
+    }
+
+    /**
+     * PLUMBER_ENABLED decides on its own, so that a single run - one ./flow call, one prunner task - can be
+     * profiled or skipped without changing the configuration and without rebuilding the settings.
+     *
+     * @return boolean|null TRUE or FALSE if the environment variable decides, NULL if it is not set
+     */
+    private static function getIsPlumberEnabledFromEnvironment(): ?bool
+    {
+        $value = getenv('PLUMBER_ENABLED');
+        if ($value === false || $value === '') {
+            return null;
+        }
+
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * Hand Sandstorm.Plumber.record to the profiler as soon as the settings can be read.
+     *
+     * This is connected whether or not the environment variable decides, because what a run records is a
+     * separate question from whether there is a run at all: PLUMBER_ENABLED=1 still respects the record
+     * settings. Runs started later in the process - an integration starting its own - pick them up from the
+     * profiler.
+     */
+    private function applyRecordingSettings(
+        Dispatcher $dispatcher,
+        Profiler $profiler,
+        Bootstrap $bootstrap,
+    ): void {
+        $dispatcher->connect(Sequence::class, 'afterInvokeStep', function ($step) use ($profiler, $bootstrap) {
+            if ($step->getIdentifier() !== 'neos.flow:configuration') {
+                return;
+            }
+
+            $settings = $bootstrap
+                ->getEarlyInstance(ConfigurationManager::class)
+                ->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'Sandstorm.Plumber');
+            $profiler->applyRecordingSettings($settings['record'] ?? []);
+        });
+    }
+
+    /**
+     * Throw the profiling run away again unless the settings ask for profiling.
+     *
+     * Packages are booted before the neos.flow:configuration step, so the settings cannot be read in boot() -
+     * that is also why the configuration provider above is a closure. Hence the run is started first and
+     * discarded as soon as the settings are available: stopping it disables the xhprof trace and makes
+     * Profiler::getRun() return an EmptyProfilingRun, so every timer call afterwards does nothing and nothing is
+     * ever written to disk - unless an integration explicitly starts a run again via
+     * Profiler::startIfNotRunning() to profile one part of the process.
+     */
+    private function discardRunIfSettingsDisableProfiling(
+        Dispatcher $dispatcher,
+        Profiler $profiler,
+        Bootstrap $bootstrap,
+    ): void {
+        $dispatcher->connect(Sequence::class, 'afterInvokeStep', function ($step) use ($profiler, $bootstrap) {
+            if ($step->getIdentifier() !== 'neos.flow:configuration') {
+                return;
+            }
+
+            $settings = $bootstrap
+                ->getEarlyInstance(ConfigurationManager::class)
+                ->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'Sandstorm.Plumber');
+            if (($settings['enabled'] ?? false) !== true) {
+                $profiler->stop();
+            }
+        });
     }
 
     /**
      * Wire signals to slots as needed.
-     *
-     * @param \Neos\Flow\SignalSlot\Dispatcher $dispatcher
-     * @param Profiler $profiler
-     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $run
-     * @param \Neos\Flow\Core\Bootstrap $bootstrap
-     * @return void
      */
-    protected function connectToSignals(\Neos\Flow\SignalSlot\Dispatcher $dispatcher, Profiler $profiler,
-                                        \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $run, \Neos\Flow\Core\Bootstrap $bootstrap)
-    {
-        $dispatcher->connect('Neos\Flow\Core\Booting\Sequence', 'beforeInvokeStep', function ($step) use ($run) {
-            $run->startTimer('Boostrap Sequence: ' . $step->getIdentifier());
+    private function connectToSignals(
+        Dispatcher $dispatcher,
+        Profiler $profiler,
+        Bootstrap $bootstrap,
+    ): void {
+        $dispatcher->connect('Neos\Flow\Core\Booting\Sequence', 'beforeInvokeStep', function ($step) use ($profiler) {
+            $profiler->getRun()->startTimer('Boostrap Sequence: ' . $step->getIdentifier());
         });
-        $dispatcher->connect('Neos\Flow\Core\Booting\Sequence', 'afterInvokeStep', function ($step) use ($run) {
-            $run->stopTimer('Boostrap Sequence: ' . $step->getIdentifier());
+        $dispatcher->connect('Neos\Flow\Core\Booting\Sequence', 'afterInvokeStep', function ($step) use ($profiler) {
+            $profiler->getRun()->stopTimer('Boostrap Sequence: ' . $step->getIdentifier());
         });
 
         $dispatcher->connect('Neos\Flow\Core\Bootstrap', 'finishedRuntimeRun', function () use ($profiler, $bootstrap) {
@@ -86,54 +162,57 @@ class Package extends BasePackage
             }
         });
 
-        $dispatcher->connect('Neos\Flow\Core\Bootstrap', 'finishedCompiletimeRun', function () use ($profiler, $bootstrap) {
-            $run = $profiler->stop();
-            if ($run) {
-                $run->setOption('Context', 'COMPILE');
-                $profiler->save($run);
-            }
-        });
+        $dispatcher->connect(
+            'Neos\Flow\Core\Bootstrap',
+            'finishedCompiletimeRun',
+            function () use ($profiler, $bootstrap) {
+                $run = $profiler->stop();
+                if ($run) {
+                    $run->setOption('Context', 'COMPILE');
+                    $profiler->save($run);
+                }
+            },
+        );
 
-        $dispatcher->connect('Neos\Flow\Mvc\Dispatcher', 'beforeControllerInvocation', function ($request, $response, $controller) use ($run) {
-            $run->setOption('Controller Name', get_class($controller));
-            $data = array(
-                'Controller' => get_class($controller)
-            );
-            if ($request instanceof \Neos\Flow\Mvc\ActionRequest) {
-                $data['Action'] = $request->getControllerActionName();
-            }
+        $dispatcher->connect(
+            'Neos\Flow\Mvc\Dispatcher',
+            'beforeControllerInvocation',
+            function ($request, $response, $controller) use ($profiler) {
+                $profiler->setRunOption('Controller Name', get_class($controller));
+                $data = [
+                    'Controller' => get_class($controller),
+                ];
+                if ($request instanceof ActionRequest) {
+                    $data['Action'] = $request->getControllerActionName();
+                }
 
-            $run->startTimer('MVC: Controller Invocation', $data);
-        });
-        $dispatcher->connect('Neos\Flow\Mvc\Dispatcher', 'afterControllerInvocation', function () use ($run) {
-            $run->stopTimer('MVC: Controller Invocation');
+                $profiler->getRun()->startTimer('MVC: Controller Invocation', $data);
+            },
+        );
+        $dispatcher->connect('Neos\Flow\Mvc\Dispatcher', 'afterControllerInvocation', function () use ($profiler) {
+            $profiler->getRun()->stopTimer('MVC: Controller Invocation');
         });
     }
 
     /**
-     * Wire signals to slots as needed in TYPO3 Neos.
-     *
-     * @param \Neos\Flow\SignalSlot\Dispatcher $dispatcher
-     * @param Profiler $profiler
-     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $run
-     * @param \Neos\Flow\Core\Bootstrap $bootstrap
-     * @return void
+     * Wire signals to slots as needed in Neos.
      */
-    protected function connectToNeosSignals(\Neos\Flow\SignalSlot\Dispatcher $dispatcher, Profiler $profiler,
-                                            \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $run, \Neos\Flow\Core\Bootstrap $bootstrap)
-    {
-        $dispatcher->connect('Neos\Fusion\Core\Runtime', 'beginEvaluation', function ($fusionPath) use ($run) {
-            $run->startTimer('TypoScript Runtime: ' . $fusionPath);
+    private function connectToNeosSignals(
+        Dispatcher $dispatcher,
+        Profiler $profiler,
+    ): void {
+        $dispatcher->connect('Neos\Fusion\Core\Runtime', 'beginEvaluation', function ($fusionPath) use ($profiler) {
+            $profiler->getRun()->startTimer('TypoScript Runtime: ' . $fusionPath);
         });
-        $dispatcher->connect('Neos\Fusion\Core\Runtime', 'endEvaluation', function ($fusionPath) use ($run) {
-            $run->stopTimer('TypoScript Runtime: ' . $fusionPath);
+        $dispatcher->connect('Neos\Fusion\Core\Runtime', 'endEvaluation', function ($fusionPath) use ($profiler) {
+            $profiler->getRun()->stopTimer('TypoScript Runtime: ' . $fusionPath);
         });
 
-        $dispatcher->connect('Neos\Neos\View\FusionView', 'beginRender', function () use ($run) {
-            $run->startTimer('Neos TypoScript Rendering');
+        $dispatcher->connect('Neos\Neos\View\FusionView', 'beginRender', function () use ($profiler) {
+            $profiler->getRun()->startTimer('Neos TypoScript Rendering');
         });
-        $dispatcher->connect('Neos\Neos\View\FusionView', 'endRender', function () use ($run) {
-            $run->stopTimer('Neos TypoScript Rendering');
+        $dispatcher->connect('Neos\Neos\View\FusionView', 'endRender', function () use ($profiler) {
+            $profiler->getRun()->stopTimer('Neos TypoScript Rendering');
         });
     }
 

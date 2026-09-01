@@ -1,15 +1,8 @@
 <?php
-namespace Sandstorm\Plumber\Core\Domain\Model;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Sandstorm.PhpProfiler". *
- *                                                                        *
- * It is free software; you can redistribute it and/or modify it under    *
- * the terms of the GNU General Public License, either version 3 of the   *
- * License, or (at your option) any later version.                        *
- *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
- *                                                                        */
+declare(strict_types=1);
+
+namespace Sandstorm\Plumber\Core\Domain\Model;
 
 use Neos\Flow\Annotations as Flow;
 
@@ -18,59 +11,81 @@ use Neos\Flow\Annotations as Flow;
  *
  * This is needed such that the user can do ...getRun()->startTimer() even
  * when profiling is disabled.
- *
- * @Flow\Proxy(false)
  */
+#[Flow\Proxy(false)]
 class EmptyProfilingRun
 {
-
     /**
      * Set an option.
      *
      * @param string $key
      * @param mixed $value
-     * @return void
      * @api
      */
-    public function setOption($key, $value)
+    public function setOption($key, $value): void {}
+
+    /**
+     * Returns all tags for this run.
+     *
+     * @api
+     */
+    public function getTags(): array
     {
+        return [];
     }
+
+    /**
+     * Set tags for this run.
+     *
+     * @api
+     */
+    public function setTags(array $tags): void {}
 
     /**
      * Start a timer
      *
      * @param string $name
-     * @param array $data
-     * @return void
      * @api
      */
-    public function startTimer($name, array $data = array())
-    {
-    }
+    public function startTimer($name, array $data = []): void {}
 
     /**
      * Stop a timer
      *
      * @param string $name
-     * @return void
      * @api
      */
-    public function stopTimer($name)
-    {
-    }
+    public function stopTimer($name): void {}
+
+    /**
+     * Record a timer whose start and stop time were measured elsewhere.
+     *
+     * @param string $name
+     * @param array $data
+     * @param float $startTimestamp
+     * @param float $stopTimestamp
+     * @api
+     */
+    public function manualTimer($name, array $data, $startTimestamp, $stopTimestamp): void {}
 
     /**
      * Record a timestamp
      *
      * @param string $name
-     * @param array $data
-     * @return void
      */
-    public function timestamp($name, array $data = array())
-    {
-    }
+    public function timestamp($name, array $data = []): void {}
 
-    public function logSqlQuery($sql)
-    {
-    }
+    public function logSqlQuery($sql): void {}
+
+    /**
+     * From here on, save() writes nothing unless markAsRelevant() is called.
+     *
+     * @api
+     */
+    public function discardUnlessMarkedRelevant(): void {}
+
+    /**
+     * @api
+     */
+    public function markAsRelevant(): void {}
 }

@@ -15,9 +15,8 @@ use Neos\Flow\Annotations as Flow;
 
 /**
  * Standard controller for the Sandstorm.Plumber package
- *
- * @Flow\Scope("singleton")
  */
+#[Flow\Scope("singleton")]
 class StandardController extends AbstractController
 {
 

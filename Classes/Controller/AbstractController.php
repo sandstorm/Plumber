@@ -1,32 +1,27 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Controller;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Sandstorm.Plumber".     *
- *                                                                        *
- * It is free software; you can redistribute it and/or modify it under    *
- * the terms of the GNU General Public License, either version 3          *
- * of the License, or (at your option) any later version.                 *
- *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
- *                                                                        */
-
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Utility\Files;
+use Sandstorm\Plumber\Core\Domain\Model\ProfileSummary;
+use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
+use Sandstorm\Plumber\Core\Profiler;
 
 /**
- * Standard controller for the Sandstorm.Plumber package
- *
- * @Flow\Scope("singleton")
+ * Abstract controller for the Sandstorm.Plumber package
  */
-abstract class AbstractController extends \Neos\Flow\Mvc\Controller\ActionController
+#[Flow\Scope("singleton")]
+abstract class AbstractController extends ActionController
 {
-
     /**
      * @param array $settings
      * @return void
      */
-    public function injectSettings(array $settings)
+    public function injectSettings(array $settings): void
     {
         $this->settings = $settings;
     }
@@ -36,47 +31,103 @@ abstract class AbstractController extends \Neos\Flow\Mvc\Controller\ActionContro
      *
      * @return void
      */
-    protected function initializeAction()
+    protected function initializeAction(): void
     {
-        \Sandstorm\Plumber\Core\Profiler::getInstance()->stop();
+        Profiler::getInstance()->stop();
     }
 
     /**
      * Returns a ProfilingRun instance that has been saved as $filename.
      *
      * @param string $filename
-     * @return \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun
+     * @return ProfilingRun
      */
-    protected function getProfile($filename)
+    protected function getProfile(string $filename): ProfilingRun
     {
-        $pathAndFilename = Files::concatenatePaths(array($this->settings['profilePath'], $filename));
+        $pathAndFilename = Files::concatenatePaths([$this->settings['profilePath'], $filename]);
         $profile = unserialize(file_get_contents($pathAndFilename));
         $profile->setPathAndFilename($pathAndFilename);
         return $profile;
     }
 
     /**
-     * Returns an array of ProfilingRun instances that have been saved earlier.
+     * Yields the ProfilingRun instances that have been saved earlier, one at a time.
      *
-     * @return array<\Sandstorm\Plumber\Core\Domain\Model\ProfilingRun>
+     * A generator and not an array: a long batch job leaves thousands of profiles of ~10 MB behind, and holding
+     * them all at once exhausts any memory limit. Callers must therefore not keep a reference to a run after
+     * moving on to the next one. Where only the metadata is needed, use {@see getProfileSummaries()} instead,
+     * which does not read the profiles at all.
+     *
+     * @return \Generator<string, ProfilingRun>
      */
-    public function getProfiles()
+    public function getProfiles(): \Generator
     {
-        if (!file_exists($this->settings['profilePath'])) {
-            return array();
+        foreach ($this->getProfilePathsAndFilenames() as $filename => $pathAndFilename) {
+            $profile = $this->loadProfile($pathAndFilename);
+            if ($profile !== null) {
+                yield $filename => $profile;
+            }
         }
+    }
 
-        $directoryIterator = new \DirectoryIterator($this->settings['profilePath']);
-
-        $profiles = array();
-        foreach ($directoryIterator as $element) {
-            if (preg_match('/\.profile$/', $element->getFilename())) {
-                $profiles[$element->getFilename()] = unserialize(file_get_contents($element->getPathname()));
-                $profiles[$element->getFilename()]->setPathAndFilename($element->getPathname());
+    /**
+     * Yields what the overview shows about each saved run, without reading the profiles themselves.
+     *
+     * A profile written before Plumber wrote sidecars has none, so it is read once here and gets one. That run
+     * comes along with its summary, because a caller which needs the profile anyway - to compute what the fresh
+     * sidecar cannot supply yet - would otherwise read the same multi-megabyte file a second time. It is NULL
+     * whenever the summary came from a sidecar, which is the normal case.
+     *
+     * @return \Generator<string, array{ProfileSummary, ?ProfilingRun}>
+     */
+    public function getProfileSummaries(): \Generator
+    {
+        foreach ($this->getProfilePathsAndFilenames() as $filename => $pathAndFilename) {
+            $summary = ProfileSummary::load($pathAndFilename);
+            if ($summary !== null) {
+                yield $filename => [$summary, null];
+                continue;
             }
 
+            $profile = $this->loadProfile($pathAndFilename);
+            if ($profile === null) {
+                continue;
+            }
+            $summary = ProfileSummary::fromProfilingRun($pathAndFilename, $profile);
+            $summary->save();
+            yield $filename => [$summary, $profile];
         }
-        return $profiles;
+    }
+
+    /**
+     * @return array<string, string> profile filename => full path
+     */
+    protected function getProfilePathsAndFilenames(): array
+    {
+        if (!file_exists($this->settings['profilePath'])) {
+            return [];
+        }
+
+        $pathsAndFilenames = [];
+        foreach (new \DirectoryIterator($this->settings['profilePath']) as $element) {
+            if (preg_match('/\.profile$/', $element->getFilename())) {
+                $pathsAndFilenames[$element->getFilename()] = $element->getPathname();
+            }
+        }
+        ksort($pathsAndFilenames);
+
+        return $pathsAndFilenames;
+    }
+
+    protected function loadProfile(string $pathAndFilename): ?ProfilingRun
+    {
+        $profile = unserialize((string) file_get_contents($pathAndFilename));
+        if (!$profile instanceof ProfilingRun) {
+            return null;
+        }
+        $profile->setPathAndFilename($pathAndFilename);
+
+        return $profile;
     }
 }
 
