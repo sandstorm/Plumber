@@ -47,7 +47,7 @@ class OverviewController extends AbstractController
         // of profiles of ~10 MB behind. A profile is read - once, and released again straight away - only when a
         // calculation is missing for it, and the result then goes back into the sidecar instead of rewriting the
         // profile.
-        foreach ($this->getProfileSummaries() as $profileId => $summary) {
+        foreach ($this->getProfileSummaries() as $profileId => [$summary, $profile]) {
             $currentProfileData = [];
             $currentProfileData['id'] = $profileId;
             $currentProfileData['tagsAsHtml'] = $this->renderTagsService->render($summary->getTags());
@@ -66,7 +66,9 @@ class OverviewController extends AbstractController
 
             $missingCalculations = array_diff_key($calculations, $cachedCalculationResults);
             if ($missingCalculations !== []) {
-                $profile = $this->loadProfile($summary->getPathAndFilename());
+                // A summary just built from a profile brings that profile with it; only a sidecar which is
+                // missing a calculation - because the configuration changed - has to read one.
+                $profile ??= $this->loadProfile($summary->getPathAndFilename());
                 if ($profile === null) {
                     continue;
                 }
@@ -74,9 +76,9 @@ class OverviewController extends AbstractController
                     $cachedCalculationResults[$calculationName] =
                         $this->calculationService->calculate($profile, $calculationOptions);
                 }
-                unset($profile);
                 $summary->withCalculations($currentCalculationHash, $cachedCalculationResults)->save();
             }
+            unset($profile);
 
             foreach ($calculations as $calculationName => $calculationOptions) {
                 $calculationResult = $cachedCalculationResults[$calculationName];
@@ -143,7 +145,7 @@ class OverviewController extends AbstractController
      */
     public function removeAllUntaggedAction(): void
     {
-        foreach ($this->getProfileSummaries() as $summary) {
+        foreach ($this->getProfileSummaries() as [$summary]) {
             if (count($summary->getTags()) === 0) {
                 $summary->remove();
             }

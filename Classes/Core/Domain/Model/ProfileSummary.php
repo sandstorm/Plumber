@@ -46,6 +46,18 @@ final class ProfileSummary
         $calculationHash = (string)$run->getCalculationHash();
         $calculations = $calculationHash === '' ? null : $run->getCachedCalculationResults($calculationHash);
 
+        if (!is_array($calculations) || $calculations === []) {
+            // Only a run written by an older Plumber carries calculation results of its own; they live in the
+            // sidecar now, and nothing puts them back into the run. Keeping what an existing sidecar already
+            // holds is therefore what stops rewriting a profile - to change its tags, say - from throwing the
+            // overview's computed results away and making it read the whole profile again.
+            $existing = self::load($pathAndFilename);
+            if ($existing !== null && $existing->calculations !== []) {
+                $calculationHash = $existing->calculationHash;
+                $calculations = $existing->calculations;
+            }
+        }
+
         return new self(
             $pathAndFilename,
             $run->getOptions(),

@@ -50,7 +50,7 @@ class ExportController extends AbstractController
     public function downloadAllAction(string $format, string $tag = ''): StreamInterface
     {
         $summaries = [];
-        foreach ($this->getProfileSummaries() as $filename => $summary) {
+        foreach ($this->getProfileSummaries() as $filename => [$summary]) {
             if ($tag === '' || in_array($tag, $summary->getTags(), true)) {
                 $summaries[$filename] = $summary;
             }

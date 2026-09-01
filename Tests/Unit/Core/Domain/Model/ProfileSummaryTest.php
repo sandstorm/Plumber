@@ -107,6 +107,27 @@ final class ProfileSummaryTest extends UnitTestCase
         self::assertSame(['job:1787750713'], ProfileSummary::load($this->profileFilename())->getTags());
     }
 
+    /**
+     * Tagging a profile in the overview writes it back, and the results the overview computed for it - which the
+     * run itself does not carry - have to survive that; otherwise the next listing reads the whole profile again.
+     */
+    public function testWritingARunBackKeepsTheCalculationResultsTheOverviewComputed(): void
+    {
+        $this->savedRun();
+        ProfileSummary::load($this->profileFilename())
+            ->withCalculations('hash-1', ['totalRuntime' => ['value' => 42]])
+            ->save();
+
+        $run = unserialize((string)file_get_contents($this->profileFilename()));
+        $run->setPathAndFilename($this->profileFilename());
+        $run->setTags(['job:1787750713', 'slow']);
+        $run->save();
+
+        $summary = ProfileSummary::load($this->profileFilename());
+        self::assertSame(['job:1787750713', 'slow'], $summary->getTags());
+        self::assertSame(['totalRuntime' => ['value' => 42]], $summary->getCalculations('hash-1'));
+    }
+
     private function savedRun(): ProfilingRun
     {
         $run = new ProfilingRun();

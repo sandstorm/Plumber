@@ -73,23 +73,29 @@ abstract class AbstractController extends ActionController
     /**
      * Yields what the overview shows about each saved run, without reading the profiles themselves.
      *
-     * A profile written before Plumber wrote sidecars has none, so it is read once here and gets one.
+     * A profile written before Plumber wrote sidecars has none, so it is read once here and gets one. That run
+     * comes along with its summary, because a caller which needs the profile anyway - to compute what the fresh
+     * sidecar cannot supply yet - would otherwise read the same multi-megabyte file a second time. It is NULL
+     * whenever the summary came from a sidecar, which is the normal case.
      *
-     * @return \Generator<string, ProfileSummary>
+     * @return \Generator<string, array{ProfileSummary, ?ProfilingRun}>
      */
     public function getProfileSummaries(): \Generator
     {
         foreach ($this->getProfilePathsAndFilenames() as $filename => $pathAndFilename) {
             $summary = ProfileSummary::load($pathAndFilename);
-            if ($summary === null) {
-                $profile = $this->loadProfile($pathAndFilename);
-                if ($profile === null) {
-                    continue;
-                }
-                $summary = ProfileSummary::fromProfilingRun($pathAndFilename, $profile);
-                $summary->save();
+            if ($summary !== null) {
+                yield $filename => [$summary, null];
+                continue;
             }
-            yield $filename => $summary;
+
+            $profile = $this->loadProfile($pathAndFilename);
+            if ($profile === null) {
+                continue;
+            }
+            $summary = ProfileSummary::fromProfilingRun($pathAndFilename, $profile);
+            $summary->save();
+            yield $filename => [$summary, $profile];
         }
     }
 
