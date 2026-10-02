@@ -279,11 +279,11 @@ class ProfilingRun extends EmptyProfilingRun
                 $_SERVER['REQUEST_METHOD'] = 'CLI';
             }
 
-            if ($settings['xhprof.io']['enable']) {
+            if ($settings['xhprof.io']['enable'] ?? false) {
                 $this->saveToXhprofio($settings);
             }
 
-            if ($settings['xhgui']['enable']) {
+            if ($settings['xhgui']['enable'] ?? false) {
                 $this->saveToXhgui($settings);
             }
         }
