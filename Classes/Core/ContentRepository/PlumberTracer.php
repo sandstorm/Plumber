@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Sandstorm\Plumber\Core\ContentRepository;
 
-use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Core\Infrastructure\PerformanceTracing\PerformanceTracerInterface;
+use Neos\ContentRepository\Core\Infrastructure\PerformanceTracing\TracePoint;
+use Neos\Flow\Annotations as Flow;
 use Sandstorm\Plumber\Core\Profiler;
 
 #[Flow\Proxy(false)]
@@ -20,8 +21,9 @@ class PlumberTracer implements PerformanceTracerInterface
     {
     }
 
-    public function openSpan(string $name, array $params = []): void
+    public function openSpan(string|TracePoint $name, array $params = []): void
     {
+        $name = TracePoint::nameOf($name);
         $this->profiler->getRun()->startTimer($name, $params);
         $this->openSpans[] = new CurrentSpanMeta($name);
     }
@@ -38,8 +40,9 @@ class PlumberTracer implements PerformanceTracerInterface
         }
     }
 
-    public function mark(string $name, array $params = []): void
+    public function mark(string|TracePoint $name, array $params = []): void
     {
+        $name = TracePoint::nameOf($name);
         $currentSpan = end($this->openSpans);
         if ($currentSpan === false) {
             // fallback if no span found so far

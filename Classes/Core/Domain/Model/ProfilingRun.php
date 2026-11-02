@@ -1,44 +1,35 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Core\Domain\Model;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Sandstorm.PhpProfiler". *
- *                                                                        *
- * It is free software; you can redistribute it and/or modify it under    *
- * the terms of the GNU General Public License, either version 3 of the   *
- * License, or (at your option) any later version.                        *
- *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
- *                                                                        */
-
+use ay\xhprof\Data;
+use ay\xhprof\DataException;
+use DateTime;
+use MongoDate;
 use Neos\Flow\Annotations as Flow;
+use PDO;
+use Xhgui_Db;
+use Xhgui_Profiles;
 
 /**
  * Profiling run Domain Model
- *
- * @Flow\Proxy(false)
  */
+#[Flow\Proxy(false)]
 class ProfilingRun extends EmptyProfilingRun
 {
-
     /**
      * Start time of the profiling run in seconds (microtime(true))
-     *
-     * @var float
      */
-    protected $startTime;
+    private float $startTime;
 
-    /**
-     * @var int
-     */
-    protected $numberOfDatabaseQueries = 0;
+    private int $numberOfDatabaseQueries = 0;
 
     /**
      * Name of the currently active Timer
-     *
-     * @var string
      */
-    protected $activeTimer = NULL;
+    private ?string $activeTimer = null;
 
     /**
      * Collected timers. Is an associative array:
@@ -46,13 +37,11 @@ class ProfilingRun extends EmptyProfilingRun
      * value: array of the "events" for the current timer, an event can be either "start" or "stop".
      *
      *    'time' => (float) Current time in seconds, with microtime precision; relative to $this->startTime
-     *    'data' => (array) Data payload, as specified in startTimer(). Only used if start=TRUE.
-     *    'start' => (boolean) If TRUE, is a "start" event of the timer, if FALSE, is a stop event.
+     *    'data' => (array) Data payload, as specified in startTimer(). Only used if start=true.
+     *    'start' => (boolean) If true, is a "start" event of the timer, if FALSE, is a stop event.
      *    'mem' => (int) Memory consumption in bytes at the current time.
-     *
-     * @var array
      */
-    protected $timers;
+    private array $timers;
 
     /**
      * Collected timestamps. Is an array, where each array element looks as follows:
@@ -61,101 +50,71 @@ class ProfilingRun extends EmptyProfilingRun
      *    'time' => (float) Current time in seconds, with microtime precision; relative to $this->startTime
      *    'data' => (array) Data payload, as specified in timestamp().
      *    'mem' => (int) Memory consumption in bytes at the current time.
-     *
-     * @var array
      */
-    protected $timestamps;
+    private array $timestamps;
 
     /**
      * If it is an array, it is an XHProf trace array. If it is a string,
      * it is a fully qualified file name pointing to a serialized XHProf
      * Trace array
-     *
-     * @var array|string
      */
-    protected $xhprofTrace;
+    private array|string|null $xhprofTrace = null;
 
     /**
      * Associative Array of Options. Options are just global meta information
      * for the current profiling run, which can be shown in the overview
      * pages.
-     *
-     * @var array
      */
-    protected $options = array();
+    private array $options = [];
 
     /**
      * Tags of the current profiling run
-     *
-     * @var array
      */
-    protected $tags = array();
+    private array $tags = [];
 
     /**
      * Full path to the serialized profiling run file. Not always set,
      * purely internal.
-     *
-     * @var string
+     * @internal
      */
-    protected $pathAndFilename;
+    private ?string $pathAndFilename = null;
+
+    private string $currentCalculationHash;
+
+    private array $cachedCalculationResults;
 
     /**
-     * @var string
-     */
-    protected $currentCalculationHash;
-
-    /**
-     * @var array
-     */
-    protected $cachedCalculationResults;
-
-    /**
-     * Set an option.
-     *
-     * @param string $key
-     * @param mixed $value
-     * @return void
+     * @inheritDoc
      * @api
      */
-    public function setOption($key, $value)
+    public function setOption(string $key, mixed $value): void
     {
         $this->options[$key] = $value;
     }
 
     /**
      * Returns all options.
-     *
-     * @return array
      * @api
      */
-    public function getOptions()
+    public function getOptions(): array
     {
         return $this->options;
     }
 
     /**
      * Returns all tags for this run.
-     *
-     * @return array
      * @api
      */
-    public function getTags()
+    public function getTags(): array
     {
-        if (!is_array($this->tags)) {
-            return array();
-        }
-
         return $this->tags;
     }
 
     /**
      * Set tags for this run.
-     *
-     * @param array $tags
-     * @return void
      * @api
      */
-    public function setTags(array $tags)
+    public function setTags(array $tags): void
     {
         $this->tags = $tags;
     }
@@ -165,11 +124,11 @@ class ProfilingRun extends EmptyProfilingRun
      *
      * @return void
      */
-    public function start()
+    public function start(): void
     {
-        $this->timers = array();
-        $this->timestamps = array();
-        $this->startTime = microtime(TRUE);
+        $this->timers = [];
+        $this->timestamps = [];
+        $this->startTime = microtime(true);
         if (function_exists('tideways_xhprof_enable')) {
             tideways_xhprof_enable(TIDEWAYS_XHPROF_FLAGS_CPU | TIDEWAYS_XHPROF_FLAGS_MEMORY);
         }
@@ -178,10 +137,8 @@ class ProfilingRun extends EmptyProfilingRun
 
     /**
      * Stop this profiling run recording
-     *
-     * @return void
      */
-    public function stop()
+    public function stop(): void
     {
         $this->stopTimer('Profiling Run');
         if (function_exists('tideways_xhprof_disable')) {
@@ -194,10 +151,8 @@ class ProfilingRun extends EmptyProfilingRun
     /**
      * Helper which converts the timer values relative to the start time.
      * Is called automatically on stop().
-     *
-     * @return void
      */
-    protected function convertTimersRelativeToStartTime()
+    private function convertTimersRelativeToStartTime(): void
     {
         foreach ($this->timers as &$t) {
             foreach ($t as &$v) {
@@ -212,13 +167,10 @@ class ProfilingRun extends EmptyProfilingRun
 
     /**
      * Save this profiling run to disk
-     *
-     * @param array $settings
-     * @return void
      */
-    public function save(array $settings = array())
+    public function save(array $settings = []): void
     {
-        if ($settings !== array() && is_array($this->xhprofTrace)) {
+        if ($settings !== [] && is_array($this->xhprofTrace)) {
             if (FLOW_SAPITYPE === 'CLI') {
                 $_SERVER['HTTP_HOST'] = 'localhost';
                 $_SERVER['REQUEST_URI'] = 'CLI run';
@@ -234,14 +186,14 @@ class ProfilingRun extends EmptyProfilingRun
             }
         }
 
-        $filename = NULL;
-        if ($this->pathAndFilename !== NULL) {
+        $filename = null;
+        if ($this->pathAndFilename !== null) {
             $filename = $this->pathAndFilename;
-        } elseif ($settings !== array() && file_exists($settings['profilePath'])) {
-            $filename = $settings['profilePath'] . '/' . microtime(TRUE) . '.profile';
+        } elseif ($settings !== [] && file_exists($settings['profilePath'])) {
+            $filename = $settings['profilePath'] . '/' . microtime(true) . '.profile';
         }
 
-        if ($filename !== NULL) {
+        if ($filename !== null) {
             if (is_array($this->xhprofTrace)) {
                 @file_put_contents($filename . '.xhprof', serialize($this->xhprofTrace));
                 $this->xhprofTrace = $filename . '.xhprof';
@@ -253,55 +205,50 @@ class ProfilingRun extends EmptyProfilingRun
 
     /**
      * xhprof.io data storage
-     *
-     * @param array $settings
-     * @return void
+     * @throws DataException
      */
-    protected function saveToXhprofio(array $settings)
+    private function saveToXhprofio(array $settings): void
     {
         require_once(__DIR__ . '/../../../../Resources/Private/Xhprof.io/data.php');
-        $pdo = new \PDO($settings['xhprof.io']['dsn'], $settings['xhprof.io']['username'], $settings['xhprof.io']['password']);
-        $xhprofData = new \ay\xhprof\Data($pdo);
+        $pdo = new PDO(
+            $settings['xhprof.io']['dsn'],
+            $settings['xhprof.io']['username'],
+            $settings['xhprof.io']['password'],
+        );
+        $xhprofData = new Data($pdo);
         $xhprofData->save($this->xhprofTrace);
     }
 
     /**
      * xhgui data storage
-     *
-     * @param array $settings
-     * @return void
      */
-    protected function saveToXhgui(array $settings)
+    private function saveToXhgui(array $settings): void
     {
         require_once(__DIR__ . '/../../../../Resources/Private/Xhgui/Db.php');
         require_once(__DIR__ . '/../../../../Resources/Private/Xhgui/Db/Mapper.php');
         require_once(__DIR__ . '/../../../../Resources/Private/Xhgui/Profile.php');
         require_once(__DIR__ . '/../../../../Resources/Private/Xhgui/Profiles.php');
-        $data = array(
+        $data = [
             'profile' => $this->xhprofTrace,
-            'meta' => array(
+            'meta' => [
                 'url' => $_SERVER['REQUEST_URI'],
                 'SERVER' => $_SERVER,
                 'get' => $_GET,
                 'env' => $_ENV,
                 'simple_url' => preg_replace('/\=\d+/', '', $_SERVER['REQUEST_URI']),
-                'request_ts' => new \MongoDate($_SERVER['REQUEST_TIME']),
+                'request_ts' => new MongoDate($_SERVER['REQUEST_TIME']),
                 'request_date' => date('Y-m-d', $_SERVER['REQUEST_TIME'])
-            )
-        );
-        $db = \Xhgui_Db::connect($settings['xhgui']['host'], $settings['xhgui']['dbname']);
-        $profiles = new \Xhgui_Profiles($db->results);
+            ]
+        ];
+        $db = Xhgui_Db::connect($settings['xhgui']['host'], $settings['xhgui']['dbname']);
+        $profiles = new Xhgui_Profiles($db->results);
         $profiles->insert($data);
     }
 
     /**
      * Set calculation result cache.
-     *
-     * @param string $currentCalculationHash
-     * @param array $cachedCalculationResults
-     * @return void
      */
-    public function setCachedCalculationResults($currentCalculationHash, array $cachedCalculationResults)
+    public function setCachedCalculationResults(string $currentCalculationHash, array $cachedCalculationResults): void
     {
         $this->currentCalculationHash = $currentCalculationHash;
         $this->cachedCalculationResults = $cachedCalculationResults;
@@ -309,23 +256,16 @@ class ProfilingRun extends EmptyProfilingRun
 
     /**
      * Fetches the cached calculation results, if the hash equals the stored one.
-     *
-     * @param string $calculationHash
-     * @return array
      */
-    public function getCachedCalculationResults($calculationHash)
+    public function getCachedCalculationResults(string $calculationHash): array
     {
         if ($calculationHash === $this->currentCalculationHash) {
             return $this->cachedCalculationResults;
         }
-        return array();
+        return [];
     }
 
-    /**
-     * @param string $fullPath
-     * @return void
-     */
-    public function setPathAndFilename($fullPath)
+    public function setPathAndFilename(string $fullPath): void
     {
         $this->pathAndFilename = $fullPath;
         $this->xhprofTrace = $fullPath . '.xhprof';
@@ -333,13 +273,11 @@ class ProfilingRun extends EmptyProfilingRun
 
     /**
      * Remove this profiling run.
-     *
-     * @return void
      * @api
      */
-    public function remove()
+    public function remove(): void
     {
-        if ($this->pathAndFilename !== NULL) {
+        if ($this->pathAndFilename !== null) {
             unlink($this->pathAndFilename);
             if (file_exists($this->pathAndFilename . '.xhprof')) {
                 unlink($this->pathAndFilename . '.xhprof');
@@ -348,28 +286,24 @@ class ProfilingRun extends EmptyProfilingRun
     }
 
     /**
-     * Start a timer
-     *
-     * @param string $name
-     * @param array $data
-     * @return void
+     * @inheritDoc
      * @api
      */
-    public function startTimer($name, array $data = array()): void
+    public function startTimer(string $name, array $data = []): void
     {
-        $this->startTimerInternal($name, $data, microtime(TRUE));
+        $this->startTimerInternal($name, $data, microtime(true));
     }
 
-    private function startTimerInternal($name, array $data, float $startTimestamp): void
+    private function startTimerInternal(string $name, array $data, float $startTimestamp): void
     {
         if (!isset($this->timers[$name])) {
-            $this->timers[$name] = array();
+            $this->timers[$name] = [];
         }
         $this->timers[$name][] = array(
             'time' => $startTimestamp,
             'data' => $data,
-            'start' => TRUE,
-            'mem' => memory_get_peak_usage(TRUE),
+            'start' => true,
+            'mem' => memory_get_peak_usage(true),
             'parent' => $this->activeTimer,
             'dbQueryCount' => $this->numberOfDatabaseQueries
         );
@@ -377,21 +311,18 @@ class ProfilingRun extends EmptyProfilingRun
     }
 
     /**
-     * Stop a timer
-     *
-     * @param string $name
-     * @return void
+     * @inheritDoc
      * @api
      */
-    public function stopTimer($name)
+    public function stopTimer(string $name): void
     {
-        $this->stopTimerInternal($name, microtime(TRUE));
+        $this->stopTimerInternal($name, microtime(true));
     }
 
     private function stopTimerInternal(string $name, float $stopTimestamp): void
     {
         if (!isset($this->timers[$name])) {
-            $this->timers[$name] = array();
+            $this->timers[$name] = [];
         }
 
         $lastTimer = end($this->timers[$name]);
@@ -401,8 +332,8 @@ class ProfilingRun extends EmptyProfilingRun
 
         $this->timers[$name][] = array(
             'time' => $stopTimestamp,
-            'start' => FALSE,
-            'mem' => memory_get_peak_usage(TRUE),
+            'start' => false,
+            'mem' => memory_get_peak_usage(true),
             'dbQueryCount' => $this->numberOfDatabaseQueries
         );
     }
@@ -414,19 +345,15 @@ class ProfilingRun extends EmptyProfilingRun
     }
 
     /**
-     * Record a timestamp
-     *
-     * @param string $name
-     * @param array $data
-     * @return void
+     * @inheritDoc
      */
-    public function timestamp($name, array $data = array())
+    public function timestamp(string $name, array $data = []): void
     {
         $this->timestamps[] = array(
             'name' => $name,
-            'time' => microtime(TRUE),
+            'time' => microtime(true),
             'data' => $data,
-            'mem' => memory_get_peak_usage(TRUE),
+            'mem' => memory_get_peak_usage(true),
             'dbQueryCount' => $this->numberOfDatabaseQueries
         );
     }
@@ -434,19 +361,17 @@ class ProfilingRun extends EmptyProfilingRun
     /**
      * Returns the start time of this run as a DateTime.
      *
-     * @return \DateTime the start time
+     * @return DateTime the start time
      */
-    public function getStartTime()
+    public function getStartTime(): DateTime
     {
-        return \DateTime::createFromFormat('U', (int)$this->startTime);
+        return DateTime::createFromFormat('U', (string) $this->startTime);
     }
 
     /**
      * Returns the start time of this run as a float
-     *
-     * @return float
      */
-    public function getStartTimeAsFloat()
+    public function getStartTimeAsFloat(): float
     {
         return $this->startTime;
     }
@@ -457,12 +382,10 @@ class ProfilingRun extends EmptyProfilingRun
      *
      * 'time' => (float) Current time in seconds, with microtime precision; relative to $this->startTime
      * 'mem'  => (int) Current memory consumption in bytes.
-     *
-     * @return array
      */
-    public function getMemory()
+    public function getMemory(): array
     {
-        $output = array();
+        $output = [];
         foreach ($this->timestamps as $t) {
             $output[] = array(
                 'time' => $t['time'],
@@ -491,12 +414,10 @@ class ProfilingRun extends EmptyProfilingRun
      *
      * 'time' => (float) Current time in seconds, with microtime precision; relative to $this->startTime
      * 'dbQueryCount'  => (int) Number of DB queries done so far.
-     *
-     * @return array
      */
-    public function getDbQueryCount()
+    public function getDbQueryCount(): array
     {
-        $output = array();
+        $output = [];
         foreach ($this->timestamps as $t) {
             $output[] = array(
                 'time' => $t['time'],
@@ -521,16 +442,14 @@ class ProfilingRun extends EmptyProfilingRun
 
     /**
      * Get the full XHProf Trace array
-     *
-     * @return array
      */
-    public function getXhprofTrace()
+    public function getXhprofTrace(): array
     {
         if (is_string($this->xhprofTrace) && file_exists($this->xhprofTrace)) {
             $this->xhprofTrace = unserialize(file_get_contents($this->xhprofTrace));
         }
         if (!is_array($this->xhprofTrace)) {
-            return array();
+            return [];
         }
 
         return $this->xhprofTrace;
@@ -539,10 +458,8 @@ class ProfilingRun extends EmptyProfilingRun
     /**
      * Get all timestamps; see $this->timestamps for the format
      * description.
-     *
-     * @return array
      */
-    public function getTimestamps()
+    public function getTimestamps(): array
     {
         return $this->timestamps;
     }
@@ -559,23 +476,22 @@ class ProfilingRun extends EmptyProfilingRun
      * 'dbQueryCount' => (int) number of DB queries between start and end
      *
      * @param boolean $asTree Set this to true to get the timers as an Tree
-     * @return array|NULL
      */
-    public function getTimersAsDuration($asTree = FALSE)
+    public function getTimersAsDuration(bool $asTree = false): ?array
     {
-        $events = array();
-        $currentlyOpenTimers = array();
+        $events = [];
+        $currentlyOpenTimers = [];
 
         foreach ($this->timers as $timerName => $timerValues) {
-            $currentlyOpenTimers[$timerName] = array();
+            $currentlyOpenTimers[$timerName] = [];
             foreach ($timerValues as $timerValue) {
-                if ($timerValue['start'] === TRUE) {
+                if ($timerValue['start'] === true) {
                     $currentlyOpenTimers[$timerName][] = $timerValue;
                 } else {
                     $startTime = array_pop($currentlyOpenTimers[$timerName]);
                     if (is_array($startTime)) {
                         $stopTime = $timerValue['time'];
-                        $events[] = array(
+                        $events[] = [
                             'start' => $startTime['time'],
                             'stop' => $stopTime,
                             'time' => $stopTime - $startTime['time'],
@@ -584,7 +500,7 @@ class ProfilingRun extends EmptyProfilingRun
                             'parent' => $startTime['parent'],
                             'dbQueryCount' => (isset($timerValue['dbQueryCount']) ? ($timerValue['dbQueryCount'] - $startTime['dbQueryCount']) : 0)
                             // very conservatively programmed, to be able to read older traces
-                        );
+                        ];
                     }
                 }
             }
@@ -595,7 +511,7 @@ class ProfilingRun extends EmptyProfilingRun
             return (int)(1000 * $a['start'] - 1000 * $b['start']);
         });
 
-        if ($asTree === TRUE) {
+        if ($asTree === true) {
             $events = $this->convertToTree($events, $this->activeTimer);
         }
 
@@ -604,14 +520,10 @@ class ProfilingRun extends EmptyProfilingRun
 
     /**
      * Converts the given $events array into a tree structure.
-     *
-     * @param array $events
-     * @param mixed $root
-     * @return array|NULL
      */
-    protected function convertToTree(array $events, $root = NULL)
+    private function convertToTree(array $events, mixed $root = null): ?array
     {
-        $returnArray = array();
+        $returnArray = [];
         foreach ($events as $child => $event) {
             if (isset($event['parent']) && $event['parent'] === $root) {
                 unset($events[$child]);
@@ -619,10 +531,10 @@ class ProfilingRun extends EmptyProfilingRun
                 $returnArray[] = $event;
             }
         }
-        return empty($returnArray) ? NULL : $returnArray;
+        return empty($returnArray) ? null : $returnArray;
     }
 
-    public function logSqlQuery($sql)
+    public function logSqlQuery($sql): void
     {
         $this->numberOfDatabaseQueries++;
     }
