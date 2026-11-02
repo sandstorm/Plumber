@@ -27,36 +27,24 @@ class EmptyProfilingRun
 
     /**
      * Set an option.
-     *
-     * @param string $key
-     * @param mixed $value
-     * @return void
      * @api
      */
-    public function setOption($key, $value)
+    public function setOption(string $key, mixed $value): void
     {
     }
 
     /**
      * Start a timer
-     *
-     * @param string $name
-     * @param array $data
-     * @return void
      * @api
      */
-    public function startTimer($name, array $data = array())
-    {
+    public function startTimer(string $name, array $data = []) {
     }
 
     /**
      * Stop a timer
-     *
-     * @param string $name
-     * @return void
      * @api
      */
-    public function stopTimer($name)
+    public function stopTimer(string $name): void
     {
     }
 
@@ -66,16 +54,12 @@ class EmptyProfilingRun
 
     /**
      * Record a timestamp
-     *
-     * @param string $name
-     * @param array $data
-     * @return void
      */
-    public function timestamp($name, array $data = array())
+    public function timestamp(string $name, array $data = []): void
     {
     }
 
-    public function logSqlQuery($sql)
+    public function logSqlQuery($sql): void
     {
     }
 }
