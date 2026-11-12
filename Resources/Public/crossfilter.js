@@ -135,6 +135,34 @@ function addConcatenator(uri) {
 	return uri + '?';
 }
 
+/**
+ * One download button per format registered at Sandstorm.Plumber.exports.
+ */
+function exportButtons(runIdentifier) {
+	var html = '';
+	for (var format in window.exportFormats) {
+		html += '<a href="' + addConcatenator(window.uris.exportDownload)
+			+ 'format=' + encodeURIComponent(format)
+			+ '&runIdentifier1=' + encodeURIComponent(runIdentifier)
+			+ '" class="btn small" title="Download as ' + window.exportFormats[format] + '">'
+			+ window.exportFormats[format] + ' &darr;</a>';
+	}
+	return html;
+}
+
+/**
+ * Downloads every profile, or every profile carrying the tag typed into #exportTag - which is how the profiles
+ * written by the render workers of one content release end up in a single file.
+ */
+function plumberDownloadAll(format) {
+	var tagField = document.getElementById('exportTag');
+	var tag = tagField ? tagField.value.trim() : '';
+	window.location = addConcatenator(window.uris.exportDownloadAll)
+		+ 'format=' + encodeURIComponent(format)
+		+ (tag === '' ? '' : '&tag=' + encodeURIComponent(tag));
+	return false;
+}
+
 function recordList(div) {
 	var records = startTimeDimension.top(100);
 
@@ -161,6 +189,8 @@ function recordList(div) {
 			    + '<a href="' + addConcatenator(window.uris.sqlDetails) + 'runIdentifier1=' + d['id'] + '" class="btn small">SQL &raquo;</a>'
 				+ '<a href="' + addConcatenator(window.uris.xhprofDetails) + 'run=' + d['id'] + '" class="btn small">XHProf &raquo;</a>'
 				+ '<a href="' + addConcatenator(window.uris.xhprofDebug) + 'runIdentifier=' + d['id'] + '" class="btn small" title="XHProf Debug">DBG &raquo;</a>'
+				+ exportButtons(d['id'])
+				+ '<a href="' + addConcatenator(window.uris.removeProfile) + 'profileFilename=' + encodeURIComponent(d['id']) + '" class="btn small danger" title="Delete this profile" onclick="return confirm(\'Delete this profile?\');">Delete &times;</a>';
 		});
 		recordSelectionEnter.append("td").attr('class', 'tagList').html(function (d) {
 			return d['tagsAsHtml'];

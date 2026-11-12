@@ -26,11 +26,20 @@
     },
     "license": "GPL-3.0+",
     "require": {
-        "neos/flow": "~9.0"
+      "neos/flow": "~9.2",
+      "php": "^8.2"
+    },
+    "suggest": {
+        "ext-pdo_sqlite": "Needed for the SQLite export format (Sandstorm.Plumber.exports.sqlite)."
     },
     "autoload": {
         "psr-4": {
             "Sandstorm\\Plumber\\": "Classes"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sandstorm\\Plumber\\Tests\\": "Tests/"
         }
     },
     "extra": {

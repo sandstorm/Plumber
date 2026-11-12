@@ -2,7 +2,42 @@
 Sandstorm:
   Plumber:
 
+    # Profiling costs time in every request and every CLI run and writes a file per run, so it is off unless
+    # asked for. Switch it on for a context (e.g. in Configuration/Development/Settings.yaml), or set
+    # PLUMBER_ENABLED=1 for a single run - the environment variable decides on its own and does not need the
+    # settings to be rebuilt.
+    # The /plumber UI works either way: it only reads the profiles which are already on disk.
+    enabled: false
+
     profilePath: '%FLOW_PATH_DATA%Logs/Profiles'
+
+    # What a profiling run collects. Both are on, because both answer questions the other cannot - but both are
+    # also what makes a profile large, and a batch job writes one profile per worker restart.
+    record:
+      # Every SQL query as its own timer, carrying the statement and its bound parameters. That is how a query
+      # shows up on the timeline and in the SQLite export - and in a query-heavy job it is easily 99% of all
+      # events (8.1 of 8.2 million in one measured run). The query *count* is recorded either way, so the
+      # "Number of DB queries" column and the DB counter track survive switching this off.
+      sqlQueries: true
+      # The XHProf caller-callee trace, written to a <profile>.xhprof sidecar of a few megabytes. Needed for
+      # Plumber's XHProf view and for the "No. of Method Calls" and "No. of Object Creations" columns.
+      xhprof: true
+
+    # Formats the /plumber overview offers for download, per profile and for all profiles of one tag at once.
+    # These are listed and not commented out: a registered format costs nothing until somebody clicks it.
+    exports:
+      perfetto:
+        # Chrome/Catapult JSON trace, to be opened at https://ui.perfetto.dev
+        className: Sandstorm\Plumber\Export\PerfettoTraceExport
+        options:
+          # also write the memory and DB-query counter tracks, sampled at every timer event - the majority of
+          # the events in a trace. Switch off when exporting many profiles at once.
+          withCounters: true
+      sqlite:
+        className: Sandstorm\Plumber\Export\SqliteExport
+        options:
+          # also write the aggregated XHProf caller-callee table - large, and without any timeline information
+          withXhprof: false
 
     calculations:
 
