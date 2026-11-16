@@ -117,8 +117,16 @@
 			</table>
 		</div>
 	</f:form>
-	<f:link.action class="btn danger" action="removeAll">Remove <b>all</b> profiles</f:link.action>
-	<f:link.action class="btn danger" action="removeAllUntagged">Remove all <b>un-tagged</b> profiles</f:link.action>
+	<f:link.action class="btn danger" onclick="return confirm('Delete ALL profiles?');" action="removeAll">Remove <b>all</b> profiles</f:link.action>
+	<f:link.action class="btn danger" onclick="return confirm('Delete all un-tagged profiles?');" action="removeAllUntagged">Remove all <b>un-tagged</b> profiles</f:link.action>
+
+	<p>
+		<label for="exportTag">Only profiles tagged</label>
+		<input type="text" id="exportTag" placeholder="(all profiles)" />
+		<f:for each="{exportFormats}" as="exportLabel" key="exportKey">
+			<a class="btn" href="#" onclick="return plumberDownloadAll('{exportKey}');">Download as {exportLabel}</a>
+		</f:for>
+	</p>
 
 
 	<script type="text/javascript">
@@ -129,8 +137,12 @@
 			sqlDetails: "{f:uri.action(controller: 'Details', action: 'sql')}",
 			xhprofDetails: "{f:uri.action(controller: 'Details', action: 'xhprof')}",
 			updateTags: '{f:uri.action(action:"updateTags")}',
-			xhprofDebug: "{f:uri.action(controller: 'Details', action: 'xhprofDebug')}"
+			removeProfile: '{f:uri.action(action:"remove")}',
+			xhprofDebug: "{f:uri.action(controller: 'Details', action: 'xhprofDebug')}",
+			exportDownload: "{f:uri.action(controller: 'Export', action: 'download')}",
+			exportDownloadAll: "{f:uri.action(controller: 'Export', action: 'downloadAll')}"
 		};
+		var exportFormats = {exportFormatsJson -> f:format.raw()};
 		var profileData = {profileData -> f:format.raw()};
 		var calculations = {calculationsJson -> f:format.raw()};
 		var options = {optionsJson -> f:format.raw()};
