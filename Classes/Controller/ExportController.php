@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Sandstorm\Plumber\Controller;
 
 use Generator;
+use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Stream;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Utility\Environment;
 use Neos\Utility\Files;
-use Psr\Http\Message\StreamInterface;
+use Psr\Http\Message\ResponseInterface;
 use Sandstorm\Plumber\Core\Domain\Model\ProfileSummary;
 use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Exception;
@@ -22,16 +23,16 @@ use Sandstorm\Plumber\Export\ExportFormatRegistry;
  * any memory limit, so they are selected by their sidecars, read one by one, and the result is streamed from disk
  * into the response instead of being read back into a string.
  */
-#[Flow\Scope("singleton")]
-class ExportController extends AbstractController
+#[Flow\Scope('singleton')]
+final class ExportController extends AbstractController
 {
-    #[Flow\Inject]
-    protected ExportFormatRegistry $exportFormatRegistry;
+    public function __construct(
+        private readonly ExportFormatRegistry $exportFormatRegistry,
+        private readonly Environment $environment,
+    ) {
+    }
 
-    #[Flow\Inject]
-    protected Environment $environment;
-
-    public function downloadAction(string $format, string $runIdentifier1): StreamInterface
+    public function downloadAction(string $format, string $runIdentifier1): ResponseInterface
     {
         $pathAndFilename = Files::concatenatePaths([$this->settings['profilePath'], $runIdentifier1]);
 
@@ -47,7 +48,7 @@ class ExportController extends AbstractController
      * worker processes of a single job end up in a single file.
      * @throws Exception
      */
-    public function downloadAllAction(string $format, string $tag = ''): StreamInterface
+    public function downloadAllAction(string $format, string $tag = ''): ResponseInterface
     {
         $summaries = [];
         foreach ($this->getProfileSummaries() as $filename => $summary) {
@@ -99,7 +100,7 @@ class ExportController extends AbstractController
      * @param iterable<string, ProfilingRun> $profiles
      * @throws Exception
      */
-    private function streamExport(string $format, iterable $profiles, string $downloadName): StreamInterface
+    private function streamExport(string $format, iterable $profiles, string $downloadName): ResponseInterface
     {
         $exportFormat = $this->exportFormatRegistry->getFormat($format);
         $filename = self::sanitizeFilename($downloadName) . $exportFormat->getFilenameSuffix();
@@ -122,10 +123,14 @@ class ExportController extends AbstractController
             }
         }
 
-        $this->response->setContentType($exportFormat->getContentType());
-        $this->response->setHttpHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
-
-        return new Stream($handle);
+        return new Response(
+            200,
+            [
+                'Content-Type' => $exportFormat->getContentType(),
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ],
+            new Stream($handle),
+        );
     }
 
     private static function sanitizeFilename(string $name): string

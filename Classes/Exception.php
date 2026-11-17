@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber;
 
 /*                                                                        *
@@ -10,12 +13,12 @@ namespace Sandstorm\Plumber;
  *                                                                        *
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
-use Neos\Flow\Annotations as Flow;
+
+use Neos\Flow\Exception as FlowException;
 
 /**
  * A basic Sandstorm\Plumber-Exception
  */
-class Exception extends \Neos\Flow\Exception
+final class Exception extends FlowException
 {
-
 }

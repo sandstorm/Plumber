@@ -14,17 +14,15 @@ use Sandstorm\Plumber\Service\RenderTagsService;
 /**
  * Overview controller for the Sandstorm.Plumber package
  */
-#[Flow\Scope("singleton")]
-class OverviewController extends AbstractController
+#[Flow\Scope('singleton')]
+final class OverviewController extends AbstractController
 {
-    #[Flow\Inject]
-    protected CalculationService $calculationService;
-
-    #[Flow\Inject]
-    protected RenderTagsService $renderTagsService;
-
-    #[Flow\Inject]
-    protected ExportFormatRegistry $exportFormatRegistry;
+    public function __construct(
+        private readonly CalculationService $calculationService,
+        private readonly RenderTagsService $renderTagsService,
+        private readonly ExportFormatRegistry $exportFormatRegistry,
+    ) {
+    }
 
     /**
      * Show an overview of all existing profiles.

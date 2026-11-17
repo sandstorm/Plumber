@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sandstorm\Plumber\Export;
 
 use Neos\Flow\Annotations as Flow;
+use RuntimeException;
 
 /**
  * Instantiates the export formats configured at Sandstorm.Plumber.exports.
@@ -13,15 +14,18 @@ use Neos\Flow\Annotations as Flow;
  * somebody clicks it.
  */
 #[Flow\Scope('singleton')]
-class ExportFormatRegistry
+final class ExportFormatRegistry
 {
-    #[Flow\InjectConfiguration('exports')]
-    protected ?array $configuration = null;
-
     /**
      * @var array<string, ExportFormatInterface>|null
      */
-    protected ?array $formats = null;
+    private ?array $formats = null;
+
+    public function __construct(
+        #[Flow\InjectConfiguration('exports')]
+        protected readonly ?array $configuration,
+    ) {
+    }
 
     /**
      * @return array<string, ExportFormatInterface>
@@ -37,7 +41,7 @@ class ExportFormatRegistry
                 $className = $configuration['className'];
                 $format = new $className($configuration['options'] ?? []);
                 if (!$format instanceof ExportFormatInterface) {
-                    throw new \RuntimeException(
+                    throw new RuntimeException(
                         sprintf(
                             'The export format %s does not implement %s',
                             $className,
@@ -57,7 +61,7 @@ class ExportFormatRegistry
     {
         $formats = $this->getFormats();
         if (!isset($formats[$identifier])) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 sprintf(
                     'Unknown export format "%s". Configured are: %s',
                     $identifier,

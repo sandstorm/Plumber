@@ -11,21 +11,16 @@ use SensitiveParameter;
 #[Flow\Proxy(false)]
 final class SqlProfilingDriver extends AbstractDriverMiddleware
 {
-
     /** @internal This driver can be only instantiated by its middleware. */
     public function __construct(DriverInterface $driver, private readonly Profiler $profiler)
     {
         parent::__construct($driver);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function connect(
         #[SensitiveParameter]
-        array $params
-    )
-    {
+        array $params,
+    ): SqlProfilingConnection {
         return new SqlProfilingConnection(
             parent::connect($params),
             $this->profiler

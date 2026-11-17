@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Service;
 
 /*                                                                        *
@@ -11,31 +14,24 @@ namespace Sandstorm\Plumber\Service;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Neos\Flow\Annotations as Flow;
 use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Exception;
-use Neos\Flow\Annotations as Flow;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
 
-/**
- * @Flow\Scope("singleton")
- */
-class CalculationService
+#[Flow\Scope('singleton')]
+final readonly class CalculationService
 {
-
     /**
-     *
      * Calculate a value in $profile; returning an array with the following data:
      *
      * - value (required): Numerical value which is the main aggregation result
      * - tableCellHtml (optional, string): if given, is used in the results table
      *   for display. Helpful f.e. for more verbose output
      *
-     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
-     * @param array $calculationOptions
-     * @return array
-     * @throws \Sandstorm\Plumber\Exception
+     * @throws Exception
      */
-    public function calculate(ProfilingRun $profile, array $calculationOptions)
+    public function calculate(ProfilingRun $profile, array $calculationOptions): array
     {
         if (!isset($calculationOptions['type'])) {
             throw new Exception('The "type" option must be set for calculations.', 1361305367);
@@ -44,12 +40,7 @@ class CalculationService
         return $this->$type($profile, $calculationOptions);
     }
 
-    /**
-     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
-     * @param array $calculationOptions
-     * @return array
-     */
-    protected function calculateStartTime(ProfilingRun $profile, array $calculationOptions)
+    protected function calculateStartTime(ProfilingRun $profile, array $calculationOptions): array
     {
         return array(
             'value' => $profile->getStartTimeAsFloat()
@@ -59,12 +50,9 @@ class CalculationService
     /**
      * Calculate the total number of calls for methods matching the specified regex.
      *
-     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
-     * @param array $calculationOptions
-     * @return array
-     * @throws \Sandstorm\Plumber\Exception
+     * @throws Exception
      */
-    protected function calculateRegexSum(ProfilingRun $profile, array $calculationOptions)
+    protected function calculateRegexSum(ProfilingRun $profile, array $calculationOptions): array
     {
         if (!isset($calculationOptions['regex'])) {
             throw new Exception('The "regex" option must be set for "regexSum" calculations.', 1361305368);
@@ -110,11 +98,9 @@ class CalculationService
     }
 
     /**
-     *
-     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
-     * @param array $calculationOptions
+     * @throws Exception
      */
-    protected function calculateRegex(ProfilingRun $profile, array $calculationOptions)
+    protected function calculateRegex(ProfilingRun $profile, array $calculationOptions): array
     {
         if (!isset($calculationOptions['regex'])) {
             throw new Exception('Regex not set');
@@ -165,7 +151,7 @@ class CalculationService
         }
         $detailedResultHtml .= '</table>';
 
-        $aTag = new \Neos\FluidAdaptor\Core\ViewHelper\TagBuilder('a');
+        $aTag = new TagBuilder('a');
         $aTag->addAttribute('rel', 'popover');
         $aTag->addAttribute('title', 'Top 10');
         $aTag->addAttribute('data-content', $detailedResultHtml);
@@ -175,12 +161,7 @@ class CalculationService
         return array('value' => $totalResult, 'tableCellHtml' => $aTag->render());
     }
 
-    /**
-     * @param array $data
-     * @param string $subtype
-     * @return integer
-     */
-    protected function calculateSubtype($data, $subtype)
+    protected function calculateSubtype(array $data, string $subtype): int|float
     {
         $result = 0;
         switch ($subtype) {
@@ -203,12 +184,9 @@ class CalculationService
     /**
      * Calculate the total for the specified timer in the profile.
      *
-     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
-     * @param array $calculationOptions
-     * @return array
-     * @throws \Sandstorm\Plumber\Exception
+     * @throws Exception
      */
-    protected function calculateTimerSum(ProfilingRun $profile, array $calculationOptions)
+    protected function calculateTimerSum(ProfilingRun $profile, array $calculationOptions): array
     {
         if (!isset($calculationOptions['timerName'])) {
             throw new Exception('The "timerName" option must be set for "timerSum" calculations.', 1361305369);
@@ -226,12 +204,9 @@ class CalculationService
     /**
      * Calculate the total DB queries for the specified timer in the profile.
      *
-     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
-     * @param array $calculationOptions
-     * @return array
-     * @throws \Sandstorm\Plumber\Exception
+     * @throws Exception
      */
-    protected function calculateDatabaseQuerySum(ProfilingRun $profile, array $calculationOptions)
+    protected function calculateDatabaseQuerySum(ProfilingRun $profile, array $calculationOptions): array
     {
         if (!isset($calculationOptions['timerName'])) {
             throw new Exception('The "timerName" option must be set for "databaseQuerySum" calculations.', 1361305369);
@@ -248,12 +223,8 @@ class CalculationService
 
     /**
      * Calculate the maximum memory usage for the given profile.
-     *
-     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
-     * @param array $calculationOptions
-     * @return array
      */
-    protected function calculateMaxMemory(ProfilingRun $profile, array $calculationOptions)
+    protected function calculateMaxMemory(ProfilingRun $profile, array $calculationOptions): array
     {
         $memory = $profile->getMemory();
         $lastSamplingPoint = array_pop($memory);

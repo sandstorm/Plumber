@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\ViewHelpers;
 
 /*                                                                        *
@@ -11,15 +14,13 @@ namespace Sandstorm\Plumber\ViewHelpers;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use Neos\Flow\Annotations as Flow;
+use Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper;
 
 /**
- * Run calculations for the given profile.
+ * Inserts the bound parameters into an SQL statement, for display only.
  */
-class InsertParametersToQueryViewHelper extends \Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper
+final class InsertParametersToQueryViewHelper extends AbstractViewHelper
 {
-
-
     /**
      * NOTE: This property has been introduced via code migration to ensure backwards-compatibility.
      * @see AbstractViewHelper::isOutputEscapingEnabled()
@@ -27,20 +28,13 @@ class InsertParametersToQueryViewHelper extends \Neos\FluidAdaptor\Core\ViewHelp
      */
     protected $escapeOutput = FALSE;
 
-    /**
-     * @Flow\Inject
-     * @var \Sandstorm\Plumber\Service\CalculationService
-     */
-    protected $calculationService;
-
-
-    public function initializeArguments()
+    public function initializeArguments(): void
     {
         $this->registerArgument('sqlQuery', 'string', '', true);
         $this->registerArgument('params', 'array', '', false, null);
     }
 
-    public function render()
+    public function render(): string
     {
         $sqlQuery = $this->arguments['sqlQuery'];
         $params = $this->arguments['params'];
@@ -56,7 +50,7 @@ class InsertParametersToQueryViewHelper extends \Neos\FluidAdaptor\Core\ViewHelp
             if (is_string($value)) {
                 $sqlQuery = str_replace(':' . $key, "'" . $value . "'", $sqlQuery);
             } elseif (is_int($value)) {
-                $sqlQuery = str_replace(':' . $key, $value, $sqlQuery);
+                $sqlQuery = str_replace(':' . $key, (string) $value, $sqlQuery);
             }
         }
         return $sqlQuery;

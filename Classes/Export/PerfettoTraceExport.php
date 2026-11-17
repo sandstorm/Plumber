@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sandstorm\Plumber\Export;
 
+use Generator;
+use RuntimeException;
 use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 
 /**
@@ -58,7 +60,7 @@ final class PerfettoTraceExport implements ExportFormatInterface
         // larger than the memory limit, and the caller hands the runs over one at a time for the same reason.
         $handle = fopen($targetPathAndFilename, 'wb');
         if ($handle === false) {
-            throw new \RuntimeException('Could not write the trace to ' . $targetPathAndFilename, 1756200040);
+            throw new RuntimeException('Could not write the trace to ' . $targetPathAndFilename, 1756200040);
         }
 
         fwrite($handle, '{"displayTimeUnit":"ms","traceEvents":[');
@@ -101,9 +103,9 @@ final class PerfettoTraceExport implements ExportFormatInterface
     }
 
     /**
-     * @return \Generator<array<string, mixed>>
+     * @return Generator<array<string, mixed>>
      */
-    private function buildEventsForRun(int $processId, ProfilingRun $run): \Generator
+    private function buildEventsForRun(int $processId, ProfilingRun $run): Generator
     {
         $runStartTime = (float)$run->getStartTimeAsFloat();
 

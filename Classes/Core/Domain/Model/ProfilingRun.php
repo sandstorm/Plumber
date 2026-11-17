@@ -17,7 +17,7 @@ use Xhgui_Profiles;
  * Profiling run Domain Model
  */
 #[Flow\Proxy(false)]
-class ProfilingRun extends EmptyProfilingRun
+final class ProfilingRun extends EmptyProfilingRun
 {
     /**
      * Start time of the profiling run in seconds (microtime(true))
@@ -624,7 +624,7 @@ class ProfilingRun extends EmptyProfilingRun
         return empty($returnArray) ? null : $returnArray;
     }
 
-    public function logSqlQuery($sql): void
+    public function logSqlQuery(string $sql): void
     {
         $this->numberOfDatabaseQueries++;
     }

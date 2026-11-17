@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\ViewHelpers;
 
 /*                                                                        *
@@ -11,15 +14,13 @@ namespace Sandstorm\Plumber\ViewHelpers;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use Neos\Flow\Annotations as Flow;
+use Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper;
 
 /**
- * Run calculations for the given profile.
+ * Renders the var_dump() output of its children.
  */
-class VarDumpViewHelper extends \Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper
+final class VarDumpViewHelper extends AbstractViewHelper
 {
-
-
     /**
      * NOTE: This property has been introduced via code migration to ensure backwards-compatibility.
      * @see AbstractViewHelper::isOutputEscapingEnabled()
@@ -27,14 +28,12 @@ class VarDumpViewHelper extends \Neos\FluidAdaptor\Core\ViewHelper\AbstractViewH
      */
     protected $escapeOutput = FALSE;
     protected $escapeChildren = false;
-    /**
-     * @return bool
-     */
-    public function render()
+
+    public function render(): string
     {
         $value = $this->renderChildren();
         ob_start();
         var_dump($value);
-        return ob_get_clean();
+        return (string) ob_get_clean();
     }
 }

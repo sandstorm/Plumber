@@ -17,10 +17,9 @@ use Neos\Flow\Annotations as Flow;
  *
  * The calculation results live here rather than in the run, so that computing them writes a few kilobytes back
  * instead of rewriting a multi-megabyte profile.
- *
- * @Flow\Proxy(false)
  */
-final class ProfileSummary
+#[Flow\Proxy(false)]
+final readonly class ProfileSummary
 {
     private const FILENAME_SUFFIX = '.meta.json';
 
@@ -32,12 +31,12 @@ final class ProfileSummary
      * @param array<string, array<string, mixed>> $calculations
      */
     public function __construct(
-        private readonly string $pathAndFilename,
-        private readonly array $options,
-        private readonly array $tags,
-        private readonly float $startTime,
-        private readonly string $calculationHash,
-        private readonly array $calculations,
+        private string $pathAndFilename,
+        private array $options,
+        private array $tags,
+        private float $startTime,
+        private string $calculationHash,
+        private array $calculations,
     ) {
     }
 

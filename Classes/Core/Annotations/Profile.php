@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Core\Annotations;
 
 /*                                                                        *
@@ -11,9 +14,12 @@ namespace Sandstorm\Plumber\Core\Annotations;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Attribute;
+
 /**
  * @Annotation
  */
-final class Profile{ }
-
-?>
+#[Attribute(Attribute::TARGET_METHOD)]
+final class Profile
+{
+}

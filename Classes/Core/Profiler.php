@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Core;
 
 /*                                                                        *
@@ -11,53 +14,46 @@ namespace Sandstorm\Plumber\Core;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Closure;
+use Exception;
 use Neos\Flow\Annotations as Flow;
+use RuntimeException;
+use Sandstorm\Plumber\Core\Domain\Model\EmptyProfilingRun;
+use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
+use Sandstorm\Plumber\Core\Sql\Middleware\SqlProfilingStatement;
 
 /**
  * PHP Profiler
- *
- * @Flow\Proxy(false)
  */
-class Profiler
+#[Flow\Proxy(false)]
+final class Profiler
 {
+    private static ?Profiler $instance = null;
 
-    /**
-     * @var Profiler
-     */
-    protected static $instance;
+    private ?ProfilingRun $currentlyRunningProfilingRun = null;
 
-    /**
-     * @var Domain\Model\ProfilingRun
-     */
-    protected $currentlyRunningProfilingRun;
-
-    /**
-     * @var \Closure
-     */
-    protected $configurationProvider;
+    private ?Closure $configurationProvider = null;
 
     /**
      * An "empty" profiling run; which does not execute anything and
      * can be returned by getRun() if profiling is not currently running.
-     *
-     * @var Domain\Model\ProfilingRun
      */
-    protected $emptyProfilingRun;
+    private EmptyProfilingRun $emptyProfilingRun;
 
     /**
      * Options which every run of this process gets, including one which is only started later on.
      *
-     * @var array
+     * @var array<string, string>
      */
-    protected $runOptions = [];
+    private array $runOptions = [];
 
     /**
      * What a run records, from Sandstorm.Plumber.record. Defaults to everything, because packages boot before
      * the settings are readable and the run started there is already recording by then.
      *
-     * @var bool[]
+     * @var array<string, bool>
      */
-    private $recording = [
+    private array $recording = [
         'sqlQueries' => true,
         'xhprof' => true,
     ];
@@ -65,18 +61,17 @@ class Profiler
     /**
      * Set up an EmptyProfilingRun
      */
-    protected function __construct()
+    private function __construct()
     {
-        $this->emptyProfilingRun = new Domain\Model\EmptyProfilingRun();
+        $this->emptyProfilingRun = new EmptyProfilingRun();
     }
 
     /**
-     * @return Profiler
      * @api
      */
-    public static function getInstance()
+    public static function getInstance(): self
     {
-        if (self::$instance === NULL) {
+        if (self::$instance === null) {
             self::$instance = new self();
         }
         return self::$instance;
@@ -88,11 +83,9 @@ class Profiler
      * Must return an array with settings, the supported settings can be
      * seen in the Settings.yaml file.
      *
-     * @param \Closure $configurationProvider
-     * @return void
      * @api
      */
-    public function setConfigurationProvider($configurationProvider)
+    public function setConfigurationProvider(Closure $configurationProvider): void
     {
         $this->configurationProvider = $configurationProvider;
     }
@@ -100,16 +93,15 @@ class Profiler
     /**
      * Start a profiling run and return the run instance.
      *
-     * @throws \RuntimeException
-     * @return Domain\Model\ProfilingRun
+     * @throws RuntimeException
      * @api
      */
-    public function start()
+    public function start(): ProfilingRun
     {
-        if ($this->currentlyRunningProfilingRun !== NULL) {
-            throw new \RuntimeException('Profiling already started', 1363337740);
+        if ($this->currentlyRunningProfilingRun !== null) {
+            throw new RuntimeException('Profiling already started', 1363337740);
         }
-        $this->currentlyRunningProfilingRun = new Domain\Model\ProfilingRun();
+        $this->currentlyRunningProfilingRun = new ProfilingRun();
         $this->currentlyRunningProfilingRun->setRecordXhprof($this->recording['xhprof']);
         $this->currentlyRunningProfilingRun->start();
         foreach ($this->runOptions as $optionName => $optionValue) {
@@ -130,7 +122,7 @@ class Profiler
      *
      * @api
      */
-    public function startIfNotRunning(): Domain\Model\EmptyProfilingRun|Domain\Model\ProfilingRun
+    public function startIfNotRunning(): EmptyProfilingRun
     {
         if ($this->currentlyRunningProfilingRun !== null) {
             return $this->currentlyRunningProfilingRun;
@@ -147,12 +139,9 @@ class Profiler
      * Context and controller are known long before a lazily started run exists, so they are remembered
      * here instead of being set on a single run object.
      *
-     * @param string $name
-     * @param string $value
-     * @return void
      * @api
      */
-    public function setRunOption($name, $value)
+    public function setRunOption(string $name, string $value): void
     {
         $this->runOptions[$name] = $value;
         if ($this->currentlyRunningProfilingRun !== null) {
@@ -166,11 +155,10 @@ class Profiler
      * Called once the settings are readable, which is after the run started during boot is already recording -
      * hence the run in flight is switched over as well as every run started later.
      *
-     * @param array $recording
-     * @return void
+     * @param array<string, mixed> $recording
      * @api
      */
-    public function applyRecordingSettings(array $recording)
+    public function applyRecordingSettings(array $recording): void
     {
         $this->recording = array_merge($this->recording, array_filter($recording, 'is_bool'));
         if ($this->currentlyRunningProfilingRun !== null && !$this->recording['xhprof']) {
@@ -181,25 +169,22 @@ class Profiler
     /**
      * Whether every SQL query gets its own timer. The query count is recorded either way.
      *
-     * Read by {@see \Sandstorm\Plumber\Core\Sql\Middleware\SqlProfilingStatement}, which Doctrine instantiates
-     * outside the object manager and which therefore cannot have the setting injected.
+     * Read by {@see SqlProfilingStatement}, which Doctrine instantiates outside the object manager and which
+     * therefore cannot have the setting injected.
      *
-     * @return boolean
      * @api
      */
-    public function isRecordingSqlQueryTimers()
+    public function isRecordingSqlQueryTimers(): bool
     {
         return $this->recording['sqlQueries'];
     }
 
     /**
      * Get the current profiling run.
-     *
-     * @return Domain\Model\ProfilingRun
      */
-    public function getRun()
+    public function getRun(): EmptyProfilingRun
     {
-        if ($this->currentlyRunningProfilingRun === NULL) {
+        if ($this->currentlyRunningProfilingRun === null) {
             return $this->emptyProfilingRun;
         }
         return $this->currentlyRunningProfilingRun;
@@ -208,46 +193,41 @@ class Profiler
     /**
      * Stop run and save it afterwards.
      *
-     * @return void
      * @api
      */
-    public function stopAndSave()
+    public function stopAndSave(): void
     {
         $run = $this->stop();
-        if ($run !== NULL) {
+        if ($run !== null) {
             $this->save($run);
         }
     }
 
     /**
      * Stop a profiling run if one is running, and return it.
-     *
-     * @return Domain\Model\ProfilingRun the profiling run or NULL if none is running
      */
-    public function stop()
+    public function stop(): ?ProfilingRun
     {
-        if (!$this->currentlyRunningProfilingRun) {
-            return NULL;
+        if ($this->currentlyRunningProfilingRun === null) {
+            return null;
         }
         $this->currentlyRunningProfilingRun->stop();
 
         $run = $this->currentlyRunningProfilingRun;
-        $this->currentlyRunningProfilingRun = NULL;
+        $this->currentlyRunningProfilingRun = null;
         return $run;
     }
 
     /**
      * Save a profiling run.
      *
-     * @param Domain\Model\ProfilingRun $run
-     * @throws \Exception
-     * @return void
+     * @throws Exception
      */
-    public function save(Domain\Model\ProfilingRun $run)
+    public function save(ProfilingRun $run): void
     {
         $configuration = $this->configurationProvider->__invoke();
         if (!isset($configuration['profilePath'])) {
-            throw new \Exception('Profiling path not set');
+            throw new Exception('Profiling path not set');
         }
 
         $run->save($configuration);

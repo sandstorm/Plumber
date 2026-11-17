@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sandstorm\Plumber\Controller;
 
+use DirectoryIterator;
+use Generator;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Utility\Files;
@@ -14,13 +16,9 @@ use Sandstorm\Plumber\Core\Profiler;
 /**
  * Abstract controller for the Sandstorm.Plumber package
  */
-#[Flow\Scope("singleton")]
+#[Flow\Scope('singleton')]
 abstract class AbstractController extends ActionController
 {
-    /**
-     * @param array $settings
-     * @return void
-     */
     public function injectSettings(array $settings): void
     {
         $this->settings = $settings;
@@ -28,8 +26,6 @@ abstract class AbstractController extends ActionController
 
     /**
      * Initializes the controller before invoking an action method.
-     *
-     * @return void
      */
     protected function initializeAction(): void
     {
@@ -38,9 +34,6 @@ abstract class AbstractController extends ActionController
 
     /**
      * Returns a ProfilingRun instance that has been saved as $filename.
-     *
-     * @param string $filename
-     * @return ProfilingRun
      */
     protected function getProfile(string $filename): ProfilingRun
     {
@@ -58,9 +51,9 @@ abstract class AbstractController extends ActionController
      * moving on to the next one. Where only the metadata is needed, use {@see getProfileSummaries()} instead,
      * which does not read the profiles at all.
      *
-     * @return \Generator<string, ProfilingRun>
+     * @return Generator<string, ProfilingRun>
      */
-    public function getProfiles(): \Generator
+    public function getProfiles(): Generator
     {
         foreach ($this->getProfilePathsAndFilenames() as $filename => $pathAndFilename) {
             $profile = $this->loadProfile($pathAndFilename);
@@ -75,9 +68,9 @@ abstract class AbstractController extends ActionController
      *
      * A profile written before Plumber wrote sidecars has none, so it is read once here and gets one.
      *
-     * @return \Generator<string, ProfileSummary>
+     * @return Generator<string, ProfileSummary>
      */
-    public function getProfileSummaries(): \Generator
+    public function getProfileSummaries(): Generator
     {
         foreach ($this->getProfilePathsAndFilenames() as $filename => $pathAndFilename) {
             $summary = ProfileSummary::load($pathAndFilename);
@@ -103,7 +96,7 @@ abstract class AbstractController extends ActionController
         }
 
         $pathsAndFilenames = [];
-        foreach (new \DirectoryIterator($this->settings['profilePath']) as $element) {
+        foreach (new DirectoryIterator($this->settings['profilePath']) as $element) {
             if (preg_match('/\.profile$/', $element->getFilename())) {
                 $pathsAndFilenames[$element->getFilename()] = $element->getPathname();
             }
