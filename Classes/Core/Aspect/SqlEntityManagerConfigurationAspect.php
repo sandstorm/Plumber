@@ -5,16 +5,20 @@ namespace Sandstorm\Plumber\Core\Aspect;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\ConnectionException;
+use Doctrine\DBAL\Logging\Middleware;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
+use Neos\Flow\Configuration\Exception\InvalidConfigurationException;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
+use Neos\Flow\Persistence\Doctrine\Logging\SqlLogger;
 use Neos\Flow\Persistence\Doctrine\Mapping\ClassMetadataFactory;
 use Neos\Flow\Persistence\Doctrine\Mapping\Driver\FlowAnnotationDriver;
 use Neos\Flow\Reflection\ReflectionService;
 use Neos\Flow\Utility\Environment;
 use Neos\Utility\Files;
+use Psr\Log\LoggerInterface;
 use Sandstorm\Plumber\Core\Sql\Middleware\SqlProfilingMiddleware;
 
 #[Flow\Aspect]
@@ -55,6 +59,11 @@ class SqlEntityManagerConfigurationAspect {
 
         $config->setClassMetadataFactoryName(ClassMetadataFactory::class);
 
+        $configuredSqlLogger = $this->settings['doctrine']['sqlLogger'] ?? null;
+        if ($configuredSqlLogger && class_exists($configuredSqlLogger)) {
+            $config = $this->addFlowSqlLoggerMiddleware($configuredSqlLogger, $config);
+        }
+
         $eventManager = new EventManager();
 
         $flowAnnotationDriver = $this->objectManager->get(FlowAnnotationDriver::class);
@@ -92,5 +101,30 @@ class SqlEntityManagerConfigurationAspect {
         $orig->emitAfterDoctrineEntityManagerCreation($config, $entityManager);
 
         return $entityManager;
+    }
+
+    /**
+     * Copy of the protected EntityManagerFactory::enableSqlLogger(), which the aspect cannot call.
+     *
+     * @param class-string $configuredSqlLogger
+     * @throws InvalidConfigurationException
+     */
+    private function addFlowSqlLoggerMiddleware(
+        string $configuredSqlLogger,
+        Configuration $doctrineConfiguration,
+    ): Configuration {
+        $sqlLoggerInstance = $this->objectManager->get($configuredSqlLogger);
+        if (!$sqlLoggerInstance instanceof SqlLogger) {
+            throw new InvalidConfigurationException(sprintf('Neos.Flow.persistence.doctrine.sqlLogger must be \Neos\Flow\Persistence\Doctrine\Logging\SqlLogger, %s given.', get_class($sqlLoggerInstance)), 1426150388);
+        }
+
+        $logger = $sqlLoggerInstance->logger;
+        if (!$logger instanceof LoggerInterface) {
+            throw new InvalidConfigurationException(sprintf('The SqlLogger needs to get a Psr LoggerInterface injected, got "%s"', get_class($logger)), 1720548075);
+        }
+
+        return $doctrineConfiguration->setMiddlewares(
+            array_merge($doctrineConfiguration->getMiddlewares(), [new Middleware($logger)]),
+        );
     }
 }
