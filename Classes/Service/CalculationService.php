@@ -165,7 +165,7 @@ class CalculationService
         }
         $detailedResultHtml .= '</table>';
 
-        $aTag = new \Neos\FluidAdaptor\Core\ViewHelper\TagBuilder('a');
+        $aTag = new TagBuilder('a');
         $aTag->addAttribute('rel', 'popover');
         $aTag->addAttribute('title', 'Top 10');
         $aTag->addAttribute('data-content', $detailedResultHtml);
