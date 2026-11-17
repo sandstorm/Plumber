@@ -55,7 +55,6 @@ class Package extends BasePackage
 
         $dispatcher = $bootstrap->getSignalSlotDispatcher();
         $this->connectToSignals($dispatcher, $profiler, $bootstrap);
-        $this->connectToNeosSignals($dispatcher, $profiler);
         $this->applyRecordingSettings($dispatcher, $profiler, $bootstrap);
         if ($environmentOverride === null) {
             $this->discardRunIfSettingsDisableProfiling($dispatcher, $profiler, $bootstrap);
@@ -191,28 +190,6 @@ class Package extends BasePackage
         );
         $dispatcher->connect('Neos\Flow\Mvc\Dispatcher', 'afterControllerInvocation', function () use ($profiler) {
             $profiler->getRun()->stopTimer('MVC: Controller Invocation');
-        });
-    }
-
-    /**
-     * Wire signals to slots as needed in Neos.
-     */
-    private function connectToNeosSignals(
-        Dispatcher $dispatcher,
-        Profiler $profiler,
-    ): void {
-        $dispatcher->connect('Neos\Fusion\Core\Runtime', 'beginEvaluation', function ($fusionPath) use ($profiler) {
-            $profiler->getRun()->startTimer('TypoScript Runtime: ' . $fusionPath);
-        });
-        $dispatcher->connect('Neos\Fusion\Core\Runtime', 'endEvaluation', function ($fusionPath) use ($profiler) {
-            $profiler->getRun()->stopTimer('TypoScript Runtime: ' . $fusionPath);
-        });
-
-        $dispatcher->connect('Neos\Neos\View\FusionView', 'beginRender', function () use ($profiler) {
-            $profiler->getRun()->startTimer('Neos TypoScript Rendering');
-        });
-        $dispatcher->connect('Neos\Neos\View\FusionView', 'endRender', function () use ($profiler) {
-            $profiler->getRun()->stopTimer('Neos TypoScript Rendering');
         });
     }
 
