@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Service;
 
 /*                                                                        *
@@ -13,19 +16,15 @@ namespace Sandstorm\Plumber\Service;
 
 use Neos\Flow\Annotations as Flow;
 
-/**
- * @Flow\Scope("singleton")
- */
-class RenderTagsService
+#[Flow\Scope('singleton')]
+final readonly class RenderTagsService
 {
-
     /**
      * Renders the given tags as HTML output.
      *
-     * @param array $tags
-     * @return string
+     * @param array<string> $tags
      */
-    public function render(array $tags)
+    public function render(array $tags): string
     {
         $output = '';
         foreach ($tags as $tag) {
@@ -34,5 +33,4 @@ class RenderTagsService
         }
         return $output;
     }
-
 }

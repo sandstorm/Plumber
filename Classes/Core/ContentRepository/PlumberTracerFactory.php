@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Core\ContentRepository;
 
 use Neos\ContentRepository\Core\Infrastructure\PerformanceTracing\PerformanceTracerInterface;
@@ -7,12 +9,8 @@ use Neos\ContentRepository\Core\SharedModel\ContentRepository\ContentRepositoryI
 use Neos\ContentRepositoryRegistry\Factory\PerformanceTracer\PerformanceTracerFactoryInterface;
 use Sandstorm\Plumber\Core\Profiler;
 
-class PlumberTracerFactory implements PerformanceTracerFactoryInterface
+final readonly class PlumberTracerFactory implements PerformanceTracerFactoryInterface
 {
-    public function __construct()
-    {
-    }
-
     public function build(ContentRepositoryId $contentRepositoryId, array $options): PerformanceTracerInterface
     {
         $profiler = Profiler::getInstance();

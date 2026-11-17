@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sandstorm\Plumber\Tests\Unit\Export;
 
 use Neos\Flow\Tests\UnitTestCase;
+use PDO;
 use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Export\SqliteExport;
 
@@ -43,7 +44,7 @@ final class SqliteExportTest extends UnitTestCase
         $rows = $database->query(
             "SELECT json_extract(data_json, '\$.group') AS \"group\", count(*) AS items, sum(duration_ms) AS ms"
             . " FROM timers WHERE name = 'Process Item' GROUP BY 1 ORDER BY ms DESC",
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        )->fetchAll(PDO::FETCH_ASSOC);
 
         self::assertSame('first', $rows[0]['group']);
         self::assertSame(2, (int)$rows[0]['items']);
@@ -57,7 +58,7 @@ final class SqliteExportTest extends UnitTestCase
         $run->setTags(['job:1756123456']);
         $database = $this->export(['worker-1.profile' => $run]);
 
-        $rows = $database->query('SELECT file, tags FROM runs')->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $database->query('SELECT file, tags FROM runs')->fetchAll(PDO::FETCH_ASSOC);
         self::assertCount(1, $rows);
         self::assertSame('worker-1.profile', $rows[0]['file']);
         self::assertSame(['job:1756123456'], json_decode($rows[0]['tags'], true));
@@ -90,10 +91,10 @@ final class SqliteExportTest extends UnitTestCase
     /**
      * @param array<string, ProfilingRun> $runs
      */
-    private function export(array $runs): \PDO
+    private function export(array $runs): PDO
     {
         (new SqliteExport())->export($runs, $this->targetPathAndFilename);
 
-        return new \PDO('sqlite:' . $this->targetPathAndFilename);
+        return new PDO('sqlite:' . $this->targetPathAndFilename);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Core\Domain\Model;
 
 /*                                                                        *
@@ -19,12 +21,10 @@ use Neos\Flow\Annotations as Flow;
  *
  * This is needed such that the user can do ...getRun()->startTimer() even
  * when profiling is disabled.
- *
- * @Flow\Proxy(false)
  */
+#[Flow\Proxy(false)]
 class EmptyProfilingRun
 {
-
     /**
      * Set an option.
      * @api
@@ -56,7 +56,8 @@ class EmptyProfilingRun
      * Start a timer
      * @api
      */
-    public function startTimer(string $name, array $data = []) {
+    public function startTimer(string $name, array $data = []): void
+    {
     }
 
     /**
@@ -78,7 +79,7 @@ class EmptyProfilingRun
     {
     }
 
-    public function logSqlQuery($sql): void
+    public function logSqlQuery(string $sql): void
     {
     }
 

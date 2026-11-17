@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Sandstorm\Plumber\Export;
 
+use PDO;
+use PDOStatement;
+use RuntimeException;
 use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 
 /**
@@ -92,7 +95,7 @@ final class SqliteExport implements ExportFormatInterface
     public function export(iterable $runs, string $targetPathAndFilename): void
     {
         if (!extension_loaded('pdo_sqlite')) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'The SQLite export needs the pdo_sqlite PHP extension, which is not loaded.',
                 1756200020,
             );
@@ -102,8 +105,8 @@ final class SqliteExport implements ExportFormatInterface
             unlink($targetPathAndFilename);
         }
 
-        $database = new \PDO('sqlite:' . $targetPathAndFilename);
-        $database->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $database = new PDO('sqlite:' . $targetPathAndFilename);
+        $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         foreach (self::SCHEMA as $statement) {
             $database->exec($statement);
         }
@@ -138,7 +141,7 @@ final class SqliteExport implements ExportFormatInterface
         $database->commit();
     }
 
-    private function writeRun(\PDOStatement $statement, int $runId, string $filename, ProfilingRun $run): void
+    private function writeRun(PDOStatement $statement, int $runId, string $filename, ProfilingRun $run): void
     {
         $options = $run->getOptions();
         $statement->execute([
@@ -154,7 +157,7 @@ final class SqliteExport implements ExportFormatInterface
         ]);
     }
 
-    private function writeTimers(\PDOStatement $statement, int $runId, ProfilingRun $run): void
+    private function writeTimers(PDOStatement $statement, int $runId, ProfilingRun $run): void
     {
         $timers = $run->getTimersAsDuration();
         $parentOf = [];
@@ -177,7 +180,7 @@ final class SqliteExport implements ExportFormatInterface
         }
     }
 
-    private function writeTimestamps(\PDOStatement $statement, int $runId, ProfilingRun $run): void
+    private function writeTimestamps(PDOStatement $statement, int $runId, ProfilingRun $run): void
     {
         foreach ($run->getTimestamps() as $timestamp) {
             $statement->execute([
@@ -189,7 +192,7 @@ final class SqliteExport implements ExportFormatInterface
         }
     }
 
-    private function writeXhprofFunctions(\PDOStatement $statement, int $runId, ProfilingRun $run): void
+    private function writeXhprofFunctions(PDOStatement $statement, int $runId, ProfilingRun $run): void
     {
         foreach ($run->getXhprofTrace() as $key => $values) {
             $callerAndCallee = explode('==>', (string)$key);

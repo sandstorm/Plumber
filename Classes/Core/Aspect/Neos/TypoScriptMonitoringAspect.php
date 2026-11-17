@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Core\Aspect\Neos;
 
 /*                                                                        *
@@ -12,44 +15,31 @@ namespace Sandstorm\Plumber\Core\Aspect\Neos;
  *                                                                        */
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Aop\JoinPointInterface;
+use Sandstorm\Plumber\Core\Profiler;
 
 /**
  * Monitor TypoScript execution times
- *
- * @Flow\Scope("singleton")
- * @Flow\Aspect
  */
-class TypoScriptMonitoringAspect
+#[Flow\Scope('singleton')]
+#[Flow\Aspect]
+final readonly class TypoScriptMonitoringAspect
 {
-
-    /**
-     * Around advice
-     *
-     * @Flow\Around("method(Neos\Neos\View\FusionView->render())")
-     * @param \Neos\Flow\Aop\JoinPointInterface $joinPoint The current join point
-     * @return array Result of the target method
-     */
-    public function profileRenderMethod(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
+    #[Flow\Around('method(Neos\Neos\View\FusionView->render())')]
+    public function profileRenderMethod(JoinPointInterface $joinPoint): mixed
     {
-        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript View');
+        Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript View');
         $output = $joinPoint->getAdviceChain()->proceed($joinPoint);
-        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript View');
+        Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript View');
         return $output;
     }
 
-    /**
-     * Around advice
-     *
-     * @Flow\Around("method(Neos\Fusion\FusionObjects\TemplateImplementation->evaluate())")
-     * @param \Neos\Flow\Aop\JoinPointInterface $joinPoint The current join point
-     * @return array Result of the target method
-     */
-    public function profileTemplateImplementationEvaluate(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
+    #[Flow\Around('method(Neos\Fusion\FusionObjects\TemplateImplementation->evaluate())')]
+    public function profileTemplateImplementationEvaluate(JoinPointInterface $joinPoint): mixed
     {
-        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript Template Rendering');
+        Profiler::getInstance()->getRun()->startTimer('Neos.Neos: TypoScript Template Rendering');
         $output = $joinPoint->getAdviceChain()->proceed($joinPoint);
-        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript Template Rendering');
+        Profiler::getInstance()->getRun()->stopTimer('Neos.Neos: TypoScript Template Rendering');
         return $output;
     }
-
 }

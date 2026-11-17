@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sandstorm\Plumber\Tests\Unit\Export;
 
+use Generator;
 use Neos\Flow\Tests\UnitTestCase;
 use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Export\PerfettoTraceExport;
@@ -95,7 +96,7 @@ final class PerfettoTraceExportTest extends UnitTestCase
     public function testRunsAreConsumedOneAtATime(): void
     {
         $live = 0;
-        $runs = (function () use (&$live): \Generator {
+        $runs = (function () use (&$live): Generator {
             foreach (['first.profile', 'second.profile', 'third.profile'] as $filename) {
                 $live++;
                 yield $filename => $this->emptyRun();

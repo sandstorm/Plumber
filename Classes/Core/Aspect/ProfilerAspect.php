@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Core\Aspect;
 
 /*                                                                        *
@@ -12,22 +15,16 @@ namespace Sandstorm\Plumber\Core\Aspect;
  *                                                                        */
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Aop\JoinPointInterface;
+use Sandstorm\Plumber\Core\Profiler;
 
-/**
- * @Flow\Aspect
- */
-class ProfilerAspect
+#[Flow\Aspect]
+final readonly class ProfilerAspect
 {
-
-    /**
-     *
-     * @Flow\Around("methodAnnotatedWith(Sandstorm\Plumber\Core\Annotations\Profile)")
-     * @param \Neos\Flow\Aop\JoinPointInterface $joinPoint The current join point
-     * @return array Result of the target method
-     */
-    public function profileAround(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
+    #[Flow\Around('methodAnnotatedWith(Sandstorm\Plumber\Core\Annotations\Profile)')]
+    public function profileAround(JoinPointInterface $joinPoint): mixed
     {
-        $run = \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun();
+        $run = Profiler::getInstance()->getRun();
         $tag = str_replace('\\', '_', $joinPoint->getClassName()) . ':' . $joinPoint->getMethodName();
 
         $run->startTimer($tag);

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Controller;
 
 /*                                                                        *
@@ -11,25 +14,22 @@ namespace Sandstorm\Plumber\Controller;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Neos\Flow\Annotations as Flow;
 use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Exception;
-use Neos\Flow\Annotations as Flow;
+use XHProf_UI;
+use XHProf_UI\Config;
+use XHProf_UI\Utils;
+
+use function Neos\Flow\var_dump;
 
 /**
- * Standard controller for the Sandstorm.Plumber package
- *
- * @Flow\Scope("singleton")
+ * Details controller for the Sandstorm.Plumber package
  */
-class DetailsController extends AbstractController
+#[Flow\Scope('singleton')]
+final class DetailsController extends AbstractController
 {
-
-    /**
-     *
-     * @param string $runIdentifier1
-     * @param string $runIdentifier2
-     * @return void
-     */
-    public function timelineAction($runIdentifier1, $runIdentifier2 = NULL)
+    public function timelineAction(string $runIdentifier1, ?string $runIdentifier2 = null): void
     {
         $profile = $this->getProfile($runIdentifier1);
         $this->view->assign('numberOfProfiles', $runIdentifier2 === NULL ? 1 : 2);
@@ -47,13 +47,7 @@ class DetailsController extends AbstractController
         $this->view->assign('js', $js);
     }
 
-
-    /**
-     *
-     * @param string $runIdentifier1
-     * @return void
-     */
-    public function sqlAction($runIdentifier1)
+    public function sqlAction(string $runIdentifier1): void
     {
         $sqlTimers = $this->prepareSqlTimers($runIdentifier1);
 
@@ -61,19 +55,14 @@ class DetailsController extends AbstractController
         $this->view->assign('sqlTimers', $sqlTimers);
     }
 
-
-    /**
-     * @param string $run
-     * @param string $query
-     */
-    public function sqlDetailsAction($run, $query)
+    public function sqlDetailsAction(string $run, string $query): void
     {
         $sqlTimers = $this->prepareSqlTimers($run);
         $this->view->assign('sqlQuery', $sqlTimers[$query]);
         $this->view->assign('run', $run);
     }
 
-    protected function prepareSqlTimers($runIdentifier)
+    protected function prepareSqlTimers(string $runIdentifier): array
     {
         $profile = $this->getProfile($runIdentifier);
 
@@ -119,11 +108,9 @@ class DetailsController extends AbstractController
      * Note: the argument must be named "run" because XHProf_UI fetches its "run" directly
      * from the request variables…
      *
-     * @param string $run
-     * @return void
-     * @throws \Sandstorm\Plumber\Exception
+     * @throws Exception
      */
-    public function xhprofAction($run)
+    public function xhprofAction(string $run): void
     {
         require_once(XHPROF_ROOT . '/classes/xhprof_ui.php');
         require_once(XHPROF_ROOT . '/classes/xhprof_ui/config.php');
@@ -134,19 +121,19 @@ class DetailsController extends AbstractController
         require_once(XHPROF_ROOT . '/classes/xhprof_ui/report/single.php');
         $oldErrorReportingLevel = error_reporting(0);
 
-        $xhprofConfiguration = new \XHProf_UI\Config();
+        $xhprofConfiguration = new Config();
 
-        $xhprofUi = new \XHProf_UI(
+        $xhprofUi = new XHProf_UI(
             array(
-                'run' => array(\XHProf_UI\Utils::STRING_PARAM, ''),
-                'compare' => array(\XHProf_UI\Utils::STRING_PARAM, ''),
-                'wts' => array(\XHProf_UI\Utils::STRING_PARAM, ''),
-                'fn' => array(\XHProf_UI\Utils::STRING_PARAM, ''),
-                'sort' => array(\XHProf_UI\Utils::STRING_PARAM, 'wt'),
-                'run1' => array(\XHProf_UI\Utils::STRING_PARAM, ''),
-                'run2' => array(\XHProf_UI\Utils::STRING_PARAM, ''),
-                'namespace' => array(\XHProf_UI\Utils::STRING_PARAM, 'xhprof'),
-                'all' => array(\XHProf_UI\Utils::UINT_PARAM, 0),
+                'run' => array(Utils::STRING_PARAM, ''),
+                'compare' => array(Utils::STRING_PARAM, ''),
+                'wts' => array(Utils::STRING_PARAM, ''),
+                'fn' => array(Utils::STRING_PARAM, ''),
+                'sort' => array(Utils::STRING_PARAM, 'wt'),
+                'run1' => array(Utils::STRING_PARAM, ''),
+                'run2' => array(Utils::STRING_PARAM, ''),
+                'namespace' => array(Utils::STRING_PARAM, 'xhprof'),
+                'all' => array(Utils::UINT_PARAM, 0),
             ),
             $xhprofConfiguration,
             FLOW_PATH_DATA . 'Logs/Profiles'
@@ -179,25 +166,18 @@ class DetailsController extends AbstractController
 
     /**
      * Fetches the profile attached to the profiling run and var_dumps it.
-     *
-     * @param string $runIdentifier
-     * @return string
      */
-    public function xhprofDebugAction($runIdentifier)
+    public function xhprofDebugAction(string $runIdentifier): string
     {
         $profile = $this->getProfile($runIdentifier);
-        \Neos\Flow\var_dump($profile->getXhprofTrace());
+        var_dump($profile->getXhprofTrace());
         return '';
     }
 
     /**
      * Build timeline JS code for the given profile.
-     *
-     * @param \Sandstorm\Plumber\Core\Domain\Model\ProfilingRun $profile
-     * @param integer $eventSourceIndex
-     * @return string
      */
-    protected function buildJavaScriptForProfile(ProfilingRun $profile, $eventSourceIndex)
+    protected function buildJavaScriptForProfile(ProfilingRun $profile, int $eventSourceIndex): string
     {
         $javaScript = array();
         foreach ($profile->getTimersAsDuration() as $event) {
@@ -252,11 +232,8 @@ class DetailsController extends AbstractController
      * we want to make sure that the group is *roughly* having the same color. That's why
      * we take the group title ("MVC"), calculate a base color from it, and then
      * darken or lighten this color using the remaining string.
-     *
-     * @param string $name
-     * @return string
      */
-    protected function getColorForEventName($name)
+    protected function getColorForEventName(string $name): string
     {
         $parts = explode(':', $name);
         if (count($parts) > 1) {
@@ -281,5 +258,4 @@ class DetailsController extends AbstractController
             return substr(sha1($name), 0, 6);
         }
     }
-
 }

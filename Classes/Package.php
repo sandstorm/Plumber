@@ -13,15 +13,12 @@ use Neos\Flow\SignalSlot\Dispatcher;
 use Neos\Utility\Files;
 use Sandstorm\Plumber\Core\Profiler;
 
-class Package extends BasePackage
+final class Package extends BasePackage
 {
     /**
      * Sets up xhprof and some directories.
-     *
-     * @param Bootstrap $bootstrap
-     * @return void
      */
-    public function boot(Bootstrap $bootstrap)
+    public function boot(Bootstrap $bootstrap): void
     {
         define('XHPROF_ROOT', $this->getResourcesPath() . 'Private/PHP/xhprof-ui/');
 
@@ -192,5 +189,4 @@ class Package extends BasePackage
             $profiler->getRun()->stopTimer('MVC: Controller Invocation');
         });
     }
-
 }

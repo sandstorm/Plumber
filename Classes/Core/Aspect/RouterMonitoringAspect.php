@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Core\Aspect;
 
 /*                                                                        *
@@ -12,29 +15,22 @@ namespace Sandstorm\Plumber\Core\Aspect;
  *                                                                        */
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Aop\JoinPointInterface;
+use Sandstorm\Plumber\Core\Profiler;
 
 /**
  * Monitor how long the router::route method takes
- *
- * @Flow\Scope("singleton")
- * @Flow\Aspect
  */
-class RouterMonitoringAspect
+#[Flow\Scope('singleton')]
+#[Flow\Aspect]
+final readonly class RouterMonitoringAspect
 {
-
-    /**
-     * Around advice
-     *
-     * @Flow\Around("method(Neos\Flow\Mvc\Routing\Router->route())")
-     * @param \Neos\Flow\Aop\JoinPointInterface $joinPoint The current join point
-     * @return array Result of the target method
-     */
-    public function profileRouteMethod(\Neos\Flow\Aop\JoinPointInterface $joinPoint)
+    #[Flow\Around('method(Neos\Flow\Mvc\Routing\Router->route())')]
+    public function profileRouteMethod(JoinPointInterface $joinPoint): mixed
     {
-        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->startTimer('MVC: Build Request / Routing');
+        Profiler::getInstance()->getRun()->startTimer('MVC: Build Request / Routing');
         $output = $joinPoint->getAdviceChain()->proceed($joinPoint);
-        \Sandstorm\Plumber\Core\Profiler::getInstance()->getRun()->stopTimer('MVC: Build Request / Routing');
+        Profiler::getInstance()->getRun()->stopTimer('MVC: Build Request / Routing');
         return $output;
     }
-
 }

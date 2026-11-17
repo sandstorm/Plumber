@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sandstorm\Plumber\Tests\Unit\Core\Domain\Model;
 
 use Neos\Flow\Tests\UnitTestCase;
+use ReflectionProperty;
 use Sandstorm\Plumber\Core\Domain\Model\ProfilingRun;
 use Sandstorm\Plumber\Core\Profiler;
 
@@ -25,7 +26,7 @@ final class ProfilingRunRecordingTest extends UnitTestCase
 
     protected function tearDown(): void
     {
-        $instance = new \ReflectionProperty(Profiler::class, 'instance');
+        $instance = new ReflectionProperty(Profiler::class, 'instance');
         $instance->setAccessible(true);
         Profiler::getInstance()->stop();
         $instance->setValue(null, null);

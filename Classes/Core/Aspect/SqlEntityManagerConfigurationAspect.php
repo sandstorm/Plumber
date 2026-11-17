@@ -1,6 +1,8 @@
 <?php
-namespace Sandstorm\Plumber\Core\Aspect;
 
+declare(strict_types=1);
+
+namespace Sandstorm\Plumber\Core\Aspect;
 
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
@@ -12,50 +14,37 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
 use Neos\Flow\Configuration\Exception\InvalidConfigurationException;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
+use Neos\Flow\Persistence\Doctrine\EntityManagerFactory;
 use Neos\Flow\Persistence\Doctrine\Logging\SqlLogger;
 use Neos\Flow\Persistence\Doctrine\Mapping\ClassMetadataFactory;
 use Neos\Flow\Persistence\Doctrine\Mapping\Driver\FlowAnnotationDriver;
-use Neos\Flow\Reflection\ReflectionService;
 use Neos\Flow\Utility\Environment;
 use Neos\Utility\Files;
 use Psr\Log\LoggerInterface;
 use Sandstorm\Plumber\Core\Sql\Middleware\SqlProfilingMiddleware;
 
 #[Flow\Aspect]
-class SqlEntityManagerConfigurationAspect {
+final class SqlEntityManagerConfigurationAspect
+{
+    public function __construct(
+        private readonly ObjectManagerInterface $objectManager,
+        private readonly Environment $environment,
+        #[Flow\InjectConfiguration('persistence', 'Neos.Flow')]
+        protected array $settings,
+    ) {
+    }
 
     /**
-     * @Flow\Inject
-     * @var ObjectManagerInterface
+     * @throws InvalidConfigurationException
      */
-    protected $objectManager;
-
-    /**
-     * @Flow\Inject
-     * @var ReflectionService
-     */
-    protected $reflectionService;
-
-    /**
-     * @Flow\Inject
-     * @var Environment
-     */
-    protected $environment;
-
-    /**
-     * @Flow\InjectConfiguration(package="Neos.Flow", path="persistence")
-     * @var array
-     */
-    protected $settings = [];
-
-
-    #[Flow\Around("method(Neos\Flow\Persistence\Doctrine\EntityManagerFactory->create())")]
-    public function enableSqlLogger(JoinPointInterface $joinPoint): mixed {
+    #[Flow\Around('method(Neos\Flow\Persistence\Doctrine\EntityManagerFactory->create())')]
+    public function enableSqlLogger(JoinPointInterface $joinPoint): EntityManager
+    {
         $config = new Configuration();
 
-        // SANDSTORM MODIFICATION START COMPARED TO NEOS 8.4
+        // SANDSTORM MODIFICATION START COMPARED TO FLOW 9 EntityManagerFactory::create()
         $config->setMiddlewares([new SqlProfilingMiddleware()]);
-        // SANDSTORM MODIFICATION END COMPARED TO NEOS 8.4
+        // SANDSTORM MODIFICATION END COMPARED TO FLOW 9 EntityManagerFactory::create()
 
         $config->setClassMetadataFactoryName(ClassMetadataFactory::class);
 
@@ -94,9 +83,10 @@ class SqlEntityManagerConfigurationAspect {
             $connection = DriverManager::getConnection($settings, $config, $eventManager);
         }
 
+        /** @var EntityManagerFactory $orig */
         $orig = $joinPoint->getProxy();
         $orig->emitBeforeDoctrineEntityManagerCreation($connection, $config, $eventManager);
-        $entityManager = EntityManager::create($connection, $config, $eventManager);
+        $entityManager = new EntityManager($connection, $config, $eventManager);
         $flowAnnotationDriver->setEntityManager($entityManager);
         $orig->emitAfterDoctrineEntityManagerCreation($config, $entityManager);
 

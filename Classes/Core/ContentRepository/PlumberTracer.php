@@ -10,7 +10,7 @@ use Neos\Flow\Annotations as Flow;
 use Sandstorm\Plumber\Core\Profiler;
 
 #[Flow\Proxy(false)]
-class PlumberTracer implements PerformanceTracerInterface
+final class PlumberTracer implements PerformanceTracerInterface
 {
     /**
      * @var CurrentSpanMeta[]

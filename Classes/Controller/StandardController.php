@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Sandstorm\Plumber\Controller;
 
 /*                                                                        *
@@ -16,16 +19,10 @@ use Neos\Flow\Annotations as Flow;
 /**
  * Standard controller for the Sandstorm.Plumber package
  */
-#[Flow\Scope("singleton")]
-class StandardController extends AbstractController
+#[Flow\Scope('singleton')]
+final class StandardController extends AbstractController
 {
-
-    /**
-     * Index action
-     *
-     * @return void
-     */
-    public function indexAction()
+    public function indexAction(): void
     {
         $this->redirect('index', 'Overview');
     }
